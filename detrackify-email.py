@@ -55,7 +55,7 @@ class Detrackify:
         # Regex pattern to match property names at the start, after a space, or after a semicolon
         pattern = rf'(^|\s|;){property_name}\s*:\s*([0-9]+|auto)(dp|px|%)?\s*;'
         match = re.search(pattern, style)
-        return match.group(2) if match else 0
+        return match.group(2) if match else None
 
     def detect_hidden_element_from_style(self, style):
         """
@@ -88,16 +88,18 @@ class Detrackify:
 
             logging.debug(f'Size check: {width}x{height}, External URL: {src} (Alt: {alt})')
 
-            if (width < 2 or height < 2) and alt is not None and alt != '':
-                # Unlikely to be a tracking pixel, but could be a spacer image
-                return False, []
-
             # Check for small size (1x1 pixels)
             # There's 1x1, 0x0 but also None x None and None x 0, etc.
             size_check = (width <= 1 and height <= 1)
 
-            # Check if the source is an external URL, often with tracking parameters
-            external_url = re.match(r'https?://', src) is not None
+            # However, if there's no size specified, we can't be sure, so we need to take some executive decisions
+            if width == -1 and height == -1:
+                # see if there's a tracking URL in the src
+                stripped_src = self.strip_tracking_parameters(img_tag)
+                if not stripped_src:
+                    # Unlikely a tracking image, probably just a lazy developer not providing size
+                    logging.info('(No size specified, but no tracking URL detected, assuming not a tracking pixel)')
+                    size_check = False
 
             # Check if the image is hidden based on style attribute
             hidden_element = self.detect_hidden_element_from_style(style)
@@ -125,15 +127,18 @@ class Detrackify:
         return domain.group(1) if domain else 'INVALID: ' + url
 
     def strip_tracking_parameters(self, img_tag):
+        result = None
         # Strip tracking parameters from URL
         url = img_tag['src']
         # Images typically don't have query parameters, so let's strip them if they exist
         match = re.search(r'(https?:\/\/[^?]+)(\??.*)', url)
         if match:
-            logging.info(f'Stripped tracking parameters from URL: {url} -> {match.group(1)}')
+            if match.group(2) and match.group(2) != '':
+                logging.info(f'Stripped: {url} -> {match.group(1)}')
+                result = match.group(1)
         else:
             logging.warning(f'URL does not confirm: {url}')
-        return match.group(1) if match else url
+        return result
 
     def replace_tracking_urls(self, html_content):
         # Parse HTML with BeautifulSoup
@@ -146,7 +151,7 @@ class Detrackify:
             tracker, why = self.is_tracking_pixel(img_tag)
             if tracker:
                 # Replace the src of the tracking pixel
-                logging.info(f'Replacing tracking pixel: {img_tag} ({", ".join(why)})')
+                logging.info(f'`--> Replacing tracking pixel: {img_tag} ({", ".join(why)})')
                 domain = self.get_domain(img_tag['src']).lower()
                 if domain in self.blocked_domains:
                     self.blocked_domains[domain].append({img_tag['src']: why}) 
@@ -252,7 +257,7 @@ class Detrackify:
 
 if __name__ == '__main__':
     # Configure logging
-    log_format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s'
+    log_format='%(asctime)s - %(levelname)7s - %(filename)s:%(lineno)3d - %(message)s'
     log_datefmt='%Y-%m-%d %H:%M:%S'
 
     # Create argument parser
