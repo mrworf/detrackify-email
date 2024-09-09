@@ -26,6 +26,8 @@ Processes standard emails and tries to determine what images within are used to 
 
 `--hardfail` instead of outputting unprocessed mail when an error occurs, it stops processing and exits with 1 (note that when run from command line, this is always the behavior)
 
+`--stripquery` will remove any parameters attached to an image's URL, ie `https://www.shady-site.com/nice-logo.png?track=879384yutr93478` becomes `https://www.shady-site.com/nice-logo.png`. This is *experimental* and without this option the log will show what images it would strip. It's experimental because there's no guarantee that this won't break the image.
+
 ## Ubuntu installation
 
 Please use the following apt line instead of pip3
@@ -112,4 +114,4 @@ It's not unreasonable to try and "scramble" or even remove the parameters of som
 
 - Whitelisting based on domains
 - Blacklisting based on domains
-- Stripping of tracking information from image URLs (you know, the ones you want to load to see the formatting)
+- Stripping of tracking information from image URLs (you know, the ones you want to load to see the formatting), see `--stripquery` for initial steps.

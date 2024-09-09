@@ -25,9 +25,11 @@ import base64
 from io import BytesIO
 
 class Detrackify:
-    def __init__(self):
+    def __init__(self, stripquery=False):
         self.blank_tracker = self.__create_blank_tracker()
         self.blocked_domains = {}
+        self.stripped_domains = []
+        self.stripquery = stripquery
 
     def __create_blank_tracker(self):
         # Create a 1x1 transparent image
@@ -122,6 +124,17 @@ class Detrackify:
         domain = re.search(r'https?://([^/]+)', url)
         return domain.group(1) if domain else 'INVALID: ' + url
 
+    def strip_tracking_parameters(self, img_tag):
+        # Strip tracking parameters from URL
+        url = img_tag['src']
+        # Images typically don't have query parameters, so let's strip them if they exist
+        match = re.search(r'(https?:\/\/[^?]+)(\??.*)', url)
+        if match:
+            logging.info(f'Stripped tracking parameters from URL: {url} -> {match.group(1)}')
+        else:
+            logging.warning(f'URL does not confirm: {url}')
+        return match.group(1) if match else url
+
     def replace_tracking_urls(self, html_content):
         # Parse HTML with BeautifulSoup
         soup = BeautifulSoup(html_content, 'html.parser')
@@ -140,6 +153,14 @@ class Detrackify:
                 else:
                     self.blocked_domains[domain] = [{img_tag['src']: why}]
                 img_tag['src'] = self.blank_tracker
+            else:
+                # See if there's parameters to be stripped
+                url = self.strip_tracking_parameters(img_tag)
+                if url and self.stripquery:
+                    self.stripped_domains.append(img_tag['src']) 
+                    img_tag['src'] = url
+                elif url:
+                    logging.info(f'Detected URL to strip, but stripquery is disabled: {img_tag["src"]}')
 
         # Return modified HTML
         return soup.encode(formatter="html")
@@ -159,7 +180,6 @@ class Detrackify:
         try:
             self.process_buffer(raw_message, output_fd)
         except Exception as e:
-            logging.error(f'Error processing email: {e}')
             logging.exception(f"Error: {e}")
             # Ensure we still allow message to be delivered
             if hardfail:
@@ -205,6 +225,8 @@ class Detrackify:
                 for item in items:
                     for url, reason in item.items():
                         msg.add_header('X-Detrackify-Blocked', f'{domain}: {url} ({", ".join(reason)})')
+            for url in self.stripped_domains:
+                msg.add_header('X-Detrackify-Stripped', url)
         elif hashtml:
             msg.add_header('X-Detrackify-Blocked', 'No tracking pixels found in HTML content')
         else:   
@@ -222,6 +244,10 @@ class Detrackify:
             for item in items:
                 for url, reason in item.items():
                     logging.info(f'  - {url} ({", ".join(reason)})')
+        if self.stripquery:
+            logging.info(f"Stripped tracking parameters from {len(self.stripped_domains)} URLs")
+            for url in self.stripped_domains:
+                logging.info(f'  - {url}')
 
 
 if __name__ == '__main__':
@@ -239,12 +265,13 @@ if __name__ == '__main__':
     parser.add_argument('--verbose', help='Enable verbose logging', action='store_true')
     parser.add_argument('--logfile', help='Save log instead of using stderr')
     parser.add_argument('--hardfail', help='Do not passthru email on failure, stop processing', action='store_true')
+    parser.add_argument('--stripquery', help='Remove parameters for images (experimental)', action='store_true')
 
     # Parse command line arguments
     args = parser.parse_args()
 
     # Call the scan_and_replace_trackers function with the input file path
-    detrack = Detrackify()
+    detrack = Detrackify(stripquery=args.stripquery)
     if args.logfile:
         logging.basicConfig(
             level=logging.INFO,
