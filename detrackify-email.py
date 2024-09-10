@@ -290,12 +290,19 @@ if __name__ == '__main__':
             format=log_format,
             datefmt=log_datefmt
         )
-    if args.verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
-    if args.message_id:
-        logging.info(f'Processing message ID: {args.message_id}')
-    if args.input and args.output:
-        detrack.process_file(args.input, args.output)
-        detrack.get_statistics()
-    else:
-        detrack.process(sys.stdin.buffer, sys.stdout.buffer, args.hardfail)
+
+    try:
+        if args.verbose:
+            logging.getLogger().setLevel(logging.DEBUG)
+        if args.message_id:
+            logging.info(f'Processing message ID: {args.message_id}')
+        if args.input and args.output:
+            detrack.process_file(args.input, args.output)
+            detrack.get_statistics()
+        else:
+            detrack.process(sys.stdin.buffer, sys.stdout.buffer, args.hardfail)
+    except Exception as e:
+        # Catch-all for any exceptions
+        logging.exception(f"Error: {e}")
+        sys.exit(1)
+    sys.exit(0)
