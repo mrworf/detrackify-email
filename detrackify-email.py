@@ -206,12 +206,13 @@ class Detrackify:
                 hashtml = True
                 # Check if content is Base64 encoded
                 content_transfer_encoding = part.get('Content-Transfer-Encoding', '').lower()
+                content_charset = part.get_content_charset() or 'utf-8'
                 if content_transfer_encoding == 'base64':
                     # Decode Base64 content
-                    html_content = self.decode_base64(part.get_payload(), part.get_content_charset())
+                    html_content = self.decode_base64(part.get_payload(), content_charset)
                 else:
                     # Decode normally if not Base64 encoded
-                    html_content = part.get_payload(decode=True).decode(part.get_content_charset())
+                    html_content = part.get_payload(decode=True).decode(content_charset)
 
                 # Replace tracking URLs in the HTML content
                 modified_html = self.replace_tracking_urls(html_content)
