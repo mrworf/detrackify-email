@@ -186,13 +186,11 @@ class Detector:
         return reason
 
 class Detrackify:
-    def __init__(self, config, rewrite=False, stripquery=False):
+    def __init__(self, config):
         self.blank_tracker = self.__create_blank_tracker()
         self.blocked_domains = {}
         self.stripped_domains = []
         self.rewrite_domains = []
-        self.stripquery = stripquery
-        self.rewrite = rewrite
         self.config = config
         self.detector = Detector()
 
@@ -251,7 +249,7 @@ class Detrackify:
             if config.is_blacklisted(url):
                 tracker.append('Blacklist')
 
-            if self.rewrite:
+            if self.config.get(Configuration.CFG_REWRITE):
                 url = config.rewrite_url(url)
                 if url != original:
                     self.rewrite_domains.append(original)
@@ -260,7 +258,7 @@ class Detrackify:
             if not tracker:
                 tracker.extend(self.detector.is_tracking_image(img_tag))
 
-            if self.stripquery and not tracker:
+            if self.config.get(Configuration.CFG_STRIP_ENABLE) and not tracker:
                 stripped_url = self.detector.strip_tracking_parameters(url)
                 if stripped_url:
                     logging.debug(f'Stripped: {url} -> {stripped_url}')
@@ -368,19 +366,47 @@ class Detrackify:
             for item in items:
                 for url, reason in item.items():
                     logging.info(f'  - {url} ({", ".join(reason)})')
-        if self.stripquery:
-            logging.info(f"Stripped tracking parameters from {len(self.stripped_domains)} URLs")
-            for url in self.stripped_domains:
-                logging.info(f'  - {url}')
+
+        logging.info(f"Stripped tracking parameters from {len(self.stripped_domains)} URLs")
+        for url in self.stripped_domains:
+            logging.info(f'  - {url}')
         
-        if self.rewrite:
-            logging.info(f"Rewrote {len(self.rewrite_domains)} URLs")
-            for url in self.rewrite_domains:
-                logging.info(f'  - {url}')
+        logging.info(f"Rewrote {len(self.rewrite_domains)} URLs")
+        for url in self.rewrite_domains:
+            logging.info(f'  - {url}')
 
 class Configuration:
+    CFG_REWRITE = 'rewrite'
+    CFG_VERBOSE = 'verbose'
+    CFG_STRIP_FILE = 'strip.file'
+    CFG_STRIP_COOKIES = 'strip.cookies'
+    CFG_STRIP_REDIRECT = 'strip.redirect'
+    CFG_STRIP_ENABLE = 'strip.enable'
+
     def __init__(self):
-        self.config = {}
+        # Ensure we have a sane default
+        self.config = {'strip': {'file': 'strip.yml', 'cookies': False, 'redirect': False, 'enable': False}} 
+
+    def set(self, key, value):
+        parts = key.split('.')
+        config = self.config
+        for c in range(len(parts)-1):
+            if parts[c] in config:
+                config = config[parts[c]]
+                if c == len(parts)-2:
+                    config[parts[c+1]] = value
+                    break
+        return
+
+    def get(self, key, default=None):
+        parts = key.split('.')
+        config = self.config
+        for part in parts:
+            if part in config:
+                config = config[part]
+            else:
+                return default
+        return config
 
     def load(self, path):
         # Load our configuration file (YAML)
@@ -457,7 +483,7 @@ if __name__ == '__main__':
     parser.add_argument('--verbose', help='Enable verbose logging', action='store_true')
     parser.add_argument('--logfile', help='Save log instead of using stderr')
     parser.add_argument('--hardfail', help='Do not passthru email on failure, stop processing', action='store_true')
-    parser.add_argument('--stripquery', help='Remove parameters for images (experimental)', action='store_true')
+    parser.add_argument('--strip', help='Remove parameters for images (experimental)', action='store_true')
     parser.add_argument('--rewrite', help='Rewrite image URL (experimental)', action='store_true')
     parser.add_argument('--config', help='Path to the configuration file')
     parser.add_argument('--testurl', help='Detect which query parameters can be stripped from the URL (WARNING! Will make requests to the URLs)')
@@ -468,7 +494,6 @@ if __name__ == '__main__':
 
     # Call the scan_and_replace_trackers function with the input file path
     config = Configuration()
-    detrack = Detrackify(config, rewrite=args.rewrite, stripquery=args.stripquery)
     if args.logfile:
         logging.basicConfig(
             level=logging.INFO,
@@ -488,8 +513,19 @@ if __name__ == '__main__':
             logging.error(f'Error loading configuration file: {args.config}')
             sys.exit(1)
 
+    if args.verbose:
+        config.set(Configuration.CFG_VERBOSE, True)
+    
+    if args.rewrite:
+        config.set(Configuration.CFG_REWRITE, True)
+
+    if args.strip:
+        config.set(Configuration.CFG_STRIP_ENABLE, True)
+
+    detrack = Detrackify(config)
+
     try:
-        if args.verbose:
+        if config.get(Configuration.CFG_VERBOSE):
             logging.getLogger().setLevel(logging.DEBUG)
         if args.testurl:
             logging.info(f'Testing URL: {args.testurl}')
