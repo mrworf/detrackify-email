@@ -11,6 +11,8 @@
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>. 
 
+import datetime
+import os
 import re
 import base64
 from email import policy
@@ -27,8 +29,8 @@ import yaml
 import requests
 
 class Detector:
-    def __init__(self):
-        pass
+    def __init__(self, config):
+        self.config = config
 
     def strip_tracking_parameters(self, url):
         result = None
@@ -36,7 +38,7 @@ class Detector:
         match = re.search(r'(https?:\/\/[^?]+)(\??.*)', url)
         if match:
             if match.group(2) and match.group(2) != '':
-                logging.debug(f'Stripped: {url} -> {match.group(1)}')
+                #logging.debug(f'Stripped: {url} -> {match.group(1)}')
                 result = match.group(1)
         else:
             logging.warning(f'URL does not confirm: {url}')
@@ -44,10 +46,11 @@ class Detector:
 
     def detect_needed_rewrite(self, url, replace_1x1=False):
         # Check if the URL contains a query string
-        result = url
+        ret = {'url': url, 'reason': []}
         match = re.search(r'(https?:\/\/[^?]+)(\??.*)', url)
         if match:
             if match.group(2) and match.group(2) != '':
+                logging.debug(f'Query string detected: {url} -> {match.group(1)} ({match.group(2)})')
                 # Break up the query string into parts
                 query = match.group(2)[1:] # Skip the question mark
                 parts = query.split('&')
@@ -59,57 +62,75 @@ class Detector:
                 # Reconstruct the URL without the query string
                 result = f'{match.group(1)}?'
                 while len(parts) > 0:
-                    size = self.get_url_img_size(result)
-                    if size:
+                    findings = self.interrogate_url(result[:-1])
+                    if findings:
                         # Check if the image is 1x1
-                        if replace_1x1 and size[0] <= 1 and size[1] <= 1:
-                            logging.debug(f'1x1 image detected at URL: {url}')
-                            return None
-                        result = result[:-1] # Remove the last character, the ampersand/question mark
-                        return result
+                        if findings['width'] <= 1 and findings['height'] <= 1:
+                            ret['reason'].append('Tracker')
+                        ret['url'] = findings['url'] # Allows us to use the final destination directly
+                        ret['reason'].extend(findings['detected'])
+                        return ret
                     result += f'{parts.pop(0)}&'
-                logging.warning(f'No image at URL: {url}')
-                return result
+                ret = None
         else:
             logging.warning(f'URL does not confirm: {url}')
-        return result
+        return ret
 
-    def get_url_img_size(self, url):
+    def interrogate_url(self, url):
         """
         Will attempt to connect to the URL to see if it returns an image
+
+        Returns a dict
         """
+        result = {
+            'width': -1,
+            'height': -1,
+            'detected': [],
+            'url': url
+        }
+
         try:
-            req = requests.get(url, stream=True, timeout=3, allow_redirects=False) # Only wait 3s for a response
+            req = requests.get(url, stream=True, timeout=3, allow_redirects=self.config.get(Configuration.CFG_STRIP_REDIRECT)) # Only wait 3s for a response
             if req.status_code == 200:
                 if req.cookies:
                     logging.debug(f'URL {url} returns cookies, so it is going to be a tracking device')
-                    return (-1, -1) # This will be considered a tracking image
+                    result['detected'].append('Cookies')
+                if req.history:
+                    logging.debug(f'Request was redirected, intermediate URLs:')
+                    for r in req.history:
+                        logging.debug(f'  - {r.url}')
+                    logging.debug(f'Final URL: {req.url}')
+                    result['detected'].append('Redirect')
+                    result['url'] = req.url # Update to the final one
                 
                 # So far so good, check mimetype
                 if 'image' in req.headers['Content-Type']:
                     # Read image so we can determine dimensions
                     # Read the image data
                     image = Image.open(BytesIO(req.content))
-                    logging.debug('Image size: %s', image.size)
-                    return image.size
+                    result['width'], result['height'] = image.size
+                    logging.debug(f'URL {url} is an image: {result["width"]}x{result["height"]}')
                 else:
                     logging.debug(f'URL {url} does not return an image')
+                    result['detected'].append('No Image')
             elif req.status_code == 301 or req.status_code == 302:
                 logging.debug(f'URL {url} is a redirect, not likely to be a legit image')
-                return (-1, -1) # This will be considered a tracking image
+                result['detected'].append('Redirect')
+            else:
+                logging.debug(f'URL {url} returned status code {req.status_code}')
         except Exception as e:
             # This isn't superpretty, but we'll do some text matching
             error = str(e)
             if "Name or service not known" in error:
                 # No need to retry, this is a dead end
-                return (-1, -1) # This will be considered a tracking image
+                result['detected'].append('DNS error')
             elif "Max retries":
                 # Also not a good indicator, so we'll treat it as a tracking image
-                return (-1, -1) # This will be considered a tracking image
+                result['detected'].append('Connection Issues')
             # All else...
             logging.error(f'Error testing {url}: {e}')
             logging.exception(f"Exception: {e}")
-        return None
+        return result
 
     def __get_style_size(self, style, property_name):
         """
@@ -192,7 +213,7 @@ class Detrackify:
         self.stripped_domains = []
         self.rewrite_domains = []
         self.config = config
-        self.detector = Detector()
+        self.detector = Detector(config)
 
     def __create_blank_tracker(self):
         # Create a 1x1 transparent image
@@ -234,6 +255,14 @@ class Detrackify:
         img_tags = soup.find_all('img')
 
         for img_tag in img_tags:
+            if not img_tag.has_attr('src'):
+                logging.warning('Image tag without src attribute')
+                continue
+            original = img_tag['src']
+            img_tag['src'] = config.rewrite_url(img_tag['src'])
+            if img_tag['src'] != original:
+                self.rewrite_domains.append(original)
+
             original = url = img_tag['src']
             replacement = self.blank_tracker
             tracker = []
@@ -242,6 +271,8 @@ class Detrackify:
                 logging.debug(f'Ignoring CID URL: {url}')
                 continue
 
+            # Rewrite the URL if needed
+
             if config.is_whitelisted(url):
                 logging.debug(f'Whitelisted URL: {url}')
                 continue
@@ -249,22 +280,13 @@ class Detrackify:
             if config.is_blacklisted(url):
                 tracker.append('Blacklist')
 
-            if self.config.get(Configuration.CFG_REWRITE):
-                url = config.rewrite_url(url)
-                if url != original:
-                    self.rewrite_domains.append(original)
-
             # If we still haven't found something bad, then test the image
             if not tracker:
                 tracker.extend(self.detector.is_tracking_image(img_tag))
 
             if self.config.get(Configuration.CFG_STRIP_ENABLE) and not tracker:
-                stripped_url = self.detector.strip_tracking_parameters(url)
-                if stripped_url:
-                    logging.debug(f'Stripped: {url} -> {stripped_url}')
-                    self.stripped_domains.append(url)
-                    replacement = stripped_url
-                    tracker.append('Stripped')
+                replacement, reason = self.process_strip(img_tag)
+                tracker.extend(reason)
 
             # Determine if we should replace the tracking pixel
             if tracker:
@@ -280,11 +302,37 @@ class Detrackify:
             img_tag['src'] = url
 
         # Return modified HTML
-        return soup.encode(formatter="html")
+        return soup.encode(formatter="html").decode('utf-8')
+
+    def process_strip(self, img_tag):
+        stripped_url = url = img_tag['src']
+        reason = []
+        result = self.detector.detect_needed_rewrite(url)
+        if not result or 'No Image' in result['reason']:
+            print(f'Result: {result}')
+            self.config.add_blacklist(f'{self.detector.strip_tracking_parameters(url)}.*')
+            stripped_url = self.blank_tracker
+            reason.append('No image')
+        else:
+            reason = result['reason']
+            #logging.debug(f'[{", ".join(result["reason"])}] {url}')
+            if 'Tracker' in result['reason']:
+                self.config.add_blacklist(f'{self.detector.strip_tracking_parameters(url)}.*')
+                stripped_url = self.blank_tracker
+            elif stripped_url != url:
+                stripped_url = result['url']
+                reason.append('Rewritten')
+                
+                logging.debug(f'Stripped {url} to {stripped_url}')
+                
+                self.config.add_rewrite(self.detector.strip_tracking_parameters(url)+'.*', stripped_url)
+                self.config.add_whitelist(f'{stripped_url}')
+        return stripped_url, reason
 
     def decode_base64(self, content, charset='utf-8'):
         # Decode Base64 content to string using the specified charset
-        return base64.b64decode(content).decode(charset)
+        ret = base64.b64decode(content).decode(charset)
+        return ret
 
     def process_file(self, email_path, output_path, listonly=False):
         with open(email_path, 'rb') as fd_in:
@@ -294,6 +342,16 @@ class Detrackify:
     def process(self, input_fd, output_fd, hardfail=False, listonly=False):
         # Read the raw email content into memory
         raw_message = input_fd.read()
+
+        if self.config.get(Configuration.CFG_COPY):
+            # Copy the original email to the copy folder
+            try:
+                filename = os.path.join(self.config.get(Configuration.CFG_COPY), f'debug_original_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.eml')
+                with open(filename, 'wb') as fd:
+                    fd.write(raw_message)
+            except Exception as e:
+                logging.exception(f"Error copying original email: {e}")
+
         try:
             self.process_buffer(raw_message, output_fd, listonly=listonly)
         except Exception as e:
@@ -376,16 +434,19 @@ class Detrackify:
             logging.info(f'  - {url}')
 
 class Configuration:
-    CFG_REWRITE = 'rewrite'
-    CFG_VERBOSE = 'verbose'
-    CFG_STRIP_FILE = 'strip.file'
-    CFG_STRIP_COOKIES = 'strip.cookies'
-    CFG_STRIP_REDIRECT = 'strip.redirect'
-    CFG_STRIP_ENABLE = 'strip.enable'
+    CFG_VERBOSE = 'options.verbose'
+    CFG_STRIP_FILE = 'options.strip.file'
+    CFG_STRIP_COOKIES = 'options.strip.cookies'
+    CFG_STRIP_REDIRECT = 'options.strip.redirect'
+    CFG_STRIP_ENABLE = 'options.strip.enable'
+    CFG_COPY = 'options.copy'
 
     def __init__(self):
         # Ensure we have a sane default
-        self.config = {'strip': {'file': 'strip.yml', 'cookies': False, 'redirect': False, 'enable': False}} 
+        self.config = {'options':{'strip': {'file': 'strip.yml', 'cookies': True, 'redirect': True, 'enable': False}, 'verbose': False, 'copy': None}, 'blacklist': [], 'whitelist': [], 'rewrite': []}
+        self.last_blacklist = 0
+        self.last_rewrite = 0
+        self.last_whitelist = 0
 
     def set(self, key, value):
         parts = key.split('.')
@@ -396,6 +457,8 @@ class Configuration:
                 if c == len(parts)-2:
                     config[parts[c+1]] = value
                     break
+        if key == Configuration.CFG_STRIP_ENABLE:
+            self.load_learned(self.get(Configuration.CFG_STRIP_FILE))
         return
 
     def get(self, key, default=None):
@@ -405,6 +468,7 @@ class Configuration:
             if part in config:
                 config = config[part]
             else:
+                logging.warning(f'Key not found: {part} in {config}')
                 return default
         return config
 
@@ -413,16 +477,53 @@ class Configuration:
         try:
             with open(path, 'r') as stream:
                 try:
-                    self.config = yaml.safe_load(stream)
+                    settings = yaml.safe_load(stream)
+                    self.config.update(settings)
                 except yaml.YAMLError as exc:
                     logging.exception(f"Error loading configuration file: {exc}")
-                    self.config = {}
                     return False
         except FileNotFoundError as e:
             logging.exception(f"Configuration file not found: {path}")
             return False
         except Exception as e:
             logging.exception(f"Error loading configuration file: {e}")
+            return False
+        
+        self.last_blacklist = len(self.config.get('blacklist', []))
+        self.last_rewrite = len(self.config.get('rewrite', []))
+        self.last_whitelist = len(self.config.get('whitelist', []))
+        logging.debug(f'Loaded configuration file: {path} with {self.last_blacklist} blacklisted URLs and {self.last_rewrite} rewrite rules')
+        return True
+
+    def save_learned(self, path):
+        # Save the learned rewrite rules and blacklisted URLs
+        try:
+            partial = {'whitelist': self.config.get('whitelist', [])[self.last_whitelist:], 'blacklist': self.config.get('blacklist', [])[self.last_blacklist:], 'rewrite': self.config.get('rewrite', [])[self.last_rewrite:]}
+            logging.debug(f'In COnfig: Blacklisted URLs: {len(self.config.get("blacklist", []))}, Whitelisted URLs: {len(self.config.get("whitelist", []))}, Rewrite rules: {len(self.config.get("rewrite", []))}')
+            logging.debug(f'Last entry: Blacklisted URLs: {self.last_blacklist}, Whitelisted URLs: {self.last_whitelist}, Rewrite rules: {self.last_rewrite}')
+            with open(path, 'w') as stream:
+                yaml.dump(partial, stream)
+                logging.debug(f'Saved learned file: {path} with {len(partial.get("blacklist", []))} blacklisted URLs, {len(partial.get("whitelist", []))} whitelisted URLs and {len(partial.get("rewrite", []))} rewrite rules')
+        except Exception as e:
+            logging.exception(f"Error saving learned file: {e}")
+            return False
+        return True
+
+    def load_learned(self, path):
+        # Load the learned rewrite rules and blacklisted URLs
+        try:
+            with open(path, 'r') as stream:
+                learned = yaml.safe_load(stream)
+                print(f'Config: {self.config}')
+                self.config['whitelist'].extend(learned.get('whitelist', []))
+                self.config['blacklist'].extend(learned.get('blacklist', []))
+                self.config['rewrite'].extend(learned.get('rewrite', []))
+                logging.debug(f'Loaded learned file: {path} with {len(learned.get("blacklist", []))} blacklisted URLs and {len(learned.get("rewrite", []))} rewrite rules')
+        except FileNotFoundError as e:
+            logging.warning(f"Learned file not found: {path}")
+            return True
+        except Exception as e:
+            logging.exception(f"Error loading learned file: {e}")
             return False
         return True
 
@@ -467,6 +568,38 @@ class Configuration:
                 logging.error(f'Invalid rewrite rule: {rule}')
         return url
 
+    def add_blacklist(self, url):
+        # Add a URL to the blacklist
+        if not self.is_blacklisted(url):
+            logging.info(f'################## Adding {url} to blacklist')
+            self.config['blacklist'].append(url)
+            return True
+        return False
+
+    def add_whitelist(self, url):
+        # Add a URL to the whitelist
+        if not self.is_whitelisted(url):
+            logging.info(f'################## Adding {url} to whitelist')
+            self.config['whitelist'].append(url)
+            return True
+        return False
+
+    def add_rewrite(self, from_url, to_url):
+        # Check if a rewrite rule already exists
+        for rule in self.config['rewrite']:
+            if rule.get('from') == from_url:
+                # Rule already exists, is it the same?
+                if rule.get('to') == to_url:
+                    logging.debug(f'Rule already exists: {from_url} -> {to_url}')
+                    return False
+                else:
+                    logging.warning(f'Overwriting rewrite rule: {from_url} -> {to_url}')
+                    rule['to'] = to_url
+                    return True
+        # Add a new rewrite rule
+        logging.info(f'###################### Adding rewrite rule: {from_url} -> {to_url}')
+        self.config['rewrite'].append({'from': from_url, 'to': to_url})
+        return True
 
 if __name__ == '__main__':
     # Configure logging
@@ -481,16 +614,22 @@ if __name__ == '__main__':
     parser.add_argument('--output', help='Path to the cleaned email file')
     parser.add_argument('--message-id', help='Log the message id we\'re processing')
     parser.add_argument('--verbose', help='Enable verbose logging', action='store_true')
+    parser.add_argument('--debug', help='Enable early debug logging', action='store_true')
     parser.add_argument('--logfile', help='Save log instead of using stderr')
     parser.add_argument('--hardfail', help='Do not passthru email on failure, stop processing', action='store_true')
     parser.add_argument('--strip', help='Remove parameters for images (experimental)', action='store_true')
-    parser.add_argument('--rewrite', help='Rewrite image URL (experimental)', action='store_true')
     parser.add_argument('--config', help='Path to the configuration file')
     parser.add_argument('--testurl', help='Detect which query parameters can be stripped from the URL (WARNING! Will make requests to the URLs)')
     parser.add_argument('--list', help='List all detected image URLs', action='store_true')
+    parser.add_argument('--copy', help='Copy the original email to this folder for debugging')
 
     # Parse command line arguments
     args = parser.parse_args()
+
+    # Allow early debug logging
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+        logging.debug('Early debug logging enabled')
 
     # Call the scan_and_replace_trackers function with the input file path
     config = Configuration()
@@ -512,24 +651,30 @@ if __name__ == '__main__':
         if not config.load(args.config):
             logging.error(f'Error loading configuration file: {args.config}')
             sys.exit(1)
+        else:
+            logging.debug(f'Loaded configuration file: {args.config}')
 
     if args.verbose:
         config.set(Configuration.CFG_VERBOSE, True)
-    
-    if args.rewrite:
-        config.set(Configuration.CFG_REWRITE, True)
+
+    if config.get(Configuration.CFG_VERBOSE):
+        logging.getLogger().setLevel(logging.DEBUG)
 
     if args.strip:
         config.set(Configuration.CFG_STRIP_ENABLE, True)
 
-    detrack = Detrackify(config)
+    if args.copy:
+        if not os.path.exists(args.copy):
+            logging.error(f'Copy folder does not exist: {args.copy}')
+            sys.exit(1)
+        else:
+            config.set(Configuration.CFG_COPY, args.copy)
 
+    detrack = Detrackify(config)
     try:
-        if config.get(Configuration.CFG_VERBOSE):
-            logging.getLogger().setLevel(logging.DEBUG)
         if args.testurl:
             logging.info(f'Testing URL: {args.testurl}')
-            detector = Detector()
+            detector = Detector(config)
             result = detector.detect_needed_rewrite(args.testurl, replace_1x1=True)
             logging.info(f'Returns image: {result}')
             if result != args.testurl:
@@ -551,6 +696,9 @@ if __name__ == '__main__':
             #    detrack.get_statistics()
         else:
             detrack.process(sys.stdin.buffer, sys.stdout.buffer, args.hardfail)
+
+        if config.get(Configuration.CFG_STRIP_ENABLE):
+            config.save_learned(config.get(Configuration.CFG_STRIP_FILE))
     except Exception as e:
         # Catch-all for any exceptions
         logging.exception(f"Error: {e}")
