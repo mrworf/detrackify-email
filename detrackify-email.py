@@ -13,6 +13,7 @@
 
 import datetime
 import os
+import quopri
 import re
 import base64
 from email import policy
@@ -251,6 +252,10 @@ class Detrackify:
         # Parse HTML with BeautifulSoup
         soup = BeautifulSoup(html_content, 'html.parser')
 
+        # Print all links in the email
+        #for link in soup.find_all('a'):
+        #    print(link['href'][:50])
+
         # Find all image tags
         img_tags = soup.find_all('img')
 
@@ -302,7 +307,20 @@ class Detrackify:
             img_tag['src'] = url
 
         # Return modified HTML
-        return soup.encode(formatter="html").decode('utf-8')
+
+        # Print all links in the email
+        #for link in soup.find_all('a'):
+        #    print(link['href'][:50])
+
+        result = soup.encode(formatter="html").decode('utf-8')
+
+        # Print all links in the transformed email
+        #soup = BeautifulSoup(result, 'html.parser')
+
+        #for link in soup.find_all('a'):
+        #    print(link['href'][:50])
+
+        return result
 
     def process_strip(self, img_tag):
         stripped_url = url = img_tag['src']
@@ -395,9 +413,13 @@ class Detrackify:
                 # Optionally, re-encode the modified HTML back to Base64 if needed
                 if content_transfer_encoding == 'base64':
                     encoded_modified_html = base64.b64encode(modified_html.encode('utf-8')).decode('utf-8')
+                elif content_transfer_encoding == 'quoted-printable':
+                    encoded_modified_html = quopri.encodestring(modified_html.encode('utf-8')).decode('utf-8')
+                else:
+                    encoded_modified_html = modified_html
 
                 # Replace the part content (re-encoding step might be required if original was Base64)
-                part.set_payload(encoded_modified_html if content_transfer_encoding == 'base64' else modified_html, charset='utf-8')
+                part.set_payload(encoded_modified_html, charset='utf-8')
 
         msg.add_header('X-Detrackify', 'Processed by Detrackify')
         if modified_html_parts:
