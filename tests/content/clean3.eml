@@ -1,0 +1,12 @@
+From: newsletter@example.com
+To: subscriber@example.com
+Subject: Monthly Update
+MIME-Version: 1.0
+Content-Type: text/html
+
+<html>
+<body>
+<p>Welcome to our newsletter!</p>
+<img src="https://newsletter.example.com/images/banner.jpg" width="600" height="200">
+</body>
+</html>

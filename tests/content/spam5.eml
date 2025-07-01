@@ -1,0 +1,13 @@
+From: scammer5@example.com
+To: victim@example.com
+Subject: Limited time
+MIME-Version: 1.0
+Content-Type: text/html
+
+<html>
+<body>
+<p>Hurry up!</p>
+<img src="https://mailtracker.fakecorp.com/track.gif?e=1" style="display:none">
+<a href="https://fakecorp.com/deal">Deal</a>
+</body>
+</html>

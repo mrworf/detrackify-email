@@ -1,0 +1,13 @@
+From: scammer1@example.com
+To: victim@example.com
+Subject: Special offer
+MIME-Version: 1.0
+Content-Type: text/html
+
+<html>
+<body>
+<p>Buy now!</p>
+<img src="https://tracker.example.com/open.gif?uid=1" width="1" height="1">
+<a href="https://malicious.com/login">Login here</a>
+</body>
+</html>

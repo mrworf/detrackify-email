@@ -1,2 +1,6 @@
 beautifulsoup4
 Pillow
+PyYAML
+requests
+pytest
+pylint

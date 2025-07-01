@@ -264,7 +264,7 @@ class Detrackify:
                 logging.warning('Image tag without src attribute')
                 continue
             original = img_tag['src']
-            img_tag['src'] = config.rewrite_url(img_tag['src'])
+            img_tag['src'] = self.config.rewrite_url(img_tag['src'])
             if img_tag['src'] != original:
                 self.rewrite_domains.append(original)
 
@@ -278,11 +278,11 @@ class Detrackify:
 
             # Rewrite the URL if needed
 
-            if config.is_whitelisted(url):
+            if self.config.is_whitelisted(url):
                 logging.debug(f'Whitelisted URL: {url}')
                 continue
 
-            if config.is_blacklisted(url):
+            if self.config.is_blacklisted(url):
                 tracker.append('Blacklist')
 
             # If we still haven't found something bad, then test the image
@@ -386,7 +386,6 @@ class Detrackify:
         # Parse the email content
         msg = BytesParser(policy=policy.default).parsebytes(raw_message)
 
-        modified_html_parts = []
 
         # Iterate over all parts of the email
         for part in msg.walk():
@@ -406,9 +405,9 @@ class Detrackify:
                     self.list_images(html_content)
                     continue # Skip processing, just list URLs
                 else:
-                    # Replace tracking URLs in the HTML content
+                    # Replace tracking URLs in the HTML content. Store the
+                    # modified HTML so we can put the changed payload back.
                     modified_html = self.replace_tracking_urls(html_content)
-                    modified_html_parts.append(modified_html)
 
                 # Optionally, re-encode the modified HTML back to Base64 if needed
                 if content_transfer_encoding == 'base64':
@@ -422,7 +421,8 @@ class Detrackify:
                 part.set_payload(encoded_modified_html, charset='utf-8')
 
         msg.add_header('X-Detrackify', 'Processed by Detrackify')
-        if modified_html_parts:
+        # Only mark pixels as blocked if we actually changed or stripped URLs.
+        if self.blocked_domains or self.stripped_domains:
             for domain, items in self.blocked_domains.items():
                 for item in items:
                     for url, reason in item.items():
@@ -623,10 +623,11 @@ class Configuration:
         self.config['rewrite'].append({'from': from_url, 'to': to_url})
         return True
 
-if __name__ == '__main__':
+def main():
+    """Entry point for command-line execution."""
     # Configure logging
-    log_format='%(asctime)s - %(levelname)7s - %(filename)s:%(lineno)3d - %(message)s'
-    log_datefmt='%Y-%m-%d %H:%M:%S'
+    log_format = '%(asctime)s - %(levelname)7s - %(filename)s:%(lineno)3d - %(message)s'
+    log_datefmt = '%Y-%m-%d %H:%M:%S'
 
     # Create argument parser
     parser = argparse.ArgumentParser(description='Process email and replace tracking URLs')
@@ -723,6 +724,10 @@ if __name__ == '__main__':
             config.save_learned(config.get(Configuration.CFG_STRIP_FILE))
     except Exception as e:
         # Catch-all for any exceptions
-        logging.exception(f"Error: {e}")
+        logging.exception("Error: %s", e)
         sys.exit(1)
     sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

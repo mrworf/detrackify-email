@@ -45,7 +45,7 @@ This assumes you're somewhat comfortable with exim4's configuration.
 ```
 detrackify:
   driver = pipe
-  transport_filter = /opt/detrackify-email/detrackify-email.py --message-id ${message_id} --logfile /var/log/exim4/detrackify.log
+  transport_filter = /opt/detrackify-email/detrackify_email.py --message-id ${message_id} --logfile /var/log/exim4/detrackify.log
   use_bsmtp
   command = /usr/sbin/exim4 -oMr detrackify -bS
   return_fail_output = true

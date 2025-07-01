@@ -1,0 +1,12 @@
+From: info@example.org
+To: member@example.org
+Subject: Welcome
+MIME-Version: 1.0
+Content-Type: text/html
+
+<html>
+<body>
+<p>Thank you for joining.</p>
+<img src="https://info.example.org/images/welcome.png" width="200" height="200">
+</body>
+</html>
