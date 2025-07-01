@@ -1,0 +1,13 @@
+From: scammer3@example.com
+To: victim@example.com
+Subject: Urgent account notice
+MIME-Version: 1.0
+Content-Type: text/html
+
+<html>
+<body>
+<p>Your account is suspended!</p>
+<img src="https://img.spammy.co/pixel.jpg?x=3" width="0" height="0">
+<a href="https://spammysite.com/reset">Reset password</a>
+</body>
+</html>

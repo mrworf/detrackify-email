@@ -1,0 +1,13 @@
+From: scammer2@example.com
+To: victim@example.com
+Subject: Get rich quick
+MIME-Version: 1.0
+Content-Type: text/html
+
+<html>
+<body>
+<p>Win big money!</p>
+<img src="https://ads.badsite.com/track.png?campaign=2" style="width:1px;height:1px">
+<a href="https://badsite.com/offer">Check this deal</a>
+</body>
+</html>

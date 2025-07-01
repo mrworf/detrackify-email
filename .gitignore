@@ -2,3 +2,5 @@ testemails/
 selected/
 test.log
 test.eml
+__pycache__/
+tests/__pycache__/

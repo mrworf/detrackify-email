@@ -1,0 +1,11 @@
+From: service@example.com
+To: user@example.com
+Subject: Your invoice
+MIME-Version: 1.0
+Content-Type: text/html
+
+<html>
+<body>
+<p>Your invoice is attached.</p>
+</body>
+</html>

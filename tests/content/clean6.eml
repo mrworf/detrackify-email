@@ -1,0 +1,7 @@
+From: shop@example.com
+To: customer@example.com
+Subject: Receipt
+MIME-Version: 1.0
+Content-Type: text/plain
+
+Thanks for shopping with us.
