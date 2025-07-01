@@ -24,9 +24,11 @@ import argparse
 import sys
 import logging 
 from PIL import Image
-import base64
-from io import BytesIO
 import yaml
+import json
+import hashlib
+from io import BytesIO
+import email.utils
 import requests
 
 class Detector:
@@ -213,6 +215,7 @@ class Detrackify:
         self.blocked_domains = {}
         self.stripped_domains = []
         self.rewrite_domains = []
+        self.guarded_links = 0
         self.config = config
         self.detector = Detector(config)
 
@@ -248,8 +251,8 @@ class Detrackify:
             print(img_tag['src'])
         return
 
-    def replace_tracking_urls(self, html_content):
-        # Parse HTML with BeautifulSoup
+    def replace_tracking_urls(self, html_content, from_domain=None, to_address=None):
+        """Rewrite tracking images and optionally guard links."""
         soup = BeautifulSoup(html_content, 'html.parser')
 
         # Print all links in the email
@@ -305,6 +308,41 @@ class Detrackify:
                 url = replacement
 
             img_tag['src'] = url
+
+        # Guard regular links if enabled
+        mode = self.config.get(Configuration.CFG_GUARD_LINK, 'off')
+        if mode != 'off' and from_domain:
+            if self.config.is_guard_sender_whitelisted(from_domain):
+                logging.debug('Sender %s is whitelisted from guarding', from_domain)
+            else:
+                links = soup.find_all('a')
+                guard_server = self.config.get(Configuration.CFG_GUARD_SERVER).rstrip('/') if self.config.get(Configuration.CFG_GUARD_SERVER) else None
+                for link in links:
+                    href = link.get('href', '')
+                    if not href.startswith('http'):
+                        continue
+                    if guard_server and href.startswith(f'{guard_server}/guard/'):
+                        continue
+                    if self.config.is_guard_link_whitelisted(href):
+                        continue
+                    link_domain = self.get_domain(href).lower()
+                    def is_subdomain(d1, d2):
+                        """Return True if d1 is the same as or a subdomain of d2."""
+                        return d1 == d2 or d1.endswith('.' + d2)
+
+                    match = is_subdomain(link_domain, from_domain) or is_subdomain(from_domain, link_domain)
+                    if mode == 'always' or (mode == 'mismatch' and not match):
+                        payload = {
+                            'display': link.get_text(),
+                            'domain': from_domain,
+                            'url': href,
+                        }
+                        if self.config.get(Configuration.CFG_GUARD_CAPTURE_TO) and to_address:
+                            payload['to'] = to_address
+                        b64 = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode()
+                        sha = hashlib.sha1((b64 + self.config.get(Configuration.CFG_GUARD_SALT)).encode()).hexdigest()
+                        link['href'] = f"{guard_server}/guard/{sha}/{b64}"
+                        self.guarded_links += 1
 
         # Return modified HTML
 
@@ -382,9 +420,36 @@ class Detrackify:
 
     def process_buffer(self, raw_message, output_fd, listonly=False):
         hashtml = False
+        self.guarded_links = 0
 
         # Parse the email content
         msg = BytesParser(policy=policy.default).parsebytes(raw_message)
+        from_domain = None
+        to_address = None
+        mode = self.config.get(Configuration.CFG_GUARD_LINK, 'off')
+        capture_to = self.config.get(Configuration.CFG_GUARD_CAPTURE_TO)
+
+        if mode != 'off':
+            from_header = msg.get('From')
+            if from_header:
+                addrs = email.utils.getaddresses([from_header])
+                if addrs and '@' in addrs[0][1]:
+                    from_domain = addrs[0][1].split('@')[-1].lower()
+                else:
+                    logging.warning('Unable to parse From header: %s', from_header)
+            else:
+                logging.warning('No From header present while guardlink enabled')
+
+            if capture_to:
+                to_header = msg.get('To')
+                if to_header:
+                    addrs = email.utils.getaddresses([to_header])
+                    if addrs and '@' in addrs[0][1]:
+                        to_address = addrs[0][1]
+                    else:
+                        logging.warning('Unable to parse To header: %s', to_header)
+                else:
+                    logging.warning('No To header present while capture enabled')
 
 
         # Iterate over all parts of the email
@@ -407,7 +472,7 @@ class Detrackify:
                 else:
                     # Replace tracking URLs in the HTML content. Store the
                     # modified HTML so we can put the changed payload back.
-                    modified_html = self.replace_tracking_urls(html_content)
+                    modified_html = self.replace_tracking_urls(html_content, from_domain, to_address)
 
                 # Optionally, re-encode the modified HTML back to Base64 if needed
                 if content_transfer_encoding == 'base64':
@@ -431,8 +496,13 @@ class Detrackify:
                 msg.add_header('X-Detrackify-Stripped', url)
         elif hashtml:
             msg.add_header('X-Detrackify-Blocked', 'No tracking pixels found in HTML content')
-        else:   
+        else:
             msg.add_header('X-Detrackify-Blocked', 'No tracking pixels found (no html content)')
+
+        mode = self.config.get(Configuration.CFG_GUARD_LINK, 'off')
+        if mode != 'off':
+            msg.add_header('X-Detrackify-Guarded-Links', str(self.guarded_links))
+            msg.add_header('X-Detrackify-Guard-Mode', mode)
 
         # Save the modified email to a new file
         gen = BytesGenerator(output_fd, policy=policy.default)
@@ -462,10 +532,38 @@ class Configuration:
     CFG_STRIP_REDIRECT = 'options.strip.redirect'
     CFG_STRIP_ENABLE = 'options.strip.enable'
     CFG_COPY = 'options.copy'
+    CFG_GUARD_SERVER = 'guard.server'
+    CFG_GUARD_SALT = 'guard.salt'
+    CFG_GUARD_LINK = 'guard.link'
+    CFG_GUARD_CAPTURE_TO = 'guard.capture_to'
+    CFG_GUARD_WHITELINK = 'guard.whitelist_links'
+    CFG_GUARD_WHITELIST_SENDER = 'guard.whitelist_senders'
 
     def __init__(self):
         # Ensure we have a sane default
-        self.config = {'options':{'strip': {'file': 'strip.yml', 'cookies': True, 'redirect': True, 'enable': False}, 'verbose': False, 'copy': None}, 'blacklist': [], 'whitelist': [], 'rewrite': []}
+        self.config = {
+            'options': {
+                'strip': {
+                    'file': 'strip.yml',
+                    'cookies': True,
+                    'redirect': True,
+                    'enable': False
+                },
+                'verbose': False,
+                'copy': None
+            },
+            'guard': {
+                'server': None,
+                'salt': None,
+                'link': 'off',
+                'capture_to': False,
+                'whitelist_links': [],
+                'whitelist_senders': []
+            },
+            'blacklist': [],
+            'whitelist': [],
+            'rewrite': []
+        }
         self.last_blacklist = 0
         self.last_rewrite = 0
         self.last_whitelist = 0
@@ -570,6 +668,14 @@ class Configuration:
     def is_whitelisted(self, url):
         # Check if the URL is whitelisted
         return self.__test_url(url, self.config.get('whitelist', []))
+
+    def is_guard_link_whitelisted(self, url):
+        """Check if link should bypass guarding."""
+        return self.__test_url(url, self.config.get('guard', {}).get('whitelist_links', []))
+
+    def is_guard_sender_whitelisted(self, sender):
+        """Check if sender should bypass guarding."""
+        return self.__test_url(sender, self.config.get('guard', {}).get('whitelist_senders', []))
     
     def rewrite_url(self, url):
         # Rewrite the URL if needed
@@ -645,6 +751,12 @@ def main():
     parser.add_argument('--testurl', help='Detect which query parameters can be stripped from the URL (WARNING! Will make requests to the URLs)')
     parser.add_argument('--list', help='List all detected image URLs', action='store_true')
     parser.add_argument('--copy', help='Copy the original email to this folder for debugging')
+    parser.add_argument('--guardserver', help='URL of the guard server')
+    parser.add_argument('--guardsalt', help='Salt used for guarded links')
+    parser.add_argument('--guardlink', choices=['off', 'mismatch', 'always'], default='off', help='Guard link mode')
+    parser.add_argument('--guardcaptureto', action='store_true', help='Capture the To address in guarded links')
+    parser.add_argument('--guardwhitelink', action='append', default=[], help='Regex of links that should not be guarded')
+    parser.add_argument('--guardwhitelistsender', action='append', default=[], help='Regex of sender addresses exempt from guarding')
 
     # Parse command line arguments
     args = parser.parse_args()
@@ -692,6 +804,35 @@ def main():
             sys.exit(1)
         else:
             config.set(Configuration.CFG_COPY, args.copy)
+
+    if args.guardserver:
+        config.set(Configuration.CFG_GUARD_SERVER, args.guardserver)
+    if args.guardsalt:
+        config.set(Configuration.CFG_GUARD_SALT, args.guardsalt)
+    if args.guardlink:
+        config.set(Configuration.CFG_GUARD_LINK, args.guardlink)
+    if args.guardcaptureto:
+        config.set(Configuration.CFG_GUARD_CAPTURE_TO, True)
+    if args.guardwhitelink:
+        config.config['guard']['whitelist_links'].extend(args.guardwhitelink)
+    if args.guardwhitelistsender:
+        config.config['guard']['whitelist_senders'].extend(args.guardwhitelistsender)
+
+    mode = config.get(Configuration.CFG_GUARD_LINK, 'off')
+    if mode != 'off':
+        server = config.get(Configuration.CFG_GUARD_SERVER)
+        salt = config.get(Configuration.CFG_GUARD_SALT)
+        if not server:
+            logging.error('Guard server must be specified when guardlink is enabled')
+            sys.exit(1)
+        if not re.match(r'^https?://', server):
+            logging.error('Guard server must include http or https scheme')
+            sys.exit(1)
+        if server.startswith('http://'):
+            logging.warning('Guard server is using HTTP, consider HTTPS')
+        if not salt or len(salt) < 8:
+            logging.error('Guardsalt must be at least 8 characters')
+            sys.exit(1)
 
     detrack = Detrackify(config)
     try:

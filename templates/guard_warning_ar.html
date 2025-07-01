@@ -1,0 +1,29 @@
+<!doctype html>
+<!-- Machine-generated translation / الترجمة تم توليدها آلياً -->
+<html dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>Detrackify Guard</title>
+<style>
+body {font-family: sans-serif;}
+.noselect {user-select: none;}
+.highlight {color: red; font-weight: bold;}
+</style>
+<script>
+function enable(){document.getElementById('cont').disabled=false;}
+setTimeout(enable, {{ timeout_ms }});
+</script>
+</head>
+<body>
+<div style="font-size:24px;font-weight:bold" class="noselect">
+  <a href="https://github.com/mrworf/detrackify-email">Detrackify</a>
+</div>
+<p>الرابط الذي نقرت عليه قال '{{ display }}' وجاء من {{ domain }} لكنه يؤدي إلى الصفحة التالية:</p>
+<p class="noselect">{{ url|safe }}</p>
+<form method="post" action="" autocomplete="off">
+  <input type="hidden" name="ts" value="{{ ts }}">
+  <button id="cont" disabled>نعم، أفهم وأرغب بالمتابعة</button>
+</form>
+</body>
+</html>
+

@@ -1,0 +1,29 @@
+<!doctype html>
+<!-- Machine-generated translation / Traducción generada automáticamente -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Detrackify Guard</title>
+<style>
+body {font-family: sans-serif;}
+.noselect {user-select: none;}
+.highlight {color: red; font-weight: bold;}
+</style>
+<script>
+function enable(){document.getElementById('cont').disabled=false;}
+setTimeout(enable, {{ timeout_ms }});
+</script>
+</head>
+<body>
+<div style="font-size:24px;font-weight:bold">
+  <a href="https://github.com/mrworf/detrackify-email" class="noselect">Detrackify</a>
+</div>
+<p>El enlace en el que pulsaste decía '{{ display }}' y provenía de {{ domain }} pero lleva a la siguiente página:</p>
+<p class="noselect">{{ url|safe }}</p>
+<form method="post" action="" autocomplete="off">
+  <input type="hidden" name="ts" value="{{ ts }}">
+  <button id="cont" disabled>Sí, entiendo y deseo continuar</button>
+</form>
+</body>
+</html>
+
