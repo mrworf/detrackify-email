@@ -110,13 +110,22 @@ class GuardServer:
                 if elapsed < self.timeout:
                     logging.warning("Link activated too quickly: %.2fs < %ds", elapsed, self.timeout)
                 else:
+                    display = ' '.join(str(info.get('display', '')).split())
                     if info.get('to'):
-                        logging.info("Redirecting to %s (%s) for %s after %.2fs",
-                                     info.get('url'), info.get('display'),
-                                     info.get('to'), elapsed)
+                        logging.info(
+                            "Redirecting to %s (%s) for %s after %.2fs",
+                            info.get('url'),
+                            display,
+                            info.get('to'),
+                            elapsed,
+                        )
                     else:
-                        logging.info("Redirecting to %s (%s) after %.2fs",
-                                     info.get('url'), info.get('display'), elapsed)
+                        logging.info(
+                            "Redirecting to %s (%s) after %.2fs",
+                            info.get('url'),
+                            display,
+                            elapsed,
+                        )
             resp = redirect(info.get('url'), code=302)
             resp.headers['Referrer-Policy'] = 'no-referrer'
             return resp
@@ -124,15 +133,17 @@ class GuardServer:
         start = time.time()
         url = info.get('url', '')
         # Escape URL before displaying to avoid control characters or HTML
-        escaped_url = escape(url)
+        escaped_url = str(escape(url))
         valid = bool(url)
         if valid:
             match = re.search(r'https?://([^/]+)', url)
             if match:
                 domain_part = escape(match.group(1))
-                highlight = escaped_url.replace(match.group(1),
-                                               f'<span class="highlight">{domain_part}</span>',
-                                               1)
+                highlight = escaped_url.replace(
+                    match.group(1),
+                    f'<span class="highlight">{domain_part}</span>',
+                    1,
+                )
             else:
                 highlight = escaped_url
         else:
