@@ -54,6 +54,10 @@ destination of the provided link using a series of HEAD requests. The page will
 display a progress message while this happens and the continue button activates
 only once the real URL is known. The result is cached in memory and optionally
 persisted to a JSON file to speed up future requests.
+The resolved link replaces the progress message and is highlighted just like the
+original URL. If the final destination shares the same domain as the sender then
+the highlight is shown in green and the continue button will open this resolved
+link.
 If the resolution fails the `/resolve` endpoint returns an error message along
 with an HTTP status code. In that case the browser falls back to the original
 URL once the timer expires.

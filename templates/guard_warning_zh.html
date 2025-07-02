@@ -6,7 +6,13 @@
 <title>Detrackify Guard</title>
 <link rel="stylesheet" href="/guard/common.css">
 <script>
-window.guardOptions = {resolve: {{ 'true' if resolve else 'false' }}, sha: "{{ sha }}", data: "{{ data }}", timeout_ms: {{ timeout_ms }}};
+window.guardOptions = {
+    resolve: {{ 'true' if resolve else 'false' }},
+    sha: "{{ sha }}",
+    data: "{{ data }}",
+    timeout_ms: {{ timeout_ms }},
+    sender_domain: "{{ sender_domain }}"
+};
 </script>
 <script src="/guard/common.js"></script>
 </head>
@@ -16,8 +22,11 @@ window.guardOptions = {resolve: {{ 'true' if resolve else 'false' }}, sha: "{{ s
 </div>
 {% if valid %}
 <p>您点击的链接显示为“{{ display }}”，来自 {{ domain }}，但将前往以下页面：</p>
-<p class="noselect"><span id="url">{{ url|safe }}</span>{% if resolve %} <span id="progress">正在解析最终地址，请稍候...</span>{% endif %}</p>
-{% if resolve %}<div id="error" style="color:red;margin-top:10px"></div>{% endif %}
+<p class="noselect"><span id="url">{{ url|safe }}</span></p>
+{% if resolve %}
+<p class="noselect" id="progress">正在解析最终地址，请稍候...</p>
+<div id="error" style="color:red;margin-top:10px"></div>
+{% endif %}
 {% else %}
 <p>提供的链接无效。</p>
 {% endif %}

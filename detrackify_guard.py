@@ -281,7 +281,7 @@ class GuardServer:
                 domain_part = escape(match.group(1))
                 highlight = escaped_url.replace(
                     match.group(1),
-                    f'<span class="highlight">{domain_part}</span>',
+                    f'<span class="highlight bad">{domain_part}</span>',
                     1,
                 )
             else:
@@ -293,6 +293,7 @@ class GuardServer:
             template,
             display=escape(info.get('display') or '** No link text provided **'),
             domain=escape(info.get('domain') or '** No domain provided **'),
+            sender_domain=info.get('domain') or '',
             url=highlight,
             ts=start,
             timeout_ms=self.timeout * 1000,

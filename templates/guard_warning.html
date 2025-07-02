@@ -5,7 +5,13 @@
 <title>Detrackify Guard</title>
 <link rel="stylesheet" href="/guard/common.css">
 <script>
-window.guardOptions = {resolve: {{ 'true' if resolve else 'false' }}, sha: "{{ sha }}", data: "{{ data }}", timeout_ms: {{ timeout_ms }}};
+window.guardOptions = {
+    resolve: {{ 'true' if resolve else 'false' }},
+    sha: "{{ sha }}",
+    data: "{{ data }}",
+    timeout_ms: {{ timeout_ms }},
+    sender_domain: "{{ sender_domain }}"
+};
 </script>
 <script src="/guard/common.js"></script>
 </head>
@@ -15,8 +21,11 @@ window.guardOptions = {resolve: {{ 'true' if resolve else 'false' }}, sha: "{{ s
 </div>
 {% if valid %}
 <p>The link you clicked said '{{ display }}' and came from {{ domain }} but leads to the following page:</p>
-<p class="noselect"><span id="url">{{ url|safe }}</span>{% if resolve %} <span id="progress">Resolving final destination, please wait...</span>{% endif %}</p>
-{% if resolve %}<div id="error" style="color:red;margin-top:10px"></div>{% endif %}
+<p class="noselect"><span id="url">{{ url|safe }}</span></p>
+{% if resolve %}
+<p class="noselect" id="progress">Resolving final destination, please wait...</p>
+<div id="error" style="color:red;margin-top:10px"></div>
+{% endif %}
 {% else %}
 <p>Invalid link information provided.</p>
 {% endif %}

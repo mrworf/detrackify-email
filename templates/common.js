@@ -8,8 +8,18 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(enable, opts.timeout_ms || 0);
         return;
     }
-    var urlElem = document.getElementById('url');
     var progress = document.getElementById('progress');
+
+    function highlight(url) {
+        var m = url.match(/https?:\/\/([^/]+)/i);
+        if (m) {
+            var d = m[1];
+            var cls = (opts.sender_domain && d.toLowerCase() === opts.sender_domain.toLowerCase()) ? 'good' : 'bad';
+            return url.replace(d, '<span class="highlight ' + cls + '">' + d + '</span>');
+        }
+        return url;
+    }
+
     var controller = new AbortController();
     var timer = setTimeout(function() { controller.abort(); }, opts.timeout_ms + 10000);
     fetch('/guard/resolve', {
@@ -28,13 +38,17 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .then(function(data) {
         if (data.url && data.hash) {
-            if (urlElem) { urlElem.textContent = data.url; }
-            var f = document.getElementById('continueForm');
-            if (f) {
-                var u = document.getElementById('final');
-                var h = document.getElementById('hash');
-                if (u) { u.value = data.url; }
-                if (h) { h.value = data.hash; }
+            var u = document.getElementById('final');
+            var h = document.getElementById('hash');
+            if (u) { u.value = data.url; }
+            if (h) { h.value = data.hash; }
+            if (progress) {
+                progress.classList.add('fade');
+                progress.style.opacity = 0;
+                setTimeout(function() {
+                    progress.innerHTML = highlight(data.url);
+                    progress.style.opacity = 1;
+                }, 500);
             }
         }
     })
@@ -49,10 +63,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (box) { box.textContent = msg + '. You can still continue to the original URL.'; }
         var form = document.getElementById('continueForm');
         if (form) { form.action = ''; }
+        if (progress) {
+            progress.classList.add('fade');
+            progress.style.opacity = 0;
+            setTimeout(function() {
+                progress.textContent = msg;
+                progress.style.opacity = 1;
+            }, 500);
+        }
     })
     .finally(function() {
         clearTimeout(timer);
-        if (progress) { progress.remove(); }
         setTimeout(enable, opts.timeout_ms || 0);
     });
 });
