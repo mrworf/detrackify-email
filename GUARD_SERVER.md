@@ -36,6 +36,10 @@ Optional parameters:
 * `--resource-dir` Directory containing additional resources (images only)
 * `--timeout` Seconds to wait before the continue button activates (default `5`)
 * `--privacy` Disable logging of visited links
+* `--resolve` Resolve the final URL before showing the continue button
+* `--resolve-cache-file` File used to store resolved URLs
+* `--resolve-cache-days` Days to keep cached items (default `30`)
+* `--resolve-cache-max` Maximum number of cached items (default `4096`)
 
 
 The server verifies the provided hash, shows a warning page and then redirects the
@@ -44,6 +48,29 @@ template based on the browser's `Accept-Language` header. Templates for German,
 Spanish, French, Chinese and Arabic are included; if no matching template exists
 the English version is used. These translations were generated automatically so
 minor errors may exist.
+
+When `--resolve` is enabled the server will attempt to determine the final
+destination of the provided link using a series of HEAD requests. The page will
+display a progress message while this happens and the continue button activates
+only once the real URL is known. The result is cached in memory and optionally
+persisted to a JSON file to speed up future requests.
+If the resolution fails the `/resolve` endpoint returns an error message along
+with an HTTP status code. In that case the browser falls back to the original
+URL once the timer expires.
+The cache key is `SHA1(b64 + SHA1(b64))` where `b64` is the link payload.
+Entries older than the configured number of days are pruned every 24 hours and
+the cache never grows beyond the specified maximum size.
+
+### Endpoints
+
+All endpoints except `/resource/` are served below the `/guard/` prefix:
+
+* `/guard/<sha>/<b64>` — Show the warning page and handle the POST when link resolution is disabled.
+* `/guard/resolve` — POST endpoint used by JavaScript to resolve the final URL. Returns JSON `{url, hash}`.
+* `/guard/go` — POST endpoint that performs the redirect once a URL has been resolved.
+* `/guard/common.js` — Shared JavaScript for the countdown and optional resolution.
+* `/guard/common.css` — Common stylesheet used by the warning pages.
+* `/resource/<path>` — Optional static resources such as images.
 
 ## Using a reverse proxy
 

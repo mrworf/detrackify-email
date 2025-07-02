@@ -3,19 +3,11 @@
 <head>
 <meta charset="utf-8">
 <title>Detrackify Guard</title>
-<style>
-body {font-family: sans-serif;}
-.noselect {user-select: none;}
-.highlight {color: red; font-weight: bold;}
-</style>
+<link rel="stylesheet" href="/guard/common.css">
 <script>
-{% if valid %}
-function enable() {
-  document.getElementById('cont').disabled = false;
-}
-setTimeout(enable, {{ timeout_ms }});
-{% endif %}
+window.guardOptions = {resolve: {{ 'true' if resolve else 'false' }}, sha: "{{ sha }}", data: "{{ data }}", timeout_ms: {{ timeout_ms }}};
 </script>
+<script src="/guard/common.js"></script>
 </head>
 <body>
 <div style="font-size:24px;font-weight:bold">
@@ -23,16 +15,17 @@ setTimeout(enable, {{ timeout_ms }});
 </div>
 {% if valid %}
 <p>The link you clicked said '{{ display }}' and came from {{ domain }} but leads to the following page:</p>
-<p class="noselect">{{ url|safe }}</p>
+<p class="noselect"><span id="url">{{ url|safe }}</span>{% if resolve %} <span id="progress">Resolving final destination, please wait...</span>{% endif %}</p>
+{% if resolve %}<div id="error" style="color:red;margin-top:10px"></div>{% endif %}
 {% else %}
 <p>Invalid link information provided.</p>
 {% endif %}
 {% if valid %}
-<form method="post" action="" autocomplete="off">
+<form method="post" action="{% if resolve %}/guard/go{% endif %}" autocomplete="off" id="continueForm">
   <input type="hidden" name="ts" value="{{ ts }}">
+  {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
   <button id="cont" disabled>Yes, I understand and want to continue</button>
 </form>
 {% endif %}
 </body>
 </html>
-
