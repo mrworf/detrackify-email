@@ -22,6 +22,8 @@ import re
 import time
 import threading
 import atexit
+from dataclasses import dataclass
+
 import requests
 from bs4 import BeautifulSoup
 from flask import (
@@ -34,6 +36,22 @@ from flask import (
     jsonify,
 )
 from markupsafe import escape
+
+
+@dataclass
+class GuardConfig:
+    """Configuration options for :class:`GuardServer`."""
+
+    salt: str
+    timeout: int = 5
+    template_dir: str = "templates"
+    resource_dir: str | None = None
+    privacy: bool = False
+    resolve: bool = False
+    cache_file: str | None = None
+    cache_days: int = 30
+    cache_max: int = 4096
+    resolve_get: bool = False
 
 
 class ResolveCache:
@@ -99,21 +117,24 @@ class ResolveCache:
 class GuardServer:
     """Flask app handling guarded link redirects."""
 
-    def __init__(self, salt, timeout=5, template_dir="templates", resource_dir=None,
-                 privacy=False, resolve=False, cache_file=None, cache_days=30,
-                 cache_max=4096, resolve_get=False):
-        self.app = Flask(__name__, template_folder=template_dir)
-        self.salt = salt
-        self.timeout = timeout
-        self.resource_dir = resource_dir
-        self.privacy = privacy
-        self.resolve_enabled = resolve
-        self.resolve_get = resolve_get
-        self.cache = ResolveCache(cache_max, cache_days, cache_file) if resolve else None
+    def __init__(self, config: GuardConfig):
+        self.cfg = config
+        self.app = Flask(__name__, template_folder=config.template_dir)
+        self.salt = config.salt
+        self.timeout = config.timeout
+        self.resource_dir = config.resource_dir
+        self.privacy = config.privacy
+        self.resolve_enabled = config.resolve
+        self.resolve_get = config.resolve_get
+        self.cache = (
+            ResolveCache(config.cache_max, config.cache_days, config.cache_file)
+            if config.resolve
+            else None
+        )
 
         self.app.add_url_rule('/guard/<sha>/<data>', 'guard', self.guard,
                               methods=['GET', 'POST'])
-        if resolve:
+        if config.resolve:
             self.app.add_url_rule('/guard/resolve', 'resolve', self.resolve_link,
                                   methods=['POST'])
             self.app.add_url_rule('/guard/go', 'go', self.go, methods=['POST'])
@@ -121,7 +142,7 @@ class GuardServer:
                               lambda: send_from_directory(self.app.template_folder, 'common.js'))
         self.app.add_url_rule('/guard/common.css', 'common_css',
                               lambda: send_from_directory(self.app.template_folder, 'common.css'))
-        if resource_dir:
+        if config.resource_dir:
             self.app.add_url_rule('/resource/<path:filename>', 'resource',
                                   self.resource, methods=['GET'])
 
@@ -287,36 +308,24 @@ class GuardServer:
 
         start = time.time()
         url = info.get('url', '')
-        # Escape URL before displaying to avoid control characters or HTML
-        escaped_url = str(escape(url))
         valid = bool(url)
-        if valid:
-            match = re.search(r'https?://([^/]+)', url)
-            if match:
-                domain_part = escape(match.group(1))
-                highlight = escaped_url.replace(
-                    match.group(1),
-                    f'<span class="highlight bad">{domain_part}</span>',
-                    1,
-                )
-            else:
-                highlight = escaped_url
-        else:
-            highlight = 'Missing or invalid URL'
+        if not valid:
+            url = 'Missing or invalid URL'
+
         template = self.choose_template(request.headers.get('Accept-Language'))
-        return render_template(
-            template,
-            display=escape(info.get('display') or '** No link text provided **'),
-            domain=escape(info.get('domain') or '** No domain provided **'),
-            sender_domain=info.get('domain') or '',
-            url=highlight,
-            ts=start,
-            timeout_ms=self.timeout * 1000,
-            valid=valid,
-            resolve=self.resolve_enabled,
-            sha=sha,
-            data=data,
-        )
+        context = {
+            'display': escape(info.get('display') or '** No link text provided **'),
+            'domain': escape(info.get('domain') or '** No domain provided **'),
+            'sender_domain': info.get('domain') or '',
+            'url': url,
+            'ts': start,
+            'timeout_ms': self.timeout * 1000,
+            'valid': valid,
+            'resolve': self.resolve_enabled,
+            'sha': sha,
+            'data': data,
+        }
+        return render_template(template, **context)
 
 
 def main():
@@ -343,8 +352,8 @@ def main():
 
     logging.basicConfig(level=logging.INFO)
 
-    server = GuardServer(
-        args.guardsalt,
+    config = GuardConfig(
+        salt=args.guardsalt,
         timeout=args.timeout,
         template_dir=args.template_dir,
         resource_dir=args.resource_dir,
@@ -355,6 +364,7 @@ def main():
         cache_max=args.resolve_cache_max,
         resolve_get=args.resolve_get,
     )
+    server = GuardServer(config)
     if args.privacy:
         logging.info('Privacy Mode Enabled; no logging of email address, link, domain, or recipient will happen')
     if args.resolve:
