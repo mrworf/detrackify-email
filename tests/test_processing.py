@@ -11,8 +11,9 @@ import tempfile
 SCRIPT = os.path.join(os.path.dirname(os.path.dirname(__file__)), "detrackify_email.py")
 
 
-def process_email(path):
+def process_email(path, extra_args=None):
     """Run the script on the provided path and return the resulting message."""
+    extra_args = extra_args or []
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         tmp_path = tmp.name
     try:
@@ -23,6 +24,7 @@ def process_email(path):
             path,
             "--output",
             tmp_path,
+            *extra_args,
         ], check=True)
         with open(tmp_path, "rb") as fd:
             return email.message_from_bytes(fd.read())
