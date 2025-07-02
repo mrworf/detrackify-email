@@ -64,6 +64,8 @@ The resolved link replaces the progress message and is highlighted just like the
 original URL. If the final destination shares the same domain as the sender then
 the highlight is shown in green and the continue button will open this resolved
 link.
+Options for the countdown and resolution are served through `/guard/opts.js`
+so `/guard/common.js` can be cached efficiently.
 If the resolution fails the `/resolve` endpoint returns an error message along
 with an HTTP status code. In that case the browser falls back to the original
 URL once the timer expires.
@@ -78,7 +80,8 @@ All endpoints except `/resource/` are served below the `/guard/` prefix:
 * `/guard/<sha>/<b64>` — Show the warning page and handle the POST when link resolution is disabled.
 * `/guard/resolve` — POST endpoint used by JavaScript to resolve the final URL. Returns JSON `{url, hash, title}`.
 * `/guard/go` — POST endpoint that performs the redirect once a URL has been resolved.
-* `/guard/common.js` — Shared JavaScript for the countdown and optional resolution.
+* `/guard/common.js` — Shared JavaScript for the countdown and optional resolution (cacheable).
+* `/guard/opts.js` — Dynamic options consumed by `common.js` via the Referer header.
 * `/guard/common.css` — Common stylesheet used by the warning pages.
 * `/resource/<path>` — Optional static resources such as images.
 

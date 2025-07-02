@@ -140,6 +140,7 @@ class GuardServer:
                                   methods=['POST'])
             self.app.add_url_rule('/guard/go', 'go', self.go, methods=['POST'])
         self.app.add_url_rule('/guard/common.js', 'common_js', self.common_js)
+        self.app.add_url_rule('/guard/opts.js', 'opts_js', self.opts_js)
         self.app.add_url_rule('/guard/common.css', 'common_css',
                               lambda: send_from_directory(self.app.template_folder, 'common.css'))
         if config.resource_dir:
@@ -191,27 +192,32 @@ class GuardServer:
         return send_from_directory(self.resource_dir, filename)
 
     def common_js(self):
-        """Serve the shared JavaScript with embedded options."""
+        """Serve the shared JavaScript."""
+        return send_from_directory(self.app.template_folder, 'common.js', max_age=86400)
+
+    def opts_js(self):
+        """Serve dynamic JavaScript with per-request options."""
         referer = request.headers.get('Referer') or ''
-        m = re.search(r'/guard/([^/]+)/([^/]+)$', referer)
+        m = re.search(r'/guard/([^/]+)/([^/]+)', referer)
         sha = m.group(1) if m else ''
         data = m.group(2) if m else ''
         sender = ''
-        if data:
+        valid = sha and data and self.check_hash(sha, data)
+        if valid:
             try:
                 decoded = base64.urlsafe_b64decode(data).decode()
                 info = json.loads(decoded)
                 sender = info.get('domain', '') or ''
             except Exception:  # pylint: disable=broad-except
-                sender = ''
+                valid = False
         opts = {
             'resolve': self.resolve_enabled,
-            'sha': sha,
-            'data': data,
             'timeout_ms': self.timeout * 1000,
-            'sender_domain': sender,
+            'sha': sha if valid else '',
+            'data': data if valid else '',
+            'sender_domain': sender if valid else '',
         }
-        resp = make_response(render_template('common.js', opts=opts))
+        resp = make_response(render_template('opts.js', opts=opts))
         resp.headers['Content-Type'] = 'application/javascript'
         resp.headers['Cache-Control'] = 'no-store'
         return resp

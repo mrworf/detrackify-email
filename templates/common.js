@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    var opts = {{ opts | tojson }};
+    var opts = window.guardOpts || {};
 
     function esc(txt) {
         return txt.replace(/[&<>]/g, function (c) {
