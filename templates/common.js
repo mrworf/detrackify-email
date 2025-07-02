@@ -1,5 +1,12 @@
 document.addEventListener('DOMContentLoaded', function () {
-    var opts = window.guardOptions || {};
+    var d = document.body.dataset;
+    var opts = {
+        resolve: d.resolve === 'true',
+        sha: d.sha || '',
+        data: d.data || '',
+        timeout_ms: parseInt(d.timeout, 10) || 0,
+        sender_domain: d.senderDomain || ''
+    };
 
     function esc(txt) {
         return txt.replace(/[&<>]/g, function (c) {
@@ -46,9 +53,13 @@ document.addEventListener('DOMContentLoaded', function () {
     })
         .then(function (r) {
             if (!r.ok) {
-                return r.json().then(function (j) {
-                    throw { status: r.status, message: j.error || '' };
-                });
+                var ct = r.headers.get('content-type') || '';
+                if (ct.indexOf('application/json') === 0) {
+                    return r.json().then(function (j) {
+                        throw { status: r.status, message: j.error || '' };
+                    });
+                }
+                throw { status: r.status };
             }
             return r.json();
         })

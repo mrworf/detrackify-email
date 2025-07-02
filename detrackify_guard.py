@@ -197,11 +197,11 @@ class GuardServer:
         try:
             payload = request.get_json(force=True)
         except Exception:  # pylint: disable=broad-except
-            return jsonify({'error': 'invalid request'}), 400
+            abort(400)
         sha = str(payload.get('sha', ''))
         data = str(payload.get('data', ''))
         if not sha or not data or not self.check_hash(sha, data):
-            return jsonify({'error': 'forbidden'}), 403
+            abort(403)
         b64_sha = hashlib.sha1(data.encode()).hexdigest()
         key = hashlib.sha1((data + b64_sha).encode()).hexdigest()
         entry = self.cache.get(key) if self.cache else None
@@ -214,7 +214,7 @@ class GuardServer:
                 info = json.loads(decoded)
                 target = info.get('url', '')
             except Exception:  # pylint: disable=broad-except
-                return jsonify({'error': 'invalid payload'}), 400
+                abort(400)
             url = target
             title = ''
             try:

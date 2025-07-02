@@ -4,18 +4,9 @@
 <meta charset="utf-8">
 <title>Detrackify Guard</title>
 <link rel="stylesheet" href="/guard/common.css">
-<script>
-window.guardOptions = {
-    resolve: {{ 'true' if resolve else 'false' }},
-    sha: "{{ sha }}",
-    data: "{{ data }}",
-    timeout_ms: {{ timeout_ms }},
-    sender_domain: "{{ sender_domain }}"
-};
-</script>
 <script src="/guard/common.js"></script>
 </head>
-<body>
+<body data-resolve="{{ 'true' if resolve else 'false' }}" data-sha="{{ sha }}" data-data="{{ data }}" data-timeout="{{ timeout_ms }}" data-sender-domain="{{ sender_domain }}">
 <div style="font-size:24px;font-weight:bold">
   <a href="https://github.com/mrworf/detrackify-email" class="noselect">Detrackify</a>
 </div>
