@@ -1,12 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    var d = document.body.dataset;
-    var opts = {
-        resolve: d.resolve === 'true',
-        sha: d.sha || '',
-        data: d.data || '',
-        timeout_ms: parseInt(d.timeout, 10) || 0,
-        sender_domain: d.senderDomain || ''
-    };
+    var opts = {{ opts | tojson }};
 
     function esc(txt) {
         return txt.replace(/[&<>]/g, function (c) {

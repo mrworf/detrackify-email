@@ -34,6 +34,7 @@ from flask import (
     request,
     send_from_directory,
     jsonify,
+    make_response,
 )
 from markupsafe import escape
 
@@ -138,8 +139,7 @@ class GuardServer:
             self.app.add_url_rule('/guard/resolve', 'resolve', self.resolve_link,
                                   methods=['POST'])
             self.app.add_url_rule('/guard/go', 'go', self.go, methods=['POST'])
-        self.app.add_url_rule('/guard/common.js', 'common_js',
-                              lambda: send_from_directory(self.app.template_folder, 'common.js'))
+        self.app.add_url_rule('/guard/common.js', 'common_js', self.common_js)
         self.app.add_url_rule('/guard/common.css', 'common_css',
                               lambda: send_from_directory(self.app.template_folder, 'common.css'))
         if config.resource_dir:
@@ -189,6 +189,32 @@ class GuardServer:
             logging.warning("Disallowed resource type requested: %s", filename)
             abort(404)
         return send_from_directory(self.resource_dir, filename)
+
+    def common_js(self):
+        """Serve the shared JavaScript with embedded options."""
+        referer = request.headers.get('Referer') or ''
+        m = re.search(r'/guard/([^/]+)/([^/]+)$', referer)
+        sha = m.group(1) if m else ''
+        data = m.group(2) if m else ''
+        sender = ''
+        if data:
+            try:
+                decoded = base64.urlsafe_b64decode(data).decode()
+                info = json.loads(decoded)
+                sender = info.get('domain', '') or ''
+            except Exception:  # pylint: disable=broad-except
+                sender = ''
+        opts = {
+            'resolve': self.resolve_enabled,
+            'sha': sha,
+            'data': data,
+            'timeout_ms': self.timeout * 1000,
+            'sender_domain': sender,
+        }
+        resp = make_response(render_template('common.js', opts=opts))
+        resp.headers['Content-Type'] = 'application/javascript'
+        resp.headers['Cache-Control'] = 'no-store'
+        return resp
 
     def resolve_link(self):
         """Return the final destination of a guarded link."""
