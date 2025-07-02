@@ -251,7 +251,7 @@ class Detrackify:
             print(img_tag['src'])
         return
 
-    def replace_tracking_urls(self, html_content, from_domain=None, to_address=None, from_address=None):
+    def replace_tracking_urls(self, html_content, from_address=None, to_address=None):
         """Rewrite tracking images and optionally guard links."""
         soup = BeautifulSoup(html_content, 'html.parser')
 
@@ -311,8 +311,11 @@ class Detrackify:
 
         # Guard regular links if enabled
         mode = self.config.get(Configuration.CFG_GUARD_LINK, 'off')
+        from_domain = None
+        if from_address and '@' in from_address:
+            from_domain = from_address.split('@')[-1].lower()
         if mode != 'off' and from_domain:
-            sender_identity = from_address or from_domain
+            sender_identity = from_address
             if self.config.is_guard_sender_whitelisted(sender_identity):
                 logging.debug('Sender %s is whitelisted from guarding', sender_identity)
             else:
@@ -324,7 +327,9 @@ class Detrackify:
                         continue
                     if guard_server and href.startswith(f'{guard_server}/guard/'):
                         continue
-                    if self.config.is_guard_link_whitelisted(href):
+                    pattern = self.config.is_guard_link_whitelisted(href)
+                    if pattern:
+                        logging.debug('Whitelisted link %s via %s', href, pattern)
                         continue
                     link_domain = self.get_domain(href).lower()
                     def is_subdomain(d1, d2):
@@ -333,8 +338,14 @@ class Detrackify:
 
                     match = is_subdomain(link_domain, from_domain) or is_subdomain(from_domain, link_domain)
                     if mode == 'always' or (mode == 'mismatch' and not match):
+                        display_html = link.decode_contents()
+                        display_soup = BeautifulSoup(display_html, 'html.parser')
+                        for img in display_soup.find_all('img'):
+                            alt = img.get('alt')
+                            img.replace_with(f'[IMAGE:{alt}]' if alt else '[IMAGE]')
+                        display_text = display_soup.get_text()
                         payload = {
-                            'display': link.get_text(),
+                            'display': display_text,
                             'domain': from_domain,
                             'url': href,
                         }
@@ -425,7 +436,6 @@ class Detrackify:
 
         # Parse the email content
         msg = BytesParser(policy=policy.default).parsebytes(raw_message)
-        from_domain = None
         from_address = None
         to_address = None
         mode = self.config.get(Configuration.CFG_GUARD_LINK, 'off')
@@ -437,7 +447,6 @@ class Detrackify:
                 addrs = email.utils.getaddresses([from_header])
                 if addrs and '@' in addrs[0][1]:
                     from_address = addrs[0][1]
-                    from_domain = from_address.split('@')[-1].lower()
                 else:
                     logging.warning('Unable to parse From header: %s', from_header)
             else:
@@ -475,7 +484,7 @@ class Detrackify:
                 else:
                     # Replace tracking URLs in the HTML content. Store the
                     # modified HTML so we can put the changed payload back.
-                    modified_html = self.replace_tracking_urls(html_content, from_domain, to_address, from_address)
+                    modified_html = self.replace_tracking_urls(html_content, from_address, to_address)
 
                 # Optionally, re-encode the modified HTML back to Base64 if needed
                 if content_transfer_encoding == 'base64':
@@ -651,26 +660,24 @@ class Configuration:
         return True
 
     def __test_url(self, url, regex):
-        # Test if the URL matches the list of regex
+        """Return matching regex or None."""
         for test in regex:
-            # Test is a regex, so use the match method
             try:
-                result = re.match(test, url)
-                if result:
-                    logging.debug(f'Match: {url} ({test})')
-                    return True
-            except Exception as e:
-                logging.error(f'Error testing {url} with {test}')
-                logging.exception(f"Exception: {e}")
-        return False
+                if re.match(test, url):
+                    logging.debug('Match: %s (%s)', url, test)
+                    return test
+            except Exception as e:  # pylint: disable=broad-except
+                logging.error('Error testing %s with %s', url, test)
+                logging.exception('Exception: %s', e)
+        return None
     
     def is_blacklisted(self, url):
         # Check if the URL is blacklisted
-        return self.__test_url(url, self.config.get('blacklist', []))
+        return bool(self.__test_url(url, self.config.get('blacklist', [])))
     
     def is_whitelisted(self, url):
         # Check if the URL is whitelisted
-        return self.__test_url(url, self.config.get('whitelist', []))
+        return bool(self.__test_url(url, self.config.get('whitelist', [])))
 
     def is_guard_link_whitelisted(self, url):
         """Check if link should bypass guarding."""
@@ -678,7 +685,7 @@ class Configuration:
 
     def is_guard_sender_whitelisted(self, sender):
         """Check if sender should bypass guarding."""
-        return self.__test_url(sender, self.config.get('guard', {}).get('whitelist_senders', []))
+        return bool(self.__test_url(sender, self.config.get('guard', {}).get('whitelist_senders', [])))
     
     def rewrite_url(self, url):
         # Rewrite the URL if needed

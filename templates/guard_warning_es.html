@@ -26,10 +26,12 @@ setTimeout(enable, {{ timeout_ms }});
 {% else %}
 <p>El enlace proporcionado es inválido.</p>
 {% endif %}
+{% if valid %}
 <form method="post" action="" autocomplete="off">
   <input type="hidden" name="ts" value="{{ ts }}">
   <button id="cont" disabled>Sí, entiendo y deseo continuar</button>
 </form>
+{% endif %}
 </body>
 </html>
 

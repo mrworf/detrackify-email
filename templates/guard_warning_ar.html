@@ -26,10 +26,12 @@ setTimeout(enable, {{ timeout_ms }});
 {% else %}
 <p>تم تقديم رابط غير صالح.</p>
 {% endif %}
+{% if valid %}
 <form method="post" action="" autocomplete="off">
   <input type="hidden" name="ts" value="{{ ts }}">
   <button id="cont" disabled>نعم، أفهم وأرغب بالمتابعة</button>
 </form>
+{% endif %}
 </body>
 </html>
 
