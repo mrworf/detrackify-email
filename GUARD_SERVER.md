@@ -40,6 +40,7 @@ Optional parameters:
 * `--resolve-cache-file` File used to store resolved URLs
 * `--resolve-cache-days` Days to keep cached items (default `30`)
 * `--resolve-cache-max` Maximum number of cached items (default `4096`)
+* `--resolve-get` Use HTTP GET instead of HEAD when resolving links
 
 
 The server verifies the provided hash, shows a warning page and then redirects the
@@ -50,10 +51,15 @@ the English version is used. These translations were generated automatically so
 minor errors may exist.
 
 When `--resolve` is enabled the server will attempt to determine the final
-destination of the provided link using a series of HEAD requests. The page will
-display a progress message while this happens and the continue button activates
-only once the real URL is known. The result is cached in memory and optionally
-persisted to a JSON file to speed up future requests.
+destination of the provided link. By default it performs a series of HEAD
+requests but if `--resolve-get` is used it will download the full page via GET
+and extract its title. The page will display a progress message while this
+happens and the continue button activates only once the real URL is known. The
+result is cached in memory and optionally persisted to a JSON file to speed up
+future requests.
+Using `--resolve-get` downloads the full page, which may consume significantly
+more data and could trigger tracking mechanisms on the remote server. (A HEAD
+request can also trigger tracking depending on the target site.)
 The resolved link replaces the progress message and is highlighted just like the
 original URL. If the final destination shares the same domain as the sender then
 the highlight is shown in green and the continue button will open this resolved
@@ -70,7 +76,7 @@ the cache never grows beyond the specified maximum size.
 All endpoints except `/resource/` are served below the `/guard/` prefix:
 
 * `/guard/<sha>/<b64>` — Show the warning page and handle the POST when link resolution is disabled.
-* `/guard/resolve` — POST endpoint used by JavaScript to resolve the final URL. Returns JSON `{url, hash}`.
+* `/guard/resolve` — POST endpoint used by JavaScript to resolve the final URL. Returns JSON `{url, hash, title}`.
 * `/guard/go` — POST endpoint that performs the redirect once a URL has been resolved.
 * `/guard/common.js` — Shared JavaScript for the countdown and optional resolution.
 * `/guard/common.css` — Common stylesheet used by the warning pages.

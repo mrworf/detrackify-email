@@ -23,6 +23,7 @@ import time
 import threading
 import atexit
 import requests
+from bs4 import BeautifulSoup
 from flask import (
     Flask,
     abort,
@@ -72,8 +73,8 @@ class ResolveCache:
         with self.lock:
             return self.data.get(key)
 
-    def set(self, key, url):
-        entry = {'url': url, 'ts': time.time()}
+    def set(self, key, url, title=''):
+        entry = {'url': url, 'title': title or '', 'ts': time.time()}
         with self.lock:
             self.data[key] = entry
             if len(self.data) > self.max_entries:
@@ -99,13 +100,15 @@ class GuardServer:
     """Flask app handling guarded link redirects."""
 
     def __init__(self, salt, timeout=5, template_dir="templates", resource_dir=None,
-                 privacy=False, resolve=False, cache_file=None, cache_days=30, cache_max=4096):
+                 privacy=False, resolve=False, cache_file=None, cache_days=30,
+                 cache_max=4096, resolve_get=False):
         self.app = Flask(__name__, template_folder=template_dir)
         self.salt = salt
         self.timeout = timeout
         self.resource_dir = resource_dir
         self.privacy = privacy
         self.resolve_enabled = resolve
+        self.resolve_get = resolve_get
         self.cache = ResolveCache(cache_max, cache_days, cache_file) if resolve else None
 
         self.app.add_url_rule('/guard/<sha>/<data>', 'guard', self.guard,
@@ -183,6 +186,7 @@ class GuardServer:
         entry = self.cache.get(key) if self.cache else None
         if entry:
             url = entry['url']
+            title = entry.get('title', '')
         else:
             try:
                 decoded = base64.urlsafe_b64decode(data).decode()
@@ -191,16 +195,27 @@ class GuardServer:
             except Exception:  # pylint: disable=broad-except
                 return jsonify({'error': 'invalid payload'}), 400
             url = target
+            title = ''
             try:
-                resp = requests.head(target, allow_redirects=True, timeout=self.timeout)
-                url = resp.url
+                if self.resolve_get:
+                    resp = requests.get(target, allow_redirects=True, timeout=self.timeout)
+                    url = resp.url
+                    try:
+                        soup = BeautifulSoup(resp.text, 'html.parser')
+                        if soup.title and soup.title.string:
+                            title = soup.title.string.strip()
+                    except Exception:  # pylint: disable=broad-except
+                        pass
+                else:
+                    resp = requests.head(target, allow_redirects=True, timeout=self.timeout)
+                    url = resp.url
             except Exception as exc:  # pylint: disable=broad-except
                 logging.exception('Failed to resolve %s', target)
                 return jsonify({'error': str(exc)}), 500
             if self.cache:
-                self.cache.set(key, url)
+                self.cache.set(key, url, title)
         result_sha = hashlib.sha1((url + self.salt).encode()).hexdigest()
-        return jsonify({'url': url, 'hash': result_sha}), 200
+        return jsonify({'url': url, 'hash': result_sha, 'title': title}), 200
 
     def go(self):
         """Redirect using a resolved URL."""
@@ -322,6 +337,8 @@ def main():
                         help='Days to keep resolve results (default 30)')
     parser.add_argument('--resolve-cache-max', type=int, default=4096,
                         help='Maximum number of cached entries (default 4096)')
+    parser.add_argument('--resolve-get', action='store_true',
+                        help='Use HTTP GET instead of HEAD when resolving')
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
@@ -336,6 +353,7 @@ def main():
         cache_file=args.resolve_cache_file,
         cache_days=args.resolve_cache_days,
         cache_max=args.resolve_cache_max,
+        resolve_get=args.resolve_get,
     )
     if args.privacy:
         logging.info('Privacy Mode Enabled; no logging of email address, link, domain, or recipient will happen')

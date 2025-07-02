@@ -10,13 +10,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     var progress = document.getElementById('progress');
 
-    function highlight(url) {
+function highlight(url) {
         var m = url.match(/https?:\/\/([^/]+)/i);
         if (m) {
             var d = m[1];
             var cls = (opts.sender_domain && d.toLowerCase() === opts.sender_domain.toLowerCase()) ? 'good' : 'bad';
             return url.replace(d, '<span class="highlight ' + cls + '">' + d + '</span>');
-        }
+}
+
+function esc(text) {
+    return text.replace(/[&<>]/g, function(c) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c] || c;
+    });
+}
         return url;
     }
 
@@ -46,7 +52,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 progress.classList.add('fade');
                 progress.style.opacity = 0;
                 setTimeout(function() {
-                    progress.innerHTML = highlight(data.url);
+                    var html = highlight(data.url);
+                    if (data.title) {
+                        html += '<br><span class="title">' + esc(data.title) + '</span>';
+                    }
+                    progress.innerHTML = html;
                     progress.style.opacity = 1;
                 }, 500);
             }
