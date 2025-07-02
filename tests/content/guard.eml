@@ -1,0 +1,14 @@
+From: user@example.com
+To: dest@example.com
+Subject: Guard Test
+MIME-Version: 1.0
+Content-Type: text/html
+
+<html>
+<body>
+<p>
+<a href="https://example.com/welcome">Welcome</a>
+<a href="https://other.com/path?x=1&y=2">Click &quot;here&quot; &amp; enjoy</a>
+</p>
+</body>
+</html>
