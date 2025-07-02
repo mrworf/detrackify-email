@@ -10,6 +10,8 @@ import base64
 import json
 import hashlib
 from bs4 import BeautifulSoup
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+import detrackify_guard
 
 # Path to the script under test
 SCRIPT = os.path.join(os.path.dirname(os.path.dirname(__file__)), "detrackify_email.py")
@@ -232,3 +234,56 @@ def test_guard_via_config_file():
     payload = json.loads(base64.urlsafe_b64decode(b64).decode())
     assert payload.get("to") == "dest@example.com"
     assert msg["X-Detrackify-Guard-Mode"] == "mismatch"
+
+
+def test_strip_query_params():
+    cfg = detrackify_guard.GuardConfig(
+        salt="x",
+        strip_param_prefixes=["utm_"]
+    )
+    server = detrackify_guard.GuardServer(cfg)
+    url = server.strip_query_params("https://example.com/?a=1&utm_source=x&b=2")
+    assert url == "https://example.com/?a=1"
+
+
+def test_strip_query_params_no_match():
+    cfg = detrackify_guard.GuardConfig(
+        salt="x",
+        strip_param_prefixes=["utm_"]
+    )
+    server = detrackify_guard.GuardServer(cfg)
+    url = server.strip_query_params("https://example.com/?a=1&b=2")
+    assert url == "https://example.com/?a=1&b=2"
+
+
+def test_strip_query_params_multiple_prefixes():
+    cfg = detrackify_guard.GuardConfig(
+        salt="x",
+        strip_param_prefixes=["foo", "utm_"]
+    )
+    server = detrackify_guard.GuardServer(cfg)
+    url = server.strip_query_params("https://example.com/?a=1&foo_id=2&utm_x=3&b=4")
+    assert url == "https://example.com/?a=1"
+
+
+def test_resolve_get_registers_routes():
+    cfg = detrackify_guard.GuardConfig(
+        salt="x",
+        resolve=False,
+        resolve_get=True
+    )
+    server = detrackify_guard.GuardServer(cfg)
+    rules = {r.rule for r in server.app.url_map.iter_rules()}
+    assert "/guard/resolve" in rules
+    assert "/guard/go" in rules
+
+
+def test_resolve_get_enables_resolution():
+    cfg = detrackify_guard.GuardConfig(
+        salt="x",
+        resolve=False,
+        resolve_get=True
+    )
+    server = detrackify_guard.GuardServer(cfg)
+    assert server.resolve_enabled is True
+    assert server.resolve_get is True

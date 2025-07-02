@@ -36,12 +36,15 @@ Optional parameters:
 * `--resource-dir` Directory containing additional resources (images only)
 * `--timeout` Seconds to wait before the continue button activates (default `5`)
 * `--privacy` Disable logging of visited links
-* `--resolve` Resolve the final URL before showing the continue button
+* `--resolve` Resolve the final URL before showing the continue button (uses HEAD)
 * `--resolve-cache-file` File used to store resolved URLs
 * `--resolve-cache-days` Days to keep cached items (default `30`)
 * `--resolve-cache-max` Maximum number of cached items (default `4096`)
-* `--resolve-get` Use HTTP GET instead of HEAD when resolving links
+* `--resolve-get` Use HTTP GET when resolving links (implies `--resolve`)
+* `--strip-param-prefix` Remove tracking parameters starting with PREFIX and everything after (may be used multiple times)
 
+The `--strip-param-prefix` option is useful for removing marketing parameters such as `utm_source`. The first matching parameter and all subsequent parameters are dropped from the URL before displaying it or performing the redirect.
+Removing parameters may break links if any subsequent parameter is required by the destination site.
 
 The server verifies the provided hash, shows a warning page and then redirects the
 user without sending a referrer header. It automatically chooses a warning page
@@ -50,11 +53,12 @@ Spanish, French, Chinese and Arabic are included; if no matching template exists
 the English version is used. These translations were generated automatically so
 minor errors may exist.
 
-When `--resolve` is enabled the server will attempt to determine the final
-destination of the provided link. By default it performs a series of HEAD
-requests but if `--resolve-get` is used it will download the full page via GET
-and extract its title. The page will display a progress message while this
-happens and the continue button activates only once the real URL is known. The
+When link resolution is enabled the server will attempt to determine the final
+destination of the provided link. By default a series of HEAD requests is issued
+but `--resolve-get` switches to GET requests and also extracts the page title.
+Using `--resolve-get` implicitly enables resolution even when `--resolve` is not
+specified. The page will display a progress message while this happens and the
+continue button activates only once the real URL is known. The
 result is cached in memory and optionally persisted to a JSON file to speed up
 future requests.
 Using `--resolve-get` downloads the full page, which may consume significantly
