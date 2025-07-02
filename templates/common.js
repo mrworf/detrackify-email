@@ -34,6 +34,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     var progress = document.getElementById('progress');
+    var result = document.getElementById('result');
+    var title = document.getElementById('title');
 
     var controller = new AbortController();
     var timer = setTimeout(function () { controller.abort(); }, (opts.timeout_ms || 0) + 10000);
@@ -62,17 +64,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 var h = document.getElementById('hash');
                 if (u) { u.value = data.url; }
                 if (h) { h.value = data.hash; }
-                if (progress) {
-                    progress.classList.add('fade');
-                    progress.style.opacity = 0;
-                    setTimeout(function () {
-                        var html = highlight(data.url);
-                        if (data.title) {
-                            html += '<br><span class="title">' + esc(data.title) + '</span>';
-                        }
-                        progress.innerHTML = html;
-                        progress.style.opacity = 1;
-                    }, 500);
+                if (progress && result) {
+                    progress.style.display = 'none';
+                    result.innerHTML = highlight(data.url);
+                    result.style.display = 'block';
+                    
+                    if (data.title && title) {
+                        title.textContent = data.title;
+                        title.style.display = 'block';
+                    }
                 }
             }
         })
@@ -87,13 +87,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (box) { box.textContent = msg + '. You can still continue to the original URL.'; }
             var form = document.getElementById('continueForm');
             if (form) { form.action = ''; }
-            if (progress) {
-                progress.classList.add('fade');
-                progress.style.opacity = 0;
-                setTimeout(function () {
-                    progress.textContent = msg;
-                    progress.style.opacity = 1;
-                }, 500);
+            if (progress && result) {
+                progress.style.display = 'none';
+                result.textContent = msg;
+                result.style.display = 'block';
             }
         })
         .finally(function () {

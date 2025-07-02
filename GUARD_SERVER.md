@@ -41,6 +41,7 @@ Optional parameters:
 * `--resolve-cache-days` Days to keep cached items (default `30`)
 * `--resolve-cache-max` Maximum number of cached items (default `4096`)
 * `--resolve-get` Use HTTP GET when resolving links (implies `--resolve`)
+* `--user-agent` User-Agent string for link resolution requests (default: Chrome browser)
 * `--strip-param-prefix` Remove tracking parameters starting with PREFIX and everything after (may be used multiple times)
 
 The `--strip-param-prefix` option is useful for removing marketing parameters such as `utm_source`. The first matching parameter and all subsequent parameters are dropped from the URL before displaying it or performing the redirect.

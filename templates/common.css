@@ -5,3 +5,7 @@ body {font-family: sans-serif;}
 .highlight.good {color: green;}
 .fade {transition: opacity 0.5s;}
 .title {font-size: smaller;}
+.domain-box, .display-box {background-color: #f5f5f5; border: 1px solid #000; padding: 4px 8px; border-radius: 3px;}
+.progress-message {color: #666; font-style: italic;}
+.result-message {color: #333; font-weight: bold;}
+.title-message {color: #666; font-size: smaller; margin-top: 5px;}

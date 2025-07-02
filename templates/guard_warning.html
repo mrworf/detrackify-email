@@ -12,10 +12,12 @@
   <a href="https://github.com/mrworf/detrackify-email" class="noselect">Detrackify</a>
 </div>
 {% if valid %}
-<p>The link you clicked said '{{ display }}' and came from {{ domain }} but leads to the following page:</p>
+<p>The link you clicked said <span class="display-box">{{ display }}</span> and came from <span class="domain-box">{{ domain }}</span> but leads to the following page:</p>
 <p class="noselect"><span id="url">{{ url }}</span></p>
 {% if resolve %}
-<p class="noselect" id="progress">Resolving final destination, please wait...</p>
+<p class="noselect progress-message" id="progress">Resolving final destination, please wait...</p>
+<p class="noselect result-message" id="result" style="display: none;"></p>
+<p class="noselect title-message" id="title" style="display: none;"></p>
 <div id="error" style="color:red;margin-top:10px"></div>
 {% endif %}
 {% else %}

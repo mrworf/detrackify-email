@@ -55,6 +55,7 @@ class GuardConfig:
     cache_max: int = 4096
     resolve_get: bool = False
     strip_param_prefixes: list[str] = field(default_factory=list)
+    user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
 
 class ResolveCache:
@@ -130,6 +131,7 @@ class GuardServer:
         self.resolve_enabled = config.resolve or config.resolve_get
         self.resolve_get = config.resolve_get
         self.strip_prefixes = list(config.strip_param_prefixes)
+        self.user_agent = config.user_agent
         self.cache = (
             ResolveCache(config.cache_max, config.cache_days, config.cache_file)
             if self.resolve_enabled
@@ -274,8 +276,9 @@ class GuardServer:
             url = target
             title = ''
             try:
+                headers = {'User-Agent': self.user_agent}
                 if self.resolve_get:
-                    resp = requests.get(target, allow_redirects=True, timeout=self.timeout)
+                    resp = requests.get(target, allow_redirects=True, timeout=self.timeout, headers=headers)
                     url = self.strip_query_params(resp.url)
                     try:
                         soup = BeautifulSoup(resp.text, 'html.parser')
@@ -284,7 +287,7 @@ class GuardServer:
                     except Exception:  # pylint: disable=broad-except
                         pass
                 else:
-                    resp = requests.head(target, allow_redirects=True, timeout=self.timeout)
+                    resp = requests.head(target, allow_redirects=True, timeout=self.timeout, headers=headers)
                     url = self.strip_query_params(resp.url)
             except Exception as exc:  # pylint: disable=broad-except
                 logging.exception('Failed to resolve %s', target)
@@ -407,6 +410,9 @@ def main():
                         help='Use HTTP GET when resolving links (implies --resolve)')
     parser.add_argument('--strip-param-prefix', action='append', default=[],
                         help='Strip query parameters starting with PREFIX and everything after')
+    parser.add_argument('--user-agent', 
+                        default='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        help='User-Agent string for link resolution requests (default: Chrome browser)')
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
@@ -423,6 +429,7 @@ def main():
         cache_max=args.resolve_cache_max,
         resolve_get=args.resolve_get,
         strip_param_prefixes=args.strip_param_prefix,
+        user_agent=args.user_agent,
     )
     server = GuardServer(config)
     if args.privacy:
