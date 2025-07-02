@@ -107,11 +107,11 @@ def test_guard_whitelist_sender():
         "--guardserver", SERVER,
         "--guardsalt", SALT,
         "--guardlink", "always",
-        "--guardwhitelistsender", "^example\\.com$",
+        "--guardwhitelistsender", "^user@example\\.com$",
     ])
     links = extract_links(msg)
-    assert links[0][1].startswith("https://example.com")
-    assert links[1][1].startswith("https://other.com")
+    assert links[0][1] == "https://example.com/welcome"
+    assert links[1][1] == "https://other.com/path?x=1&y=2"
     assert msg["X-Detrackify-Guarded-Links"] == "0"
 
 
@@ -149,6 +149,7 @@ def test_guard_payload_is_json():
     links = extract_links(msg)
     b64 = links[1][1].split('/')[-1]
     payload = json.loads(base64.urlsafe_b64decode(b64).decode())
+    assert set(payload.keys()) == {"display", "domain", "url"}
     assert payload["url"] == "https://other.com/path?x=1&y=2"
 
 

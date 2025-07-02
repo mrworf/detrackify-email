@@ -251,7 +251,7 @@ class Detrackify:
             print(img_tag['src'])
         return
 
-    def replace_tracking_urls(self, html_content, from_domain=None, to_address=None):
+    def replace_tracking_urls(self, html_content, from_domain=None, to_address=None, from_address=None):
         """Rewrite tracking images and optionally guard links."""
         soup = BeautifulSoup(html_content, 'html.parser')
 
@@ -312,8 +312,9 @@ class Detrackify:
         # Guard regular links if enabled
         mode = self.config.get(Configuration.CFG_GUARD_LINK, 'off')
         if mode != 'off' and from_domain:
-            if self.config.is_guard_sender_whitelisted(from_domain):
-                logging.debug('Sender %s is whitelisted from guarding', from_domain)
+            sender_identity = from_address or from_domain
+            if self.config.is_guard_sender_whitelisted(sender_identity):
+                logging.debug('Sender %s is whitelisted from guarding', sender_identity)
             else:
                 links = soup.find_all('a')
                 guard_server = self.config.get(Configuration.CFG_GUARD_SERVER).rstrip('/') if self.config.get(Configuration.CFG_GUARD_SERVER) else None
@@ -425,6 +426,7 @@ class Detrackify:
         # Parse the email content
         msg = BytesParser(policy=policy.default).parsebytes(raw_message)
         from_domain = None
+        from_address = None
         to_address = None
         mode = self.config.get(Configuration.CFG_GUARD_LINK, 'off')
         capture_to = self.config.get(Configuration.CFG_GUARD_CAPTURE_TO)
@@ -434,7 +436,8 @@ class Detrackify:
             if from_header:
                 addrs = email.utils.getaddresses([from_header])
                 if addrs and '@' in addrs[0][1]:
-                    from_domain = addrs[0][1].split('@')[-1].lower()
+                    from_address = addrs[0][1]
+                    from_domain = from_address.split('@')[-1].lower()
                 else:
                     logging.warning('Unable to parse From header: %s', from_header)
             else:
@@ -472,7 +475,7 @@ class Detrackify:
                 else:
                     # Replace tracking URLs in the HTML content. Store the
                     # modified HTML so we can put the changed payload back.
-                    modified_html = self.replace_tracking_urls(html_content, from_domain, to_address)
+                    modified_html = self.replace_tracking_urls(html_content, from_domain, to_address, from_address)
 
                 # Optionally, re-encode the modified HTML back to Base64 if needed
                 if content_transfer_encoding == 'base64':
