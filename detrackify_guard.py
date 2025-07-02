@@ -21,6 +21,7 @@ import os
 import re
 import time
 from flask import Flask, abort, redirect, render_template, request, send_from_directory
+from markupsafe import escape
 
 
 class GuardServer:
@@ -122,22 +123,25 @@ class GuardServer:
 
         start = time.time()
         url = info.get('url', '')
+        # Escape URL before displaying to avoid control characters or HTML
+        escaped_url = escape(url)
         valid = bool(url)
         if valid:
             match = re.search(r'https?://([^/]+)', url)
             if match:
-                highlight = url.replace(match.group(1),
-                                         f'<span class="highlight">{match.group(1)}</span>',
-                                         1)
+                domain_part = escape(match.group(1))
+                highlight = escaped_url.replace(match.group(1),
+                                               f'<span class="highlight">{domain_part}</span>',
+                                               1)
             else:
-                highlight = url
+                highlight = escaped_url
         else:
             highlight = 'Missing or invalid URL'
         template = self.choose_template(request.headers.get('Accept-Language'))
         return render_template(
             template,
-            display=info.get('display') or '** No link text provided **',
-            domain=info.get('domain') or '** No domain provided **',
+            display=escape(info.get('display') or '** No link text provided **'),
+            domain=escape(info.get('domain') or '** No domain provided **'),
             url=highlight,
             ts=start,
             timeout_ms=self.timeout * 1000,

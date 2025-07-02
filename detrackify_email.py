@@ -659,33 +659,39 @@ class Configuration:
             return False
         return True
 
-    def __test_url(self, url, regex):
-        """Return matching regex or None."""
+    def __test_url(self, url, regex, ctx="list"):
+        """Return matching regex or None and log context."""
         for test in regex:
             try:
                 if re.match(test, url):
-                    logging.debug('Match: %s (%s)', url, test)
+                    logging.debug('Match in %s: %s (%s)', ctx, url, test)
                     return test
             except Exception as e:  # pylint: disable=broad-except
-                logging.error('Error testing %s with %s', url, test)
+                logging.error('Error testing %s with %s in %s', url, test, ctx)
                 logging.exception('Exception: %s', e)
         return None
     
     def is_blacklisted(self, url):
         # Check if the URL is blacklisted
-        return bool(self.__test_url(url, self.config.get('blacklist', [])))
+        return bool(self.__test_url(url, self.config.get('blacklist', []),
+                                    ctx='blacklist'))
     
     def is_whitelisted(self, url):
         # Check if the URL is whitelisted
-        return bool(self.__test_url(url, self.config.get('whitelist', [])))
+        return bool(self.__test_url(url, self.config.get('whitelist', []),
+                                    ctx='whitelist'))
 
     def is_guard_link_whitelisted(self, url):
         """Check if link should bypass guarding."""
-        return self.__test_url(url, self.config.get('guard', {}).get('whitelist_links', []))
+        return self.__test_url(url,
+                               self.config.get('guard', {}).get('whitelist_links', []),
+                               ctx='guard link whitelist')
 
     def is_guard_sender_whitelisted(self, sender):
         """Check if sender should bypass guarding."""
-        return bool(self.__test_url(sender, self.config.get('guard', {}).get('whitelist_senders', [])))
+        return bool(self.__test_url(sender,
+                                    self.config.get('guard', {}).get('whitelist_senders', []),
+                                    ctx='guard sender whitelist'))
     
     def rewrite_url(self, url):
         # Rewrite the URL if needed
