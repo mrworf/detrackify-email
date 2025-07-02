@@ -22,7 +22,8 @@ import re
 import time
 import threading
 import atexit
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import urllib.parse
 
 import requests
 from bs4 import BeautifulSoup
@@ -53,6 +54,7 @@ class GuardConfig:
     cache_days: int = 30
     cache_max: int = 4096
     resolve_get: bool = False
+    strip_param_prefixes: list[str] = field(default_factory=list)
 
 
 class ResolveCache:
@@ -125,17 +127,18 @@ class GuardServer:
         self.timeout = config.timeout
         self.resource_dir = config.resource_dir
         self.privacy = config.privacy
-        self.resolve_enabled = config.resolve
+        self.resolve_enabled = config.resolve or config.resolve_get
         self.resolve_get = config.resolve_get
+        self.strip_prefixes = list(config.strip_param_prefixes)
         self.cache = (
             ResolveCache(config.cache_max, config.cache_days, config.cache_file)
-            if config.resolve
+            if self.resolve_enabled
             else None
         )
 
         self.app.add_url_rule('/guard/<sha>/<data>', 'guard', self.guard,
                               methods=['GET', 'POST'])
-        if config.resolve:
+        if self.resolve_enabled:
             self.app.add_url_rule('/guard/resolve', 'resolve', self.resolve_link,
                                   methods=['POST'])
             self.app.add_url_rule('/guard/go', 'go', self.go, methods=['POST'])
@@ -173,6 +176,27 @@ class GuardServer:
         """Validate hash for payload."""
         calc = hashlib.sha1((payload + self.salt).encode()).hexdigest()
         return calc == sent_sha
+
+    def strip_query_params(self, url: str) -> str:
+        """Remove query parameters starting with configured prefixes."""
+        if not self.strip_prefixes or not url:
+            return url
+        try:
+            parts = urllib.parse.urlsplit(url)
+        except Exception:  # pylint: disable=broad-except
+            return url
+        if not parts.query:
+            return url
+        params = parts.query.split("&")
+        keep = []
+        for param in params:
+            key = param.split("=")[0]
+            if any(key.startswith(p) for p in self.strip_prefixes):
+                break
+            keep.append(param)
+        new_query = "&".join(p for p in keep if p)
+        parts = parts._replace(query=new_query)
+        return urllib.parse.urlunsplit(parts)
 
     def resource(self, filename):
         """Serve optional resource files."""
@@ -244,7 +268,7 @@ class GuardServer:
             try:
                 decoded = base64.urlsafe_b64decode(data).decode()
                 info = json.loads(decoded)
-                target = info.get('url', '')
+                target = self.strip_query_params(info.get('url', ''))
             except Exception:  # pylint: disable=broad-except
                 abort(400)
             url = target
@@ -252,7 +276,7 @@ class GuardServer:
             try:
                 if self.resolve_get:
                     resp = requests.get(target, allow_redirects=True, timeout=self.timeout)
-                    url = resp.url
+                    url = self.strip_query_params(resp.url)
                     try:
                         soup = BeautifulSoup(resp.text, 'html.parser')
                         if soup.title and soup.title.string:
@@ -261,7 +285,7 @@ class GuardServer:
                         pass
                 else:
                     resp = requests.head(target, allow_redirects=True, timeout=self.timeout)
-                    url = resp.url
+                    url = self.strip_query_params(resp.url)
             except Exception as exc:  # pylint: disable=broad-except
                 logging.exception('Failed to resolve %s', target)
                 return jsonify({'error': str(exc)}), 500
@@ -274,7 +298,7 @@ class GuardServer:
         """Redirect using a resolved URL."""
         if not self.resolve_enabled:
             abort(404)
-        url = request.form.get('url', '')
+        url = self.strip_query_params(request.form.get('url', ''))
         sha = request.form.get('sha', '')
         try:
             start = float(request.form.get('ts', '0'))
@@ -314,6 +338,7 @@ class GuardServer:
             except ValueError:
                 start = 0.0
             elapsed = time.time() - start
+            target_url = self.strip_query_params(info.get('url'))
             if not self.privacy:
                 if elapsed < self.timeout:
                     logging.warning("Link activated too quickly: %.2fs < %ds", elapsed, self.timeout)
@@ -322,7 +347,7 @@ class GuardServer:
                     if info.get('to'):
                         logging.info(
                             "Redirecting to %s (%s) for %s after %.2fs",
-                            info.get('url'),
+                            target_url,
                             display,
                             info.get('to'),
                             elapsed,
@@ -330,16 +355,16 @@ class GuardServer:
                     else:
                         logging.info(
                             "Redirecting to %s (%s) after %.2fs",
-                            info.get('url'),
+                            target_url,
                             display,
                             elapsed,
                         )
-            resp = redirect(info.get('url'), code=302)
+            resp = redirect(target_url, code=302)
             resp.headers['Referrer-Policy'] = 'no-referrer'
             return resp
 
         start = time.time()
-        url = info.get('url', '')
+        url = self.strip_query_params(info.get('url', ''))
         valid = bool(url)
         if not valid:
             url = 'Missing or invalid URL'
@@ -379,7 +404,9 @@ def main():
     parser.add_argument('--resolve-cache-max', type=int, default=4096,
                         help='Maximum number of cached entries (default 4096)')
     parser.add_argument('--resolve-get', action='store_true',
-                        help='Use HTTP GET instead of HEAD when resolving')
+                        help='Use HTTP GET when resolving links (implies --resolve)')
+    parser.add_argument('--strip-param-prefix', action='append', default=[],
+                        help='Strip query parameters starting with PREFIX and everything after')
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
@@ -390,16 +417,17 @@ def main():
         template_dir=args.template_dir,
         resource_dir=args.resource_dir,
         privacy=args.privacy,
-        resolve=args.resolve,
+        resolve=args.resolve or args.resolve_get,
         cache_file=args.resolve_cache_file,
         cache_days=args.resolve_cache_days,
         cache_max=args.resolve_cache_max,
         resolve_get=args.resolve_get,
+        strip_param_prefixes=args.strip_param_prefix,
     )
     server = GuardServer(config)
     if args.privacy:
         logging.info('Privacy Mode Enabled; no logging of email address, link, domain, or recipient will happen')
-    if args.resolve:
+    if args.resolve or args.resolve_get:
         atexit.register(server.cache.close)
     server.app.run(host=args.listen_ip, port=args.listen_port)
 
