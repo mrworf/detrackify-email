@@ -9,18 +9,24 @@ body {font-family: sans-serif;}
 .highlight {color: red; font-weight: bold;}
 </style>
 <script>
+{% if valid %}
 function enable() {
   document.getElementById('cont').disabled = false;
 }
 setTimeout(enable, {{ timeout_ms }});
+{% endif %}
 </script>
 </head>
 <body>
 <div style="font-size:24px;font-weight:bold">
   <a href="https://github.com/mrworf/detrackify-email" class="noselect">Detrackify</a>
 </div>
+{% if valid %}
 <p>The link you clicked said '{{ display }}' and came from {{ domain }} but leads to the following page:</p>
 <p class="noselect">{{ url|safe }}</p>
+{% else %}
+<p>Invalid link information provided.</p>
+{% endif %}
 <form method="post" action="" autocomplete="off">
   <input type="hidden" name="ts" value="{{ ts }}">
   <button id="cont" disabled>Yes, I understand and want to continue</button>

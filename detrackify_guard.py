@@ -122,21 +122,26 @@ class GuardServer:
 
         start = time.time()
         url = info.get('url', '')
-        match = re.search(r'https?://([^/]+)', url)
-        if match:
-            highlight = url.replace(match.group(1),
-                                     f'<span class="highlight">{match.group(1)}</span>',
-                                     1)
+        valid = bool(url)
+        if valid:
+            match = re.search(r'https?://([^/]+)', url)
+            if match:
+                highlight = url.replace(match.group(1),
+                                         f'<span class="highlight">{match.group(1)}</span>',
+                                         1)
+            else:
+                highlight = url
         else:
-            highlight = url
+            highlight = 'Missing or invalid URL'
         template = self.choose_template(request.headers.get('Accept-Language'))
         return render_template(
             template,
-            display=info.get('display', ''),
-            domain=info.get('domain', ''),
+            display=info.get('display') or '** No link text provided **',
+            domain=info.get('domain') or '** No domain provided **',
             url=highlight,
             ts=start,
             timeout_ms=self.timeout * 1000,
+            valid=valid,
         )
 
 
