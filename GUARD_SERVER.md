@@ -7,17 +7,18 @@ When guardlink runs in `mismatch` mode the domain of each link is compared with 
 Set the following options either on the command line or in your `detrackify_email.py` configuration file:
 
 ```yaml
-guard:
-  server: https://guard.example.com
-  salt: changeme123
-  link: mismatch
-  capture_to: false
+options:
+  guard:
+    server: https://guard.example.com
+    salt: changeme123
+    link: mismatch
+    capture_to: false
 ```
 
-`guard.server` is the public URL to the guard server including the scheme. `guard.salt` must be at least eight characters and should be kept secret. `guard.link` controls which links are rewritten: `mismatch` only rewrites links that do not match the sender domain, `always` rewrites all links and `off` disables the feature.
+`options.guard.server` is the public URL to the guard server including the scheme. `options.guard.salt` must be at least eight characters and should be kept secret. `options.guard.link` controls which links are rewritten: `mismatch` only rewrites links that do not match the sender domain, `always` rewrites all links and `off` disables the feature.
 
 When a link is rewritten, a JSON payload containing the original URL, its display text and the sender domain is base64 encoded.  A SHA1 hash is then calculated from that encoded payload plus the configured salt and both values are appended to the guard server address.  This allows the server to verify that the payload has not been tampered with when a user clicks the link.  The processed email will also include the headers `X-Detrackify-Guarded-Links` and `X-Detrackify-Guard-Mode` when guardlink is active.
-If `guard.capture_to` is enabled, the recipient address is included in the JSON so the server can log which user clicked the link&mdash;or at least which recipient the link was originally meant for (forwards and quoted mail may not reflect the actual clicker).
+If `options.guard.capture_to` is enabled, the recipient address is included in the JSON so the server can log which user clicked the link&mdash;or at least which recipient the link was originally meant for (forwards and quoted mail may not reflect the actual clicker).
 
 ## Running the guard server
 

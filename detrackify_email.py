@@ -544,12 +544,12 @@ class Configuration:
     CFG_STRIP_REDIRECT = 'options.strip.redirect'
     CFG_STRIP_ENABLE = 'options.strip.enable'
     CFG_COPY = 'options.copy'
-    CFG_GUARD_SERVER = 'guard.server'
-    CFG_GUARD_SALT = 'guard.salt'
-    CFG_GUARD_LINK = 'guard.link'
-    CFG_GUARD_CAPTURE_TO = 'guard.capture_to'
-    CFG_GUARD_WHITELINK = 'guard.whitelist_links'
-    CFG_GUARD_WHITELIST_SENDER = 'guard.whitelist_senders'
+    CFG_GUARD_SERVER = 'options.guard.server'
+    CFG_GUARD_SALT = 'options.guard.salt'
+    CFG_GUARD_LINK = 'options.guard.link'
+    CFG_GUARD_CAPTURE_TO = 'options.guard.capture_to'
+    CFG_GUARD_WHITELINK = 'options.guard.whitelist_links'
+    CFG_GUARD_WHITELIST_SENDER = 'options.guard.whitelist_senders'
 
     def __init__(self):
         # Ensure we have a sane default
@@ -562,15 +562,15 @@ class Configuration:
                     'enable': False
                 },
                 'verbose': False,
-                'copy': None
-            },
-            'guard': {
-                'server': None,
-                'salt': None,
-                'link': 'off',
-                'capture_to': False,
-                'whitelist_links': [],
-                'whitelist_senders': []
+                'copy': None,
+                'guard': {
+                    'server': None,
+                    'salt': None,
+                    'link': 'off',
+                    'capture_to': False,
+                    'whitelist_links': [],
+                    'whitelist_senders': []
+                }
             },
             'blacklist': [],
             'whitelist': [],
@@ -609,8 +609,20 @@ class Configuration:
         try:
             with open(path, 'r') as stream:
                 try:
-                    settings = yaml.safe_load(stream)
-                    self.config.update(settings)
+                    settings = yaml.safe_load(stream) or {}
+                    opts = settings.get('options', {})
+                    for key, value in opts.items():
+                        if isinstance(value, dict) and isinstance(self.config['options'].get(key), dict):
+                            self.config['options'][key].update(value)
+                        else:
+                            self.config['options'][key] = value
+                    for key, value in settings.items():
+                        if key == 'options':
+                            continue
+                        if key in self.config and isinstance(self.config[key], list) and isinstance(value, list):
+                            self.config[key].extend(value)
+                        else:
+                            self.config[key] = value
                 except yaml.YAMLError as exc:
                     logging.exception(f"Error loading configuration file: {exc}")
                     return False
@@ -683,15 +695,21 @@ class Configuration:
 
     def is_guard_link_whitelisted(self, url):
         """Check if link should bypass guarding."""
-        return self.__test_url(url,
-                               self.config.get('guard', {}).get('whitelist_links', []),
-                               ctx='guard link whitelist')
+        return self.__test_url(
+            url,
+            self.get(Configuration.CFG_GUARD_WHITELINK, []),
+            ctx='guard link whitelist'
+        )
 
     def is_guard_sender_whitelisted(self, sender):
         """Check if sender should bypass guarding."""
-        return bool(self.__test_url(sender,
-                                    self.config.get('guard', {}).get('whitelist_senders', []),
-                                    ctx='guard sender whitelist'))
+        return bool(
+            self.__test_url(
+                sender,
+                self.get(Configuration.CFG_GUARD_WHITELIST_SENDER, []),
+                ctx='guard sender whitelist'
+            )
+        )
     
     def rewrite_url(self, url):
         # Rewrite the URL if needed
@@ -769,7 +787,7 @@ def main():
     parser.add_argument('--copy', help='Copy the original email to this folder for debugging')
     parser.add_argument('--guardserver', help='URL of the guard server')
     parser.add_argument('--guardsalt', help='Salt used for guarded links')
-    parser.add_argument('--guardlink', choices=['off', 'mismatch', 'always'], default='off', help='Guard link mode')
+    parser.add_argument('--guardlink', choices=['off', 'mismatch', 'always'], help='Guard link mode')
     parser.add_argument('--guardcaptureto', action='store_true', help='Capture the To address in guarded links')
     parser.add_argument('--guardwhitelink', action='append', default=[], help='Regex of links that should not be guarded')
     parser.add_argument('--guardwhitelistsender', action='append', default=[], help='Regex of sender addresses exempt from guarding')
@@ -825,14 +843,14 @@ def main():
         config.set(Configuration.CFG_GUARD_SERVER, args.guardserver)
     if args.guardsalt:
         config.set(Configuration.CFG_GUARD_SALT, args.guardsalt)
-    if args.guardlink:
+    if args.guardlink is not None:
         config.set(Configuration.CFG_GUARD_LINK, args.guardlink)
     if args.guardcaptureto:
         config.set(Configuration.CFG_GUARD_CAPTURE_TO, True)
     if args.guardwhitelink:
-        config.config['guard']['whitelist_links'].extend(args.guardwhitelink)
+        config.config['options']['guard']['whitelist_links'].extend(args.guardwhitelink)
     if args.guardwhitelistsender:
-        config.config['guard']['whitelist_senders'].extend(args.guardwhitelistsender)
+        config.config['options']['guard']['whitelist_senders'].extend(args.guardwhitelistsender)
 
     mode = config.get(Configuration.CFG_GUARD_LINK, 'off')
     if mode != 'off':

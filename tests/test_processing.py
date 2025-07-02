@@ -70,6 +70,7 @@ def test_pylint():
 GUARD_FILE = os.path.join(os.path.dirname(__file__), "content", "guard.eml")
 SALT = "testsalt"
 SERVER = "https://guard.example.com"
+CONFIG_FILE = os.path.join(os.path.dirname(__file__), "content", "config_guard.yml")
 
 
 def extract_links(msg):
@@ -220,3 +221,14 @@ def test_guard_rewritten_link_format():
     ])
     links = extract_links(msg)
     assert links[1][1].startswith(f"{SERVER}/guard/")
+
+
+def test_guard_via_config_file():
+    msg = process_email(GUARD_FILE, ["--config", CONFIG_FILE])
+    links = extract_links(msg)
+    b64 = links[1][1].split('/')[-1]
+    sha = links[1][1].split('/')[-2]
+    assert hashlib.sha1((b64 + SALT).encode()).hexdigest() == sha
+    payload = json.loads(base64.urlsafe_b64decode(b64).decode())
+    assert payload.get("to") == "dest@example.com"
+    assert msg["X-Detrackify-Guard-Mode"] == "mismatch"

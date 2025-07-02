@@ -43,19 +43,21 @@ domain from the email's `From:` header. Optionally the recipient address can be
 included. The payload is hashed together with the salt to ensure it has not been
 tampered with before the server redirects the user.
 
-Guard settings can also be provided in the YAML configuration file:
+Guard settings can also be provided in the YAML configuration file.  All guard
+options live under the top-level `options` key:
 
 ```yaml
-guard:
-  server: https://guard.example.com
-  salt: mysecret123
-  link: mismatch
-  capture_to: false
-  whitelist_links:
-    - '^https://trusted\\.example\\.com'
-  whitelist_senders:
-    - '^admin@example\\.org$'
-  # sender patterns are checked against the full address
+options:
+  guard:
+    server: https://guard.example.com
+    salt: mysecret123
+    link: mismatch
+    capture_to: false
+    whitelist_links:
+      - '^https://trusted\\.example\\.com'
+    whitelist_senders:
+      - '^admin@example\\.org$'
+    # sender patterns are checked against the full address
 ```
 
 See the [guard server guide](GUARD_SERVER.md) for more details on running the guard server, enabling privacy mode and using a reverse proxy.

@@ -1,0 +1,6 @@
+options:
+  guard:
+    server: https://guard.example.com
+    salt: testsalt
+    link: mismatch
+    capture_to: true
