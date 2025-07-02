@@ -20,23 +20,130 @@ import logging
 import os
 import re
 import time
-from flask import Flask, abort, redirect, render_template, request, send_from_directory
+import threading
+import atexit
+from dataclasses import dataclass
+
+import requests
+from bs4 import BeautifulSoup
+from flask import (
+    Flask,
+    abort,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    jsonify,
+    make_response,
+)
 from markupsafe import escape
+
+
+@dataclass
+class GuardConfig:
+    """Configuration options for :class:`GuardServer`."""
+
+    salt: str
+    timeout: int = 5
+    template_dir: str = "templates"
+    resource_dir: str | None = None
+    privacy: bool = False
+    resolve: bool = False
+    cache_file: str | None = None
+    cache_days: int = 30
+    cache_max: int = 4096
+    resolve_get: bool = False
+
+
+class ResolveCache:
+    """Thread-safe cache for resolved URLs."""
+
+    def __init__(self, max_entries=4096, max_age_days=30, path=None):
+        self.lock = threading.Lock()
+        self.data = {}
+        self.max_entries = max_entries
+        self.max_age = max_age_days * 24 * 3600
+        self.path = path
+        if path and os.path.isfile(path):
+            try:
+                with open(path, 'r', encoding='utf-8') as fh:
+                    self.data = json.load(fh)
+            except Exception:  # pylint: disable=broad-except
+                logging.exception('Failed to load cache file')
+                self.data = {}
+        self.prune()
+        self.stop = threading.Event()
+        self.thread = threading.Thread(target=self._maintenance_loop, daemon=True)
+        self.thread.start()
+
+    def _maintenance_loop(self):
+        while not self.stop.wait(24 * 3600):
+            self.prune()
+            self.save()
+
+    def prune(self):
+        now = time.time()
+        with self.lock:
+            keys = [k for k, v in self.data.items() if now - v.get('ts', 0) > self.max_age]
+            for k in keys:
+                self.data.pop(k, None)
+
+    def get(self, key):
+        with self.lock:
+            return self.data.get(key)
+
+    def set(self, key, url, title=''):
+        entry = {'url': url, 'title': title or '', 'ts': time.time()}
+        with self.lock:
+            self.data[key] = entry
+            if len(self.data) > self.max_entries:
+                oldest = min(self.data.items(), key=lambda item: item[1]['ts'])[0]
+                self.data.pop(oldest, None)
+
+    def save(self):
+        if not self.path:
+            return
+        try:
+            with self.lock, open(self.path, 'w', encoding='utf-8') as fh:
+                json.dump(self.data, fh)
+        except Exception:  # pylint: disable=broad-except
+            logging.exception('Failed to save cache file')
+
+    def close(self):
+        self.stop.set()
+        self.thread.join(timeout=1)
+        self.save()
 
 
 class GuardServer:
     """Flask app handling guarded link redirects."""
 
-    def __init__(self, salt, timeout=5, template_dir="templates", resource_dir=None, privacy=False):
-        self.app = Flask(__name__, template_folder=template_dir)
-        self.salt = salt
-        self.timeout = timeout
-        self.resource_dir = resource_dir
-        self.privacy = privacy
+    def __init__(self, config: GuardConfig):
+        self.cfg = config
+        self.app = Flask(__name__, template_folder=config.template_dir)
+        self.salt = config.salt
+        self.timeout = config.timeout
+        self.resource_dir = config.resource_dir
+        self.privacy = config.privacy
+        self.resolve_enabled = config.resolve
+        self.resolve_get = config.resolve_get
+        self.cache = (
+            ResolveCache(config.cache_max, config.cache_days, config.cache_file)
+            if config.resolve
+            else None
+        )
 
         self.app.add_url_rule('/guard/<sha>/<data>', 'guard', self.guard,
                               methods=['GET', 'POST'])
-        if resource_dir:
+        if config.resolve:
+            self.app.add_url_rule('/guard/resolve', 'resolve', self.resolve_link,
+                                  methods=['POST'])
+            self.app.add_url_rule('/guard/go', 'go', self.go, methods=['POST'])
+        self.app.add_url_rule('/guard/common.js', 'common_js', self.common_js)
+        self.app.add_url_rule('/guard/opts.js', 'opts_js', self.opts_js)
+        self.app.add_url_rule('/guard/common.css', 'common_css',
+                              lambda: send_from_directory(self.app.template_folder, 'common.css'))
+        if config.resource_dir:
             self.app.add_url_rule('/resource/<path:filename>', 'resource',
                                   self.resource, methods=['GET'])
 
@@ -83,6 +190,107 @@ class GuardServer:
             logging.warning("Disallowed resource type requested: %s", filename)
             abort(404)
         return send_from_directory(self.resource_dir, filename)
+
+    def common_js(self):
+        """Serve the shared JavaScript."""
+        return send_from_directory(self.app.template_folder, 'common.js', max_age=86400)
+
+    def opts_js(self):
+        """Serve dynamic JavaScript with per-request options."""
+        referer = request.headers.get('Referer') or ''
+        m = re.search(r'/guard/([^/]+)/([^/]+)', referer)
+        sha = m.group(1) if m else ''
+        data = m.group(2) if m else ''
+        sender = ''
+        valid = sha and data and self.check_hash(sha, data)
+        if valid:
+            try:
+                decoded = base64.urlsafe_b64decode(data).decode()
+                info = json.loads(decoded)
+                sender = info.get('domain', '') or ''
+            except Exception:  # pylint: disable=broad-except
+                valid = False
+        opts = {
+            'resolve': self.resolve_enabled,
+            'timeout_ms': self.timeout * 1000,
+            'sha': sha if valid else '',
+            'data': data if valid else '',
+            'sender_domain': sender if valid else '',
+        }
+        resp = make_response(render_template('opts.js', opts=opts))
+        resp.headers['Content-Type'] = 'application/javascript'
+        resp.headers['Cache-Control'] = 'no-store'
+        return resp
+
+    def resolve_link(self):
+        """Return the final destination of a guarded link."""
+        if not self.resolve_enabled:
+            abort(404)
+        try:
+            payload = request.get_json(force=True)
+        except Exception:  # pylint: disable=broad-except
+            abort(400)
+        sha = str(payload.get('sha', ''))
+        data = str(payload.get('data', ''))
+        if not sha or not data or not self.check_hash(sha, data):
+            abort(403)
+        b64_sha = hashlib.sha1(data.encode()).hexdigest()
+        key = hashlib.sha1((data + b64_sha).encode()).hexdigest()
+        entry = self.cache.get(key) if self.cache else None
+        if entry:
+            url = entry['url']
+            title = entry.get('title', '')
+        else:
+            try:
+                decoded = base64.urlsafe_b64decode(data).decode()
+                info = json.loads(decoded)
+                target = info.get('url', '')
+            except Exception:  # pylint: disable=broad-except
+                abort(400)
+            url = target
+            title = ''
+            try:
+                if self.resolve_get:
+                    resp = requests.get(target, allow_redirects=True, timeout=self.timeout)
+                    url = resp.url
+                    try:
+                        soup = BeautifulSoup(resp.text, 'html.parser')
+                        if soup.title and soup.title.string:
+                            title = soup.title.string.strip()
+                    except Exception:  # pylint: disable=broad-except
+                        pass
+                else:
+                    resp = requests.head(target, allow_redirects=True, timeout=self.timeout)
+                    url = resp.url
+            except Exception as exc:  # pylint: disable=broad-except
+                logging.exception('Failed to resolve %s', target)
+                return jsonify({'error': str(exc)}), 500
+            if self.cache:
+                self.cache.set(key, url, title)
+        result_sha = hashlib.sha1((url + self.salt).encode()).hexdigest()
+        return jsonify({'url': url, 'hash': result_sha, 'title': title}), 200
+
+    def go(self):
+        """Redirect using a resolved URL."""
+        if not self.resolve_enabled:
+            abort(404)
+        url = request.form.get('url', '')
+        sha = request.form.get('sha', '')
+        try:
+            start = float(request.form.get('ts', '0'))
+        except ValueError:
+            start = 0.0
+        if not url or hashlib.sha1((url + self.salt).encode()).hexdigest() != sha:
+            abort(404)
+        elapsed = time.time() - start
+        if not self.privacy:
+            if elapsed < self.timeout:
+                logging.warning("Link activated too quickly: %.2fs < %ds", elapsed, self.timeout)
+            else:
+                logging.info("Redirecting to %s after %.2fs", url, elapsed)
+        resp = redirect(url, code=302)
+        resp.headers['Referrer-Policy'] = 'no-referrer'
+        return resp
 
     def guard(self, sha, data):
         sha = str(sha or '')
@@ -132,32 +340,24 @@ class GuardServer:
 
         start = time.time()
         url = info.get('url', '')
-        # Escape URL before displaying to avoid control characters or HTML
-        escaped_url = str(escape(url))
         valid = bool(url)
-        if valid:
-            match = re.search(r'https?://([^/]+)', url)
-            if match:
-                domain_part = escape(match.group(1))
-                highlight = escaped_url.replace(
-                    match.group(1),
-                    f'<span class="highlight">{domain_part}</span>',
-                    1,
-                )
-            else:
-                highlight = escaped_url
-        else:
-            highlight = 'Missing or invalid URL'
+        if not valid:
+            url = 'Missing or invalid URL'
+
         template = self.choose_template(request.headers.get('Accept-Language'))
-        return render_template(
-            template,
-            display=escape(info.get('display') or '** No link text provided **'),
-            domain=escape(info.get('domain') or '** No domain provided **'),
-            url=highlight,
-            ts=start,
-            timeout_ms=self.timeout * 1000,
-            valid=valid,
-        )
+        context = {
+            'display': escape(info.get('display') or '** No link text provided **'),
+            'domain': escape(info.get('domain') or '** No domain provided **'),
+            'sender_domain': info.get('domain') or '',
+            'url': url,
+            'ts': start,
+            'timeout_ms': self.timeout * 1000,
+            'valid': valid,
+            'resolve': self.resolve_enabled,
+            'sha': sha,
+            'data': data,
+        }
+        return render_template(template, **context)
 
 
 def main():
@@ -171,16 +371,36 @@ def main():
                         help='Seconds before continue button activates')
     parser.add_argument('--privacy', action='store_true',
                         help='Disable logging of visited links')
+    parser.add_argument('--resolve', action='store_true',
+                        help='Resolve final destination before allowing continue')
+    parser.add_argument('--resolve-cache-file', help='Path to JSON cache file')
+    parser.add_argument('--resolve-cache-days', type=int, default=30,
+                        help='Days to keep resolve results (default 30)')
+    parser.add_argument('--resolve-cache-max', type=int, default=4096,
+                        help='Maximum number of cached entries (default 4096)')
+    parser.add_argument('--resolve-get', action='store_true',
+                        help='Use HTTP GET instead of HEAD when resolving')
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
 
-    server = GuardServer(args.guardsalt, timeout=args.timeout,
-                         template_dir=args.template_dir,
-                         resource_dir=args.resource_dir,
-                         privacy=args.privacy)
+    config = GuardConfig(
+        salt=args.guardsalt,
+        timeout=args.timeout,
+        template_dir=args.template_dir,
+        resource_dir=args.resource_dir,
+        privacy=args.privacy,
+        resolve=args.resolve,
+        cache_file=args.resolve_cache_file,
+        cache_days=args.resolve_cache_days,
+        cache_max=args.resolve_cache_max,
+        resolve_get=args.resolve_get,
+    )
+    server = GuardServer(config)
     if args.privacy:
         logging.info('Privacy Mode Enabled; no logging of email address, link, domain, or recipient will happen')
+    if args.resolve:
+        atexit.register(server.cache.close)
     server.app.run(host=args.listen_ip, port=args.listen_port)
 
 

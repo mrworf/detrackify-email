@@ -4,17 +4,9 @@
 <head>
 <meta charset="utf-8">
 <title>Detrackify Guard</title>
-<style>
-body {font-family: sans-serif;}
-.noselect {user-select: none;}
-.highlight {color: red; font-weight: bold;}
-</style>
-<script>
-{% if valid %}
-function enable(){document.getElementById('cont').disabled=false;}
-setTimeout(enable, {{ timeout_ms }});
-{% endif %}
-</script>
+<link rel="stylesheet" href="/guard/common.css">
+<script src="/guard/opts.js"></script>
+<script src="/guard/common.js"></script>
 </head>
 <body>
 <div style="font-size:24px;font-weight:bold" class="noselect">
@@ -22,16 +14,20 @@ setTimeout(enable, {{ timeout_ms }});
 </div>
 {% if valid %}
 <p>الرابط الذي نقرت عليه قال '{{ display }}' وجاء من {{ domain }} لكنه يؤدي إلى الصفحة التالية:</p>
-<p class="noselect">{{ url|safe }}</p>
+<p class="noselect"><span id="url">{{ url }}</span></p>
+{% if resolve %}
+<p class="noselect" id="progress">جاري تحديد الوجهة النهائية، يرجى الانتظار...</p>
+<div id="error" style="color:red;margin-top:10px"></div>
+{% endif %}
 {% else %}
 <p>تم تقديم رابط غير صالح.</p>
 {% endif %}
 {% if valid %}
-<form method="post" action="" autocomplete="off">
+<form method="post" action="{% if resolve %}/guard/go{% endif %}" autocomplete="off" id="continueForm">
   <input type="hidden" name="ts" value="{{ ts }}">
+  {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
   <button id="cont" disabled>نعم، أفهم وأرغب بالمتابعة</button>
 </form>
 {% endif %}
 </body>
 </html>
-

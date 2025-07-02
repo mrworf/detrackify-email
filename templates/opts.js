@@ -1,0 +1,1 @@
+var guardOpts = {{ opts | tojson }};
