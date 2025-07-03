@@ -397,7 +397,7 @@ class GuardServer:
             abort(404)
         
         # Validate data format (should be base64)
-        if not re.match(r'^[A-Za-z0-9_-]+$', data):
+        if not re.match(r'^[A-Za-z0-9+/=\r\n_-]+$', data):
             logging.warning("Invalid data format: %s", data)
             abort(404)
         

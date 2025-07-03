@@ -344,13 +344,15 @@ class Detrackify:
                             alt = img.get('alt')
                             img.replace_with(f'[IMAGE:{alt}]' if alt else '[IMAGE]')
                         display_text = display_soup.get_text()
+                        # Clean the display text to remove excess whitespace and newlines
+                        display_text = ' '.join(display_text.split())
                         payload = {
                             'display': display_text,
-                            'domain': from_domain,
-                            'url': href,
+                            'domain': from_domain.strip() if from_domain else '',
+                            'url': href.strip() if href else '',
                         }
                         if self.config.get(Configuration.CFG_GUARD_CAPTURE_TO) and to_address:
-                            payload['to'] = to_address
+                            payload['to'] = to_address.strip()
                         b64 = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode()
                         sha = hashlib.sha256((b64 + self.config.get(Configuration.CFG_GUARD_SALT)).encode()).hexdigest()
                         link['href'] = f"{guard_server}/guard/{sha}/{b64}"
