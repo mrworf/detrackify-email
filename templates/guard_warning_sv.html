@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Machine-generated translation / Traduction automatique -->
+<!-- Swedish translation / Svensk översättning -->
 <html>
 <head>
 <meta charset="utf-8">
@@ -17,18 +17,18 @@
     <div class="link-box link-box-left">
       <img src="/resource/phishing.png" alt="Phishing" class="phishing-icon">
 
-      <p>Ce lien semble être une tentative de phishing - où quelqu'un essaie de vous tromper en se faisant passer pour une source de confiance. Tout comme la pêche utilise des appâts pour attraper des proies, le phishing utilise des liens trompeurs pour capturer des informations sensibles.</p>
-      <p>Pour vous protéger, nous vous montrons la destination réelle de ce lien, qui diffère de ce qui a été présenté. Cette transparence vous aide à prendre une décision éclairée avant de continuer.</p>
+      <p>Den här länken verkar vara ett försök till nätfiske – någon försöker lura dig genom att utge sig för att vara en betrodd källa. Precis som fiske använder bete för att fånga byten, använder nätfiske vilseledande länkar för att fånga känslig information.</p>
+      <p>För att skydda dig visar vi dig länkens verkliga slutdestination, som kan skilja sig från vad som presenterades. Denna transparens hjälper dig att fatta ett informerat beslut innan du fortsätter.</p>
     </div>
     <div class="link-box link-box-left">
-      <p class="text-center">Le lien sur lequel vous avez cliqué disait <span class="display-box">{{ display }}</span> et venait de <span class="domain-box">{{ domain }}</span> mais cliquer dessus ouvrira la page suivante :</p>
+      <p class="text-center">Länken du klickade på visade <span class="display-box">{{ display }}</span> och kom från <span class="domain-box">{{ domain }}</span> men att klicka på den öppnar följande sida:</p>
       <p class="noselect source-box"><span id="url">{{ url }}</span></p>
-      <p class="hint">notez le domaine différent mis en évidence en rouge</p>
+      <p class="hint">notera den avvikande domänen markerad i rött</p>
     </div>
     {% if resolve %}
     <div class="spinner" id="resolve-spinner"></div>
     <div class="link-box link-box-left">
-      <p class="noselect progress-message" id="progress">Résolution de la destination finale, veuillez patienter...</p>
+      <p class="noselect progress-message" id="progress">Löser slutdestination, vänligen vänta...</p>
       
       <!-- URL matches domain (green) -->
       <div id="url-match" class="hidden">
@@ -36,7 +36,7 @@
           <p class="noselect title-message hidden" id="title-match"></p>
           <p class="noselect result-message" id="result-match"></p>
         </div>
-        <p class="hint">La destination finale correspond au domaine de l'expéditeur - cela semble sûr.</p>
+        <p class="hint">Slutdestinationen matchar avsändarens domän – detta verkar vara säkert.</p>
       </div>
       
       <!-- URL doesn't match domain (red) -->
@@ -45,7 +45,7 @@
           <p class="noselect title-message hidden" id="title-mismatch"></p>
           <p class="noselect result-message" id="result-mismatch"></p>
         </div>
-        <p class="hint">La destination finale diffère du domaine de l'expéditeur - procédez avec prudence.</p>
+        <p class="hint">Slutdestinationen skiljer sig från avsändarens domän – fortsätt med försiktighet.</p>
       </div>
       <div id="error" class="error-message"></div>
     </div>
@@ -55,14 +55,14 @@
       {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
       <button id="cont" class="button-large" disabled>
         <div class="button-progress" id="button-progress"></div>
-        <span id="button-text">{% if resolve %}Continuer vers la destination finale{% else %}Oui, je comprends et je veux continuer{% endif %}</span>
+        <span id="button-text">{% if resolve %}Fortsätt till slutdestinationen{% else %}Ja, jag förstår och vill fortsätta{% endif %}</span>
       </button>
       <div id="redirecting-state" class="hidden">
         <div class="button-spinner"></div>
-        <span>{% if resolve %}Redirection vers la destination finale...{% else %}Redirection...{% endif %}</span>
+        <span>{% if resolve %}Omdirigerar till slutdestinationen...{% else %}Omdirigerar...{% endif %}</span>
       </div>
     </form>
   </div>
 </div>
 </body>
-</html>
+</html> 

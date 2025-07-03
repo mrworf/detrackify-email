@@ -55,11 +55,11 @@
       {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
       <button id="cont" class="button-large" disabled>
         <div class="button-progress" id="button-progress"></div>
-        <span id="button-text">{% if resolve %}Continuar al destino resuelto{% else %}Sí, entiendo y quiero continuar{% endif %}</span>
+        <span id="button-text">{% if resolve %}Continuar al destino final{% else %}Sí, entiendo y quiero continuar{% endif %}</span>
       </button>
       <div id="redirecting-state" class="hidden">
         <div class="button-spinner"></div>
-        <span>{% if resolve %}Redirigiendo al destino resuelto...{% else %}Redirigiendo...{% endif %}</span>
+        <span>{% if resolve %}Redirigiendo al destino final...{% else %}Redirigiendo...{% endif %}</span>
       </div>
     </form>
   </div>
