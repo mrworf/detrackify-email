@@ -36,11 +36,10 @@ Optional parameters:
 * `--resources-dir` Directory containing additional resources (images only)
 * `--timeout` Seconds to wait before the continue button activates (default `5`)
 * `--privacy` Disable logging of visited links
-* `--resolve` Resolve the final URL before showing the continue button (uses HEAD)
+* `--resolve` Resolve the final URL before showing the continue button (choices: `head`, `get`)
 * `--resolve-cache-file` File used to store resolved URLs
 * `--resolve-cache-days` Days to keep cached items (default `30`)
 * `--resolve-cache-max` Maximum number of cached items (default `4096`)
-* `--resolve-get` Use HTTP GET when resolving links (implies `--resolve`)
 * `--user-agent` User-Agent string for link resolution requests (default: Chrome browser)
 * `--debug` Enable debug mode with template auto-reload
 * `--force-language` Force serving a specific language template (e.g., de, es, fr, zh, ar)
@@ -57,14 +56,13 @@ the English version is used. These translations were generated automatically so
 minor errors may exist.
 
 When link resolution is enabled the server will attempt to determine the final
-destination of the provided link. By default a series of HEAD requests is issued
-but `--resolve-get` switches to GET requests and also extracts the page title.
-Using `--resolve-get` implicitly enables resolution even when `--resolve` is not
-specified. The page will display a progress message while this happens and the
+destination of the provided link. Use `--resolve head` for HEAD requests (default)
+or `--resolve get` for GET requests which also extracts the page title.
+The page will display a progress message while this happens and the
 continue button activates only once the real URL is known. The
 result is cached in memory and optionally persisted to a JSON file to speed up
 future requests.
-Using `--resolve-get` downloads the full page, which may consume significantly
+Using `--resolve get` downloads the full page, which may consume significantly
 more data and could trigger tracking mechanisms on the remote server. 
 
 It's worth noting that while HEAD is less bandwidth intensive, some servers don't allow HEAD and some won't provide the redirects we need to resolve the path. And yet they may still track you. 
@@ -96,7 +94,15 @@ All endpoints except `/resources/` are served below the `/guard/` prefix:
 
 ## Using a reverse proxy
 
-The guard server can run behind a reverse proxy such as nginx or Apache. Configure the proxy to pass requests for `/guard/` and `/resource/` to the internal server. Example nginx snippet:
+The guard server can run behind a reverse proxy such as nginx or Apache. Configure the proxy to pass requests for `/guard/` and `/resource/` to the internal server.
+
+### Example Configurations
+
+The `extras/` folder contains example configurations for common deployment scenarios:
+
+- `extras/nginx.conf` - Complete nginx configuration with security headers, rate limiting, and SSL support
+
+Example nginx snippet:
 
 ```nginx
 location /guard/ {
@@ -111,6 +117,228 @@ location /resources/ {
 ```
 
 When using a proxy, set `guard.server` to the external URL clients will access (e.g. `https://example.com`). No code changes are required.
+
+## Docker Deployment
+
+The guard server can be deployed using Docker for easier deployment and management. A `Dockerfile` and `docker-compose.yml` are provided for containerized deployment.
+
+### Building the Docker Image
+
+To build the Docker image locally:
+
+```bash
+docker build -t detrackify-guard .
+```
+
+The image includes:
+- Python 3.11 slim base image
+- All required dependencies from `requirements.txt`
+- Non-root user for security
+- Health check endpoint at `/guard/health`
+- Default configuration for port 9090
+- Environment variable support for all configuration options
+
+### Running with Docker
+
+#### Basic Docker Run
+
+```bash
+docker run -d \
+  --name detrackify-guard \
+  -p 9090:9090 \
+  -e GUARD_SALT=your_secure_salt_here \
+  -e TIMEOUT=5 \
+  -e RESOLVE=head \
+  detrackify-guard
+```
+
+#### With Custom Configuration
+
+```bash
+docker run -d \
+  --name detrackify-guard \
+  -p 9090:9090 \
+  -v $(pwd)/templates:/app/templates:ro \
+  -v $(pwd)/resources:/app/resources:ro \
+  -v $(pwd)/cache:/app/cache \
+  -e GUARD_SALT=your_secure_salt_here \
+  -e TIMEOUT=5 \
+  -e RESOLVE=get \
+  -e RESOLVE_CACHE_FILE=/app/cache/resolve_cache.json \
+  -e RESOLVE_CACHE_DAYS=30 \
+  -e RESOLVE_CACHE_MAX=4096 \
+  -e PRIVACY=true \
+  detrackify-guard
+```
+
+### Running with Docker Compose
+
+The provided `docker-compose.yml` includes a complete setup with optional nginx reverse proxy. The nginx configuration is located in `extras/nginx.conf` and includes security headers, rate limiting, and SSL support.
+
+#### Basic Setup
+
+```bash
+# Start the guard server only
+docker-compose up -d
+
+# View logs
+docker-compose logs -f detrackify-guard
+```
+
+#### With Nginx Reverse Proxy
+
+```bash
+# Start both guard server and nginx proxy
+docker-compose --profile proxy up -d
+
+# View all logs
+docker-compose logs -f
+```
+
+#### Custom Configuration
+
+Edit the `docker-compose.yml` file to customize:
+
+- **Salt**: Change `GUARD_SALT=changeme123` to your secure salt
+- **Port**: Modify the port mapping `"9090:9090"` if needed
+- **Volumes**: Uncomment or modify volume mounts for custom templates/resources
+- **Environment**: Add environment variables as needed
+
+### Environment Variables
+
+All configuration options are available as environment variables:
+
+#### Required Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `GUARD_SALT` | Secret salt for link verification (required) | `GUARD_SALT=mysecret123` |
+
+#### Optional Variables
+
+| Variable | Description | Default | Example |
+|----------|-------------|---------|---------|
+| `TIMEOUT` | Seconds before continue button activates | `5` | `TIMEOUT=10` |
+| `PRIVACY` | Disable logging of visited links | `false` | `PRIVACY=true` |
+| `RESOLVE` | Resolve final destination (choices: `head`, `get`) | `None` | `RESOLVE=head` |
+| `RESOLVE_CACHE_FILE` | Path to JSON cache file | `None` | `RESOLVE_CACHE_FILE=/app/cache/cache.json` |
+| `RESOLVE_CACHE_DAYS` | Days to keep cached items | `30` | `RESOLVE_CACHE_DAYS=60` |
+| `RESOLVE_CACHE_MAX` | Maximum number of cached items | `4096` | `RESOLVE_CACHE_MAX=8192` |
+| `USER_AGENT` | User-Agent string for link resolution | Chrome browser | `USER_AGENT=MyBot/1.0` |
+| `TEMPLATE_DIR` | Directory containing templates | `/app/templates` | `TEMPLATE_DIR=/custom/templates` |
+| `RESOURCES_DIR` | Directory containing additional resources | `/app/resources` | `RESOURCES_DIR=/custom/resources` |
+
+#### Multiple Values
+
+For parameters that can be specified multiple times (like `--strip-param-prefix`), you can use:
+
+**Method 1: Comma-separated values**
+```bash
+STRIP_PARAM_PREFIX=utm_source,utm_medium,utm_campaign
+```
+
+**Method 2: Individual numbered variables**
+```bash
+STRIP_PARAM_PREFIX_1=utm_source
+STRIP_PARAM_PREFIX_2=utm_medium
+STRIP_PARAM_PREFIX_3=utm_campaign
+```
+
+#### Example Environment Configuration
+
+```bash
+# Basic configuration
+GUARD_SALT=mysecret123
+TIMEOUT=5
+RESOLVE=head
+
+# Advanced configuration
+RESOLVE=get
+RESOLVE_CACHE_FILE=/app/cache/resolve_cache.json
+RESOLVE_CACHE_DAYS=30
+RESOLVE_CACHE_MAX=4096
+PRIVACY=true
+USER_AGENT="Mozilla/5.0 (compatible; MyBot/1.0)"
+STRIP_PARAM_PREFIX=utm_source,utm_medium,utm_campaign,fbclid
+```
+
+#### Production Configuration
+
+For production deployment:
+
+1. **Use a strong salt**: Generate a secure random salt
+2. **Enable HTTPS**: Configure SSL certificates in nginx
+3. **Set up monitoring**: Use the health check endpoint
+4. **Configure logging**: Mount log volumes if needed
+5. **Resource limits**: Add memory and CPU limits
+
+Example production `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  detrackify-guard:
+    build: .
+    container_name: detrackify-guard
+    ports:
+      - "127.0.0.1:9090:9090"  # Only bind to localhost
+    environment:
+      # Required
+      - GUARD_SALT=${GUARD_SALT}
+      
+      # Configuration
+      - TIMEOUT=5
+      - RESOLVE=head
+      - RESOLVE_CACHE_FILE=/app/cache/resolve_cache.json
+      - RESOLVE_CACHE_DAYS=30
+      - RESOLVE_CACHE_MAX=4096
+      - PRIVACY=true
+      - STRIP_PARAM_PREFIX=utm_source,utm_medium,utm_campaign,fbclid
+    volumes:
+      - ./templates:/app/templates:ro
+      - ./resources:/app/resources:ro
+      - ./cache:/app/cache
+      - ./logs:/app/logs
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+```
+
+### Health Monitoring
+
+The container includes a health check that can be monitored:
+
+```bash
+# Check container health
+docker ps
+
+# Test health endpoint directly
+curl http://localhost:9090/guard/health
+
+# Monitor with docker-compose
+docker-compose ps
+```
+
+### Updating the Container
+
+To update to a new version:
+
+```bash
+# Pull latest changes
+git pull
+
+# Rebuild and restart
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
 
 ### Privacy
 

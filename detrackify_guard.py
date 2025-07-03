@@ -49,11 +49,10 @@ class GuardConfig:
     template_dir: str = "templates"
     resource_dir: str = "resources"
     privacy: bool = False
-    resolve: bool = False
+    resolve: str | None = None  # 'head', 'get', or None
     cache_file: str | None = None
     cache_days: int = 30
     cache_max: int = 4096
-    resolve_get: bool = False
     strip_param_prefixes: list[str] = field(default_factory=list)
     user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     force_language: str | None = None
@@ -131,8 +130,8 @@ class GuardServer:
         self.timeout = config.timeout
         self.resource_dir = config.resource_dir
         self.privacy = config.privacy
-        self.resolve_enabled = config.resolve or config.resolve_get
-        self.resolve_get = config.resolve_get
+        self.resolve_enabled = config.resolve is not None
+        self.resolve_get = config.resolve == 'get'
         self.strip_prefixes = list(config.strip_param_prefixes)
         self.user_agent = config.user_agent
         self.force_language = config.force_language
@@ -152,6 +151,7 @@ class GuardServer:
         self.app.add_url_rule('/guard/opts.js', 'opts_js', self.opts_js)
         self.app.add_url_rule('/guard/common.css', 'common_css',
                               lambda: send_from_directory(self.app.template_folder, 'common.css', max_age=0))
+        self.app.add_url_rule('/guard/health', 'health', self.health_check)
         if config.resource_dir:
             self.app.add_url_rule('/resource/<path:filename>', 'resource',
                                   self.resource, methods=['GET'])
@@ -228,6 +228,10 @@ class GuardServer:
             logging.warning("Disallowed resource type requested: %s", filename)
             abort(404)
         return send_from_directory(self.resource_dir, filename)
+
+    def health_check(self):
+        """Health check endpoint for monitoring."""
+        return jsonify({'status': 'healthy', 'timestamp': time.time()}), 200
 
     def common_js(self):
         """Serve the shared JavaScript."""
@@ -411,15 +415,13 @@ def main():
                         help='Seconds before continue button activates')
     parser.add_argument('--privacy', action='store_true',
                         help='Disable logging of visited links')
-    parser.add_argument('--resolve', action='store_true',
-                        help='Resolve final destination before allowing continue')
+    parser.add_argument('--resolve', choices=['head', 'get'],
+                        help='Resolve final destination using HEAD or GET requests')
     parser.add_argument('--resolve-cache-file', help='Path to JSON cache file')
     parser.add_argument('--resolve-cache-days', type=int, default=30,
                         help='Days to keep resolve results (default 30)')
     parser.add_argument('--resolve-cache-max', type=int, default=4096,
                         help='Maximum number of cached entries (default 4096)')
-    parser.add_argument('--resolve-get', action='store_true',
-                        help='Use HTTP GET when resolving links (implies --resolve)')
     parser.add_argument('--strip-param-prefix', action='append', default=[],
                         help='Strip query parameters starting with PREFIX and everything after')
     parser.add_argument('--user-agent', 
@@ -439,11 +441,10 @@ def main():
         template_dir=args.template_dir,
         resource_dir=args.resources_dir,
         privacy=args.privacy,
-        resolve=args.resolve or args.resolve_get,
+        resolve=args.resolve,
         cache_file=args.resolve_cache_file,
         cache_days=args.resolve_cache_days,
         cache_max=args.resolve_cache_max,
-        resolve_get=args.resolve_get,
         strip_param_prefixes=args.strip_param_prefix,
         user_agent=args.user_agent,
         force_language=args.force_language,

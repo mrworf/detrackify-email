@@ -1,0 +1,79 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+# Note: docker-entrypoint.sh is needed for the container
+
+# Documentation
+README.md
+GUARD_SERVER.md
+AGENTS.md
+COPYING
+
+# Extras (examples and additional configurations)
+extras/*
+!extras/docker-entrypoint.sh
+
+# Tests
+tests/
+
+# Example emails
+legit/
+phishing/
+spam/
+
+# Cache and temporary files
+cache/
+*.tmp
+*.temp
+
+# Logs
+*.log
+logs/ 
