@@ -292,9 +292,15 @@ class GuardServer:
             url = target
             title = ''
             try:
-                headers = {'User-Agent': self.user_agent}
+                # Create a new session for each request to ensure no cookies are persisted
+                session = requests.Session()
+                session.headers.update({'User-Agent': self.user_agent})
+                
+                # Disable cookie persistence
+                session.cookies.clear()
+                
                 if self.resolve_get:
-                    resp = requests.get(target, allow_redirects=True, timeout=self.timeout, headers=headers)
+                    resp = session.get(target, allow_redirects=True, timeout=self.timeout)
                     url = self.strip_query_params(resp.url)
                     try:
                         soup = BeautifulSoup(resp.text, 'html.parser')
@@ -303,8 +309,12 @@ class GuardServer:
                     except Exception:  # pylint: disable=broad-except
                         pass
                 else:
-                    resp = requests.head(target, allow_redirects=True, timeout=self.timeout, headers=headers)
+                    resp = session.head(target, allow_redirects=True, timeout=self.timeout)
                     url = self.strip_query_params(resp.url)
+                    
+                # Clear any cookies that might have been set during the request
+                session.cookies.clear()
+                session.close()
             except Exception as exc:  # pylint: disable=broad-except
                 logging.exception('Failed to resolve %s', target)
                 return jsonify({'error': str(exc)}), 500
