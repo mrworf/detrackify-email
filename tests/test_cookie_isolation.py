@@ -3,7 +3,11 @@
 
 import pytest
 import requests
+import sys
+import os
 from unittest.mock import patch, MagicMock
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from detrackify_guard import GuardConfig, GuardServer
 
 
