@@ -156,12 +156,36 @@ class GuardServer:
             self.app.add_url_rule('/resource/<path:filename>', 'resource',
                                   self.resource, methods=['GET'])
 
+        @self.app.after_request
+        def add_security_headers(response):
+            response.headers['X-Content-Type-Options'] = 'nosniff'
+            response.headers['X-Frame-Options'] = 'DENY'
+            response.headers['X-XSS-Protection'] = '1; mode=block'
+            response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+            return response
+
     def choose_template(self, accept_language):
         """Return best template name based on Accept-Language header."""
         # Force specific language if debug option is set
         if self.force_language:
+            # Validate language code format to prevent path traversal
+            if not re.match(r'^[a-z]{2,3}(-[A-Z]{2})?$', self.force_language):
+                logging.warning("Invalid language code: %s", self.force_language)
+                return 'guard_warning.html'
+            
             candidate = f'guard_warning_{self.force_language}.html'
-            if os.path.isfile(os.path.join(self.app.template_folder, candidate)):
+            # Validate template path
+            template_path = os.path.join(self.app.template_folder, candidate)
+            try:
+                real_path = os.path.realpath(template_path)
+                template_real = os.path.realpath(self.app.template_folder)
+                if not real_path.startswith(template_real):
+                    logging.warning("Template path traversal attempt: %s", self.force_language)
+                    return 'guard_warning.html'
+            except OSError:
+                return 'guard_warning.html'
+            
+            if os.path.isfile(template_path):
                 return candidate
             logging.warning("Forced language template not found: %s", candidate)
             return 'guard_warning.html'
@@ -181,6 +205,9 @@ class GuardServer:
                 continue
         for lang in langs:
             code = lang.split('-')[0]
+            # Validate language code format
+            if not re.match(r'^[a-z]{2,3}$', code):
+                continue
             candidate = f'guard_warning_{code}.html'
             if os.path.isfile(os.path.join(self.app.template_folder, candidate)):
                 return candidate
@@ -188,7 +215,7 @@ class GuardServer:
 
     def check_hash(self, sent_sha, payload):
         """Validate hash for payload."""
-        calc = hashlib.sha1((payload + self.salt).encode()).hexdigest()
+        calc = hashlib.sha256((payload + self.salt).encode()).hexdigest()
         return calc == sent_sha
 
     def strip_query_params(self, url: str) -> str:
@@ -216,10 +243,28 @@ class GuardServer:
         """Serve optional resource files."""
         if not self.resource_dir:
             abort(404)
-        path = os.path.join(self.resource_dir, filename)
+        
+        # Normalize and validate path to prevent path traversal
+        normalized_path = os.path.normpath(filename)
+        if normalized_path.startswith('..') or normalized_path.startswith('/'):
+            logging.warning("Path traversal attempt: %s", filename)
+            abort(404)
+        
+        path = os.path.join(self.resource_dir, normalized_path)
         if not os.path.isfile(path):
             logging.warning("Resource not found: %s", filename)
             abort(404)
+        
+        # Ensure the resolved path is within the resource directory
+        try:
+            real_path = os.path.realpath(path)
+            resource_real = os.path.realpath(self.resource_dir)
+            if not real_path.startswith(resource_real):
+                logging.warning("Path traversal attempt: %s", filename)
+                abort(404)
+        except OSError:
+            abort(404)
+        
         ext = os.path.splitext(filename)[1].lower()
         if not ext:
             logging.warning("Requested resource without extension: %s", filename)
@@ -276,8 +321,8 @@ class GuardServer:
         data = str(payload.get('data', ''))
         if not sha or not data or not self.check_hash(sha, data):
             abort(403)
-        b64_sha = hashlib.sha1(data.encode()).hexdigest()
-        key = hashlib.sha1((data + b64_sha).encode()).hexdigest()
+        b64_sha = hashlib.sha256(data.encode()).hexdigest()
+        key = hashlib.sha256((data + b64_sha).encode()).hexdigest()
         entry = self.cache.get(key) if self.cache else None
         if entry:
             url = entry['url']
@@ -317,10 +362,10 @@ class GuardServer:
                 session.close()
             except Exception as exc:  # pylint: disable=broad-except
                 logging.exception('Failed to resolve %s', target)
-                return jsonify({'error': str(exc)}), 500
+                return jsonify({'error': 'Failed to resolve URL'}), 500
             if self.cache:
                 self.cache.set(key, url, title)
-        result_sha = hashlib.sha1((url + self.salt).encode()).hexdigest()
+        result_sha = hashlib.sha256((url + self.salt).encode()).hexdigest()
         return jsonify({'url': url, 'hash': result_sha, 'title': title}), 200
 
     def go(self):
@@ -333,7 +378,7 @@ class GuardServer:
             start = float(request.form.get('ts', '0'))
         except ValueError:
             start = 0.0
-        if not url or hashlib.sha1((url + self.salt).encode()).hexdigest() != sha:
+        if not url or hashlib.sha256((url + self.salt).encode()).hexdigest() != sha:
             abort(404)
         elapsed = time.time() - start
         if not self.privacy:
@@ -346,6 +391,16 @@ class GuardServer:
         return resp
 
     def guard(self, sha, data):
+        # Validate SHA format (should be 64 hex characters for SHA-256)
+        if not re.match(r'^[a-f0-9]{64}$', sha):
+            logging.warning("Invalid SHA format: %s", sha)
+            abort(404)
+        
+        # Validate data format (should be base64)
+        if not re.match(r'^[A-Za-z0-9_-]+$', data):
+            logging.warning("Invalid data format: %s", data)
+            abort(404)
+        
         sha = str(sha or '')
         data = str(data or '')
         if not sha or not data:
@@ -416,7 +471,7 @@ class GuardServer:
 
 def main():
     parser = argparse.ArgumentParser(description='Detrackify guard server')
-    parser.add_argument('--listen-ip', default='0.0.0.0', help='Listen IP')
+    parser.add_argument('--listen-ip', default='127.0.0.1', help='Listen IP')
     parser.add_argument('--listen-port', default=9090, type=int, help='Listen port')
     parser.add_argument('--guardsalt', required=True, help='Guard salt')
     parser.add_argument('--template-dir', default='templates', help='Template directory')

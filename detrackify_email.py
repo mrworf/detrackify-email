@@ -352,7 +352,7 @@ class Detrackify:
                         if self.config.get(Configuration.CFG_GUARD_CAPTURE_TO) and to_address:
                             payload['to'] = to_address
                         b64 = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode()
-                        sha = hashlib.sha1((b64 + self.config.get(Configuration.CFG_GUARD_SALT)).encode()).hexdigest()
+                        sha = hashlib.sha256((b64 + self.config.get(Configuration.CFG_GUARD_SALT)).encode()).hexdigest()
                         link['href'] = f"{guard_server}/guard/{sha}/{b64}"
                         self.guarded_links += 1
 

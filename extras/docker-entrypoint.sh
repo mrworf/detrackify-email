@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Build command line arguments from environment variables
+# For Docker, use 0.0.0.0 so other containers (e.g., nginx) can connect
 ARGS=("--listen-ip" "0.0.0.0" "--listen-port" "9090")
 
 # Required parameter

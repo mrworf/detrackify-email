@@ -40,6 +40,9 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    # The guard server listens on 0.0.0.0 by default in Docker (see docker-entrypoint.sh)
+    # This is required so nginx and other containers can connect to it.
+    # Do NOT use 127.0.0.1 here, or only processes inside the same container will be able to connect.
 
   # Example with nginx reverse proxy
   nginx:

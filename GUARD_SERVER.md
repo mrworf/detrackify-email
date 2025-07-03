@@ -30,6 +30,7 @@ python3 detrackify_guard.py --guardsalt changeme123
 
 Optional parameters:
 
+* `--listen-ip` IP to bind to (default `127.0.0.1`)
 * `--listen-ip` IP to bind to (default `0.0.0.0`)
 * `--listen-port` Port to listen on (default `9090`)
 * `--template-dir` Directory containing templates (default `templates`)

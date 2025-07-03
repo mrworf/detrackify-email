@@ -105,7 +105,7 @@ def test_guard_mismatch_only_changes_mismatched():
         "domain": "example.com",
         "url": "https://other.com/path?x=1&y=2",
     }).encode()).decode()
-    sha = hashlib.sha1((b64 + SALT).encode()).hexdigest()
+    sha = hashlib.sha256((b64 + SALT).encode()).hexdigest()
     expected = f"{SERVER}/guard/{sha}/{b64}"
     assert links[1][1] == expected
     assert msg["X-Detrackify-Guarded-Links"] == "1"
@@ -124,14 +124,14 @@ def test_guard_all_changes_all():
         "domain": "example.com",
         "url": "https://example.com/welcome",
     }).encode()).decode()
-    sha1 = hashlib.sha1((payload1 + SALT).encode()).hexdigest()
+    sha1 = hashlib.sha256((payload1 + SALT).encode()).hexdigest()
     expected1 = f"{SERVER}/guard/{sha1}/{payload1}"
     payload2 = base64.urlsafe_b64encode(json.dumps({
         "display": "Click \"here\" & enjoy",
         "domain": "example.com",
         "url": "https://other.com/path?x=1&y=2",
     }).encode()).decode()
-    sha2 = hashlib.sha1((payload2 + SALT).encode()).hexdigest()
+    sha2 = hashlib.sha256((payload2 + SALT).encode()).hexdigest()
     expected2 = f"{SERVER}/guard/{sha2}/{payload2}"
     assert links[0][1] == expected1
     assert links[1][1] == expected2
@@ -174,7 +174,7 @@ def test_guard_hash_matches_payload():
     links = extract_links(msg)
     b64 = links[1][1].split('/')[-1]
     sha = links[1][1].split('/')[-2]
-    assert hashlib.sha1((b64 + SALT).encode()).hexdigest() == sha
+    assert hashlib.sha256((b64 + SALT).encode()).hexdigest() == sha
 
 
 def test_guard_payload_is_json():
@@ -230,7 +230,7 @@ def test_guard_via_config_file():
     links = extract_links(msg)
     b64 = links[1][1].split('/')[-1]
     sha = links[1][1].split('/')[-2]
-    assert hashlib.sha1((b64 + SALT).encode()).hexdigest() == sha
+    assert hashlib.sha256((b64 + SALT).encode()).hexdigest() == sha
     payload = json.loads(base64.urlsafe_b64decode(b64).decode())
     assert payload.get("to") == "dest@example.com"
     assert msg["X-Detrackify-Guard-Mode"] == "mismatch"
