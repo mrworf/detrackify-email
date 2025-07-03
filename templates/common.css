@@ -5,7 +5,237 @@ body {font-family: sans-serif;}
 .highlight.good {color: green;}
 .fade {transition: opacity 0.5s;}
 .title {font-size: smaller;}
-.domain-box, .display-box {background-color: #f5f5f5; border: 1px solid #000; padding: 4px 8px; border-radius: 3px;}
-.progress-message {color: #666; font-style: italic;}
+.domain-box, .display-box {background-color: #f5f5f5; border: 1px solid #000; padding: 4px 8px; border-radius: 3px; display: inline-block;}
+.progress-message {
+    color: #666; 
+    font-style: italic;
+    font-size: 1.2em;
+    text-align: center;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+}
 .result-message {color: #333; font-weight: bold;}
 .title-message {color: #666; font-size: smaller; margin-top: 5px;}
+
+/* Main container for centered content */
+.content-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 0 20%;
+    box-sizing: border-box;
+}
+
+/* Main content box */
+.main-box {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 40px 30px;
+    min-height: 200px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    position: relative; /* Required for absolute positioning of child elements */
+}
+
+.source-box {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 10px 20px;
+    box-sizing: border-box;
+    text-align: center;
+}
+.destination-box {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 10px 20px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.hint {
+    font-size: 12px;
+    color: #666;
+    margin-top: 10px;
+    text-align: center;
+    font-style: italic;
+}
+
+/* Logo/title positioning */
+.logo-title {
+    font-size: 24px;
+    font-weight: bold;
+    position: relative;
+    text-align: left;
+    top: -30px;
+    left: -20px;
+    z-index: 100;
+    height: 0px;
+    overflow: visible;
+}
+
+/* Left-aligned link boxes */
+.link-box-left {
+    text-align: left;
+}
+
+/* Centered text */
+.text-center {
+    text-align: center;
+}
+
+/* Hidden elements */
+.hidden {
+    display: none;
+}
+
+/* Destination box for resolved URLs */
+.destination-box {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 10px 0;
+    box-sizing: border-box;
+}
+
+/* Phishing icon */
+.phishing-icon {
+    width: 100px;
+    height: 100px;
+    float: left;
+}
+
+/* Error message */
+.error-message {
+    color: red;
+    margin-top: 10px;
+}
+
+/* Large button */
+.button-large {
+    font-size: 1.5em;
+    padding: 20px 40px;
+    border-radius: 8px;
+    border: 2px solid #ccc;
+    background-color: #f8f8f8;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Button progress bar */
+.button-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: #e0e0e0;
+    transition: width 0.1s linear;
+    z-index: 1;
+}
+
+.button-large span {
+    position: relative;
+    z-index: 2;
+}
+
+.button-large:hover {
+    background-color: #e8e8e8;
+}
+
+.button-large:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Redirecting state */
+#redirecting-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 40px;
+    border-radius: 8px;
+    border: 2px solid #ccc;
+    background-color: #f8f8f8;
+    font-size: 1.5em;
+    color: #666;
+}
+
+#redirecting-state.hidden {
+    display: none !important;
+}
+
+/* Button spinner for redirect */
+.button-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #666;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+/* Link display box */
+.link-box {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 20px 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Arrow between boxes */
+.arrow-down {
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 20px solid #666;
+    margin: 20px auto;
+}
+
+/* Spinner animation */
+.spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #666;
+    border-radius: 50%;
+    margin: 20px auto;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* URL display box */
+.url-box {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 20px 0;
+    width: 100%;
+    box-sizing: border-box;
+    word-break: break-all;
+}

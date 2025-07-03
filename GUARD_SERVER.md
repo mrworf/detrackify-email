@@ -33,7 +33,7 @@ Optional parameters:
 * `--listen-ip` IP to bind to (default `0.0.0.0`)
 * `--listen-port` Port to listen on (default `9090`)
 * `--template-dir` Directory containing templates (default `templates`)
-* `--resource-dir` Directory containing additional resources (images only)
+* `--resources-dir` Directory containing additional resources (images only)
 * `--timeout` Seconds to wait before the continue button activates (default `5`)
 * `--privacy` Disable logging of visited links
 * `--resolve` Resolve the final URL before showing the continue button (uses HEAD)
@@ -42,6 +42,8 @@ Optional parameters:
 * `--resolve-cache-max` Maximum number of cached items (default `4096`)
 * `--resolve-get` Use HTTP GET when resolving links (implies `--resolve`)
 * `--user-agent` User-Agent string for link resolution requests (default: Chrome browser)
+* `--debug` Enable debug mode with template auto-reload
+* `--force-language` Force serving a specific language template (e.g., de, es, fr, zh, ar)
 * `--strip-param-prefix` Remove tracking parameters starting with PREFIX and everything after (may be used multiple times)
 
 The `--strip-param-prefix` option is useful for removing marketing parameters such as `utm_source`. The first matching parameter and all subsequent parameters are dropped from the URL before displaying it or performing the redirect.
@@ -63,8 +65,10 @@ continue button activates only once the real URL is known. The
 result is cached in memory and optionally persisted to a JSON file to speed up
 future requests.
 Using `--resolve-get` downloads the full page, which may consume significantly
-more data and could trigger tracking mechanisms on the remote server. (A HEAD
-request can also trigger tracking depending on the target site.)
+more data and could trigger tracking mechanisms on the remote server. 
+
+It's worth noting that while HEAD is less bandwidth intensive, some servers don't allow HEAD and some won't provide the redirects we need to resolve the path. And yet they may still track you. 
+
 The resolved link replaces the progress message and is highlighted just like the
 original URL. If the final destination shares the same domain as the sender then
 the highlight is shown in green and the continue button will open this resolved
@@ -80,7 +84,7 @@ the cache never grows beyond the specified maximum size.
 
 ### Endpoints
 
-All endpoints except `/resource/` are served below the `/guard/` prefix:
+All endpoints except `/resources/` are served below the `/guard/` prefix:
 
 * `/guard/<sha>/<b64>` — Show the warning page and handle the POST when link resolution is disabled.
 * `/guard/resolve` — POST endpoint used by JavaScript to resolve the final URL. Returns JSON `{url, hash, title}`.
@@ -88,7 +92,7 @@ All endpoints except `/resource/` are served below the `/guard/` prefix:
 * `/guard/common.js` — Shared JavaScript for the countdown and optional resolution (cacheable).
 * `/guard/opts.js` — Dynamic options consumed by `common.js` via the Referer header.
 * `/guard/common.css` — Common stylesheet used by the warning pages.
-* `/resource/<path>` — Optional static resources such as images.
+* `/resources/<path>` — Optional static resources such as images.
 
 ## Using a reverse proxy
 
@@ -101,8 +105,8 @@ location /guard/ {
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 }
-location /resource/ {
-    proxy_pass http://127.0.0.1:9090/resource/;
+location /resources/ {
+    proxy_pass http://127.0.0.1:9090/resources/;
 }
 ```
 

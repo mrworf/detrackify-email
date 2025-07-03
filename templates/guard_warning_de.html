@@ -9,25 +9,60 @@
 <script src="/guard/common.js"></script>
 </head>
 <body>
-<div style="font-size:24px;font-weight:bold">
-  <a href="https://github.com/mrworf/detrackify-email" class="noselect">Detrackify</a>
+<div class="content-container">
+  <div class="main-box">
+    <div class="logo-title">
+      <a href="https://github.com/mrworf/detrackify-email" class="noselect">Detrackify</a>
+    </div>
+    <div class="link-box link-box-left">
+      <img src="/resource/phishing.png" alt="Phishing" class="phishing-icon">
+
+      <p>Dieser Link scheint ein Phishing-Versuch zu sein - bei dem jemand versucht, Sie zu täuschen, indem er sich als vertrauenswürdige Quelle ausgibt. So wie das Angeln Köder verwendet, um Beute zu fangen, verwendet Phishing täuschende Links, um sensible Informationen zu erfassen.</p>
+      <p>Um Sie zu schützen, zeigen wir Ihnen das tatsächliche Ziel dieses Links, das sich von dem unterscheidet, was präsentiert wurde. Diese Transparenz hilft Ihnen, eine informierte Entscheidung zu treffen, bevor Sie fortfahren.</p>
+    </div>
+    <div class="link-box link-box-left">
+      <p class="text-center">Der Link, den Sie angeklickt haben, zeigte <span class="display-box">{{ display }}</span> und kam von <span class="domain-box">{{ domain }}</span>, aber das Klicken darauf öffnet die folgende Seite:</p>
+      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
+      <p class="hint">beachten Sie die unterschiedliche Domain, die rot hervorgehoben ist</p>
+    </div>
+    {% if resolve %}
+    <div class="spinner" id="resolve-spinner"></div>
+    <div class="link-box link-box-left">
+      <p class="noselect progress-message" id="progress">Endziel wird ermittelt, bitte warten...</p>
+      
+      <!-- URL matches domain (green) -->
+      <div id="url-match" class="hidden">
+        <div class="destination-box">
+          <p class="noselect title-message hidden" id="title-match"></p>
+          <p class="noselect result-message" id="result-match"></p>
+        </div>
+        <p class="hint">Das Endziel stimmt mit der Domain des Absenders überein - dies scheint sicher zu sein.</p>
+      </div>
+      
+      <!-- URL doesn't match domain (red) -->
+      <div id="url-mismatch" class="hidden">
+        <div class="destination-box">
+          <p class="noselect title-message hidden" id="title-mismatch"></p>
+          <p class="noselect result-message" id="result-mismatch"></p>
+        </div>
+        <p class="hint">Das Endziel unterscheidet sich von der Domain des Absenders - gehen Sie vorsichtig vor.</p>
+      </div>
+      <div id="error" class="error-message"></div>
+    </div>
+    {% endif %}
+    <form method="post" action="{% if resolve %}/guard/go{% endif %}" autocomplete="off" id="continueForm">
+      <input type="hidden" name="ts" value="{{ ts }}">
+      {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
+      <button id="cont" class="button-large" disabled>
+        <div class="button-progress" id="button-progress"></div>
+        <span id="button-text">Ja, ich verstehe und möchte fortfahren</span>
+      </button>
+      <div id="redirecting-state" class="hidden">
+        <div class="button-spinner"></div>
+        <span>Weiterleitung...</span>
+      </div>
+    </form>
+  </div>
 </div>
-{% if valid %}
-<p>Der Link, den Sie angeklickt haben, zeigte '{{ display }}' und kam von {{ domain }} und führt zu folgender Seite:</p>
-<p class="noselect"><span id="url">{{ url }}</span></p>
-{% if resolve %}
-<p class="noselect" id="progress">Endziel wird ermittelt, bitte warten...</p>
-<div id="error" style="color:red;margin-top:10px"></div>
-{% endif %}
-{% else %}
-<p>Ungültiger Link angegeben.</p>
-{% endif %}
-{% if valid %}
-<form method="post" action="{% if resolve %}/guard/go{% endif %}" autocomplete="off" id="continueForm">
-  <input type="hidden" name="ts" value="{{ ts }}">
-  {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
-  <button id="cont" disabled>Ja, ich verstehe und möchte fortfahren</button>
-</form>
-{% endif %}
 </body>
 </html>

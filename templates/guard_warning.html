@@ -8,27 +8,60 @@
 <script src="/guard/common.js"></script>
 </head>
 <body>
-<div style="font-size:24px;font-weight:bold">
-  <a href="https://github.com/mrworf/detrackify-email" class="noselect">Detrackify</a>
+<div class="content-container">
+  <div class="main-box">
+    <div class="logo-title">
+      <a href="https://github.com/mrworf/detrackify-email" class="noselect">Detrackify</a>
+    </div>
+    <div class="link-box link-box-left">
+      <img src="/resource/phishing.png" alt="Phishing" class="phishing-icon">
+
+      <p>This link appears to be a phishing attempt - where someone tries to deceive you by masquerading as a trusted source. Just as fishing uses bait to catch prey, phishing uses deceptive links to capture sensitive information.</p>
+      <p>To protect you, we're showing you the actual destination of this link, which differs from what was presented. This transparency helps you make an informed decision before proceeding.</p>
+    </div>
+    <div class="link-box link-box-left">
+      <p class="text-center">The link you clicked said <span class="display-box">{{ display }}</span> and came from <span class="domain-box">{{ domain }}</span> but clicking on it will open the following page:</p>
+      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
+      <p class="hint">note the different domain highlighted in red</p>
+    </div>
+    {% if resolve %}
+    <div class="spinner" id="resolve-spinner"></div>
+    <div class="link-box link-box-left">
+      <p class="noselect progress-message" id="progress">Resolving final destination, please wait...</p>
+      
+      <!-- URL matches domain (green) -->
+      <div id="url-match" class="hidden">
+        <div class="destination-box">
+          <p class="noselect title-message hidden" id="title-match"></p>
+          <p class="noselect result-message" id="result-match"></p>
+        </div>
+        <p class="hint">The final destination matches the sender's domain - this appears to be safe.</p>
+      </div>
+      
+      <!-- URL doesn't match domain (red) -->
+      <div id="url-mismatch" class="hidden">
+        <div class="destination-box">
+          <p class="noselect title-message hidden" id="title-mismatch"></p>
+          <p class="noselect result-message" id="result-mismatch"></p>
+        </div>
+        <p class="hint">The final destination differs from the sender's domain - proceed with caution.</p>
+      </div>
+      <div id="error" class="error-message"></div>
+    </div>
+    {% endif %}
+    <form method="post" action="{% if resolve %}/guard/go{% endif %}" autocomplete="off" id="continueForm">
+      <input type="hidden" name="ts" value="{{ ts }}">
+      {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
+      <button id="cont" class="button-large" disabled>
+        <div class="button-progress" id="button-progress"></div>
+        <span id="button-text">Yes, I understand and want to continue</span>
+      </button>
+      <div id="redirecting-state" class="hidden">
+        <div class="button-spinner"></div>
+        <span>Redirecting...</span>
+      </div>
+    </form>
+  </div>
 </div>
-{% if valid %}
-<p>The link you clicked said <span class="display-box">{{ display }}</span> and came from <span class="domain-box">{{ domain }}</span> but leads to the following page:</p>
-<p class="noselect"><span id="url">{{ url }}</span></p>
-{% if resolve %}
-<p class="noselect progress-message" id="progress">Resolving final destination, please wait...</p>
-<p class="noselect result-message" id="result" style="display: none;"></p>
-<p class="noselect title-message" id="title" style="display: none;"></p>
-<div id="error" style="color:red;margin-top:10px"></div>
-{% endif %}
-{% else %}
-<p>Invalid link information provided.</p>
-{% endif %}
-{% if valid %}
-<form method="post" action="{% if resolve %}/guard/go{% endif %}" autocomplete="off" id="continueForm">
-  <input type="hidden" name="ts" value="{{ ts }}">
-  {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
-  <button id="cont" disabled>Yes, I understand and want to continue</button>
-</form>
-{% endif %}
 </body>
 </html>

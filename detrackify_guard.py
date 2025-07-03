@@ -47,7 +47,7 @@ class GuardConfig:
     salt: str
     timeout: int = 5
     template_dir: str = "templates"
-    resource_dir: str | None = None
+    resource_dir: str = "resources"
     privacy: bool = False
     resolve: bool = False
     cache_file: str | None = None
@@ -56,6 +56,7 @@ class GuardConfig:
     resolve_get: bool = False
     strip_param_prefixes: list[str] = field(default_factory=list)
     user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    force_language: str | None = None
 
 
 class ResolveCache:
@@ -124,6 +125,8 @@ class GuardServer:
     def __init__(self, config: GuardConfig):
         self.cfg = config
         self.app = Flask(__name__, template_folder=config.template_dir)
+        # Force template reloading in development
+        self.app.config['TEMPLATES_AUTO_RELOAD'] = True
         self.salt = config.salt
         self.timeout = config.timeout
         self.resource_dir = config.resource_dir
@@ -132,6 +135,7 @@ class GuardServer:
         self.resolve_get = config.resolve_get
         self.strip_prefixes = list(config.strip_param_prefixes)
         self.user_agent = config.user_agent
+        self.force_language = config.force_language
         self.cache = (
             ResolveCache(config.cache_max, config.cache_days, config.cache_file)
             if self.resolve_enabled
@@ -147,13 +151,21 @@ class GuardServer:
         self.app.add_url_rule('/guard/common.js', 'common_js', self.common_js)
         self.app.add_url_rule('/guard/opts.js', 'opts_js', self.opts_js)
         self.app.add_url_rule('/guard/common.css', 'common_css',
-                              lambda: send_from_directory(self.app.template_folder, 'common.css'))
+                              lambda: send_from_directory(self.app.template_folder, 'common.css', max_age=0))
         if config.resource_dir:
             self.app.add_url_rule('/resource/<path:filename>', 'resource',
                                   self.resource, methods=['GET'])
 
     def choose_template(self, accept_language):
         """Return best template name based on Accept-Language header."""
+        # Force specific language if debug option is set
+        if self.force_language:
+            candidate = f'guard_warning_{self.force_language}.html'
+            if os.path.isfile(os.path.join(self.app.template_folder, candidate)):
+                return candidate
+            logging.warning("Forced language template not found: %s", candidate)
+            return 'guard_warning.html'
+        
         if not isinstance(accept_language, str):
             accept_language = ''
         langs = []
@@ -370,7 +382,7 @@ class GuardServer:
         url = self.strip_query_params(info.get('url', ''))
         valid = bool(url)
         if not valid:
-            url = 'Missing or invalid URL'
+            abort(404)
 
         template = self.choose_template(request.headers.get('Accept-Language'))
         context = {
@@ -394,7 +406,7 @@ def main():
     parser.add_argument('--listen-port', default=9090, type=int, help='Listen port')
     parser.add_argument('--guardsalt', required=True, help='Guard salt')
     parser.add_argument('--template-dir', default='templates', help='Template directory')
-    parser.add_argument('--resource-dir', help='Directory for additional resources')
+    parser.add_argument('--resources-dir', default='resources', help='Directory for additional resources')
     parser.add_argument('--timeout', type=int, default=5,
                         help='Seconds before continue button activates')
     parser.add_argument('--privacy', action='store_true',
@@ -413,6 +425,10 @@ def main():
     parser.add_argument('--user-agent', 
                         default='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                         help='User-Agent string for link resolution requests (default: Chrome browser)')
+    parser.add_argument('--debug', action='store_true',
+                        help='Enable debug mode with template auto-reload')
+    parser.add_argument('--force-language', 
+                        help='Force serving a specific language template (e.g., de, es, fr, zh, ar)')
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
@@ -421,7 +437,7 @@ def main():
         salt=args.guardsalt,
         timeout=args.timeout,
         template_dir=args.template_dir,
-        resource_dir=args.resource_dir,
+        resource_dir=args.resources_dir,
         privacy=args.privacy,
         resolve=args.resolve or args.resolve_get,
         cache_file=args.resolve_cache_file,
@@ -430,8 +446,12 @@ def main():
         resolve_get=args.resolve_get,
         strip_param_prefixes=args.strip_param_prefix,
         user_agent=args.user_agent,
+        force_language=args.force_language,
     )
     server = GuardServer(config)
+    if args.debug:
+        server.app.config['DEBUG'] = True
+        server.app.config['TEMPLATES_AUTO_RELOAD'] = True
     if args.privacy:
         logging.info('Privacy Mode Enabled; no logging of email address, link, domain, or recipient will happen')
     if args.resolve or args.resolve_get:
