@@ -55,11 +55,11 @@
       {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
       <button id="cont" class="button-large" disabled>
         <div class="button-progress" id="button-progress"></div>
-        <span id="button-text">نعم، أفهم وأريد المتابعة</span>
+        <span id="button-text">{% if resolve %}المتابعة إلى الوجهة المحلولة{% else %}نعم، أفهم وأريد المتابعة{% endif %}</span>
       </button>
       <div id="redirecting-state" class="hidden">
         <div class="button-spinner"></div>
-        <span>جاري إعادة التوجيه...</span>
+        <span>{% if resolve %}جاري إعادة التوجيه إلى الوجهة المحلولة...{% else %}جاري إعادة التوجيه...{% endif %}</span>
       </div>
     </form>
   </div>

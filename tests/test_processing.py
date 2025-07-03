@@ -269,8 +269,7 @@ def test_strip_query_params_multiple_prefixes():
 def test_resolve_get_registers_routes():
     cfg = detrackify_guard.GuardConfig(
         salt="x",
-        resolve=False,
-        resolve_get=True
+        resolve="get"
     )
     server = detrackify_guard.GuardServer(cfg)
     rules = {r.rule for r in server.app.url_map.iter_rules()}
@@ -281,8 +280,7 @@ def test_resolve_get_registers_routes():
 def test_resolve_get_enables_resolution():
     cfg = detrackify_guard.GuardConfig(
         salt="x",
-        resolve=False,
-        resolve_get=True
+        resolve="get"
     )
     server = detrackify_guard.GuardServer(cfg)
     assert server.resolve_enabled is True

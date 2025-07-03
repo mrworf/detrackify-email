@@ -101,6 +101,51 @@ body {font-family: sans-serif;}
     display: none;
 }
 
+/* URL transition visualization */
+.url-transition {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.url-original, .url-resolved {
+    flex: 1;
+    text-align: center;
+}
+
+.url-label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    font-weight: bold;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.url-value {
+    display: block;
+    font-family: monospace;
+    font-size: 14px;
+    color: #333;
+    word-break: break-all;
+    padding: 5px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.url-arrow {
+    font-size: 24px;
+    color: #666;
+    margin: 0 20px;
+    font-weight: bold;
+}
+
 /* Destination box for resolved URLs */
 .destination-box {
     background-color: #ffffff;
@@ -123,6 +168,8 @@ body {font-family: sans-serif;}
     color: red;
     margin-top: 10px;
 }
+
+
 
 /* Large button */
 .button-large {
