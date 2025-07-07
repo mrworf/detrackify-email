@@ -1,0 +1,21 @@
+# Configuration file for Detrackify
+options:
+  verbose: false
+  strip:
+    enable: false
+    file: strip.yml
+    cookies: true
+    redirect: true
+  copy: null
+  guard:
+    server: http://localhost:9090
+    salt: test123456789
+    link: mismatch
+    capture_to: false
+    whitelist_links: []
+    whitelist_senders: []
+    domain_aliases: {}
+
+domain_aliases_file: domain_aliases.yml
+whitelist_file: whitelist.yml
+blocklist_file: blacklist.yml

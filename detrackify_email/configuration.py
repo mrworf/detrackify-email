@@ -28,6 +28,7 @@ class Configuration:
     CFG_GUARD_WHITELIST_SENDER = 'options.guard.whitelist_senders'
     CFG_GUARD_DOMAIN_ALIASES = 'options.guard.domain_aliases'
     CFG_DOMAIN_ALIASES_FILE = 'domain_aliases_file'
+    CFG_WHITELIST_FILE = 'whitelist_file'
     CFG_BLOCKLIST_FILE = 'blocklist_file'
     
     def __init__(self):
@@ -60,6 +61,7 @@ class Configuration:
                 }
             },
             'domain_aliases_file': 'domain_aliases.yml',
+            'whitelist_file': None,
             'blocklist_file': None,
             'blacklist': [],
             'whitelist': [],
@@ -87,6 +89,7 @@ class Configuration:
         
         # Load additional files
         self.load_domain_aliases_from_file()
+        self.load_whitelist_from_file()
         self.load_blocklist_from_file()
         
         return True
@@ -132,14 +135,16 @@ class Configuration:
                 else:
                     logging.warning(f'Invalid domain alias format (missing colon): {alias_spec}')
         
+        # Only load additional files if the paths were actually set via command line arguments
         if args.domainaliasesfile:
             self.set(Configuration.CFG_DOMAIN_ALIASES_FILE, args.domainaliasesfile)
+            self.load_domain_aliases_from_file()
+        if args.whitelistfile:
+            self.set(Configuration.CFG_WHITELIST_FILE, args.whitelistfile)
+            self.load_whitelist_from_file()
         if args.blocklistfile:
             self.set(Configuration.CFG_BLOCKLIST_FILE, args.blocklistfile)
-        
-        # Load additional files after setting paths
-        self.load_domain_aliases_from_file()
-        self.load_blocklist_from_file()
+            self.load_blocklist_from_file()
     
     def _merge_settings(self, settings: Dict[str, Any]) -> None:
         """Merge settings into configuration."""
@@ -372,6 +377,30 @@ class Configuration:
         except Exception as e:
             logging.error(f'Error loading domain aliases file {aliases_file}: {e}')
     
+    def load_whitelist_from_file(self) -> None:
+        """Load whitelist from the configured file."""
+        whitelist_file = self.get(Configuration.CFG_WHITELIST_FILE)
+        if not whitelist_file:
+            return
+        try:
+            with open(whitelist_file, 'r', encoding='utf-8') as f:
+                whitelist_data = yaml.safe_load(f)
+                if isinstance(whitelist_data, dict):
+                    whitelist_entries = whitelist_data.get('whitelist', [])
+                    if isinstance(whitelist_entries, list):
+                        self.config['whitelist'] = whitelist_entries
+                        logging.info(f'Loaded {len(whitelist_entries)} whitelist entries from {whitelist_file}')
+                    else:
+                        logging.warning(f'Invalid whitelist format in {whitelist_file}')
+                else:
+                    logging.warning(f'Invalid whitelist file format: {whitelist_file}')
+        except FileNotFoundError:
+            logging.warning(f'Whitelist file not found: {whitelist_file}')
+        except yaml.YAMLError as e:
+            logging.error(f'Error parsing whitelist file {whitelist_file}: {e}')
+        except Exception as e:
+            logging.error(f'Error loading whitelist file {whitelist_file}: {e}')
+    
     def load_blocklist_from_file(self) -> None:
         """Load blocklist from the configured file."""
         blocklist_file = self.get(Configuration.CFG_BLOCKLIST_FILE)
@@ -382,17 +411,13 @@ class Configuration:
             with open(blocklist_file, 'r', encoding='utf-8') as f:
                 blocklist_data = yaml.safe_load(f)
                 if isinstance(blocklist_data, dict):
-                    self.config['whitelist'] = []
-                    self.config['blacklist'] = []
-                    whitelist_entries = blocklist_data.get('whitelist', [])
-                    if isinstance(whitelist_entries, list):
-                        self.config['whitelist'] = whitelist_entries
-                        logging.info(f'Loaded {len(whitelist_entries)} whitelist entries from {blocklist_file}')
                     blacklist_entries = blocklist_data.get('blacklist', [])
                     if isinstance(blacklist_entries, list):
                         self.config['blacklist'] = blacklist_entries
                         logging.info(f'Loaded {len(blacklist_entries)} blacklist entries from {blocklist_file}')
                         logging.debug(f"DEBUG: After loading blocklist: blacklist={self.config['blacklist']}")
+                    else:
+                        logging.warning(f'Invalid blacklist format in {blocklist_file}')
                 else:
                     logging.warning(f'Invalid blocklist file format: {blocklist_file}')
             logging.debug(f"DEBUG: config after blocklist load: {self.config}")

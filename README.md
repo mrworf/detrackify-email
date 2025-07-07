@@ -13,87 +13,35 @@ Processes standard emails and tries to determine what images within are used to 
 - Integrates with your MTA, allowing server based tracking prevention
 - Failsafe, if tool fails for some reason, will revert to passthru of the email (configurable)
 
-## Docker
+## Example Configurations
 
-### Container Registry
+See the [examples/](examples/README.md) folder for sample configuration files for both the email processor and guard server, including blocklist, whitelist, and domain alias formats. This folder also contains legacy and advanced configuration examples.
+
+## Docker
 
 The Detrackify guard server is available as a Docker image from GitHub Container Registry:
 
-**Registry:** `ghcr.io/mrworf/detrackify-guard`  
-**Latest Tag:** `ghcr.io/mrworf/detrackify-guard:latest`  
+**Registry:** `ghcr.io/mrworf/detrackify-guard`
+**Latest Tag:** `ghcr.io/mrworf/detrackify-guard:latest`
 **Specific Versions:** `ghcr.io/mrworf/detrackify-guard:v1.0.0` (replace with actual version)
 
 ### Quick Start
 
 ```bash
-# Pull the latest image
+# Pull and run with basic configuration
 docker pull ghcr.io/mrworf/detrackify-guard:latest
-
-# Run with basic configuration
 docker run -d \
   --name detrackify-guard \
   -p 9090:9090 \
   -e GUARD_SALT=your_secure_salt_here \
   ghcr.io/mrworf/detrackify-guard:latest
 
-# Run with custom configuration
-docker run -d \
-  --name detrackify-guard \
-  -p 9090:9090 \
-  -v $(pwd)/templates:/app/templates:ro \
-  -v $(pwd)/resources:/app/resources:ro \
-  -v $(pwd)/cache:/app/cache \
-  -e GUARD_SALT=your_secure_salt_here \
-  -e TIMEOUT=5 \
-  -e RESOLVE=head \
-  -e RESOLVE_CACHE_FILE=/app/cache/resolve_cache.json \
-  -e PRIVACY=true \
-  ghcr.io/mrworf/detrackify-guard:latest
-```
-
-### Docker Compose
-
-For easier deployment, you can use Docker Compose:
-
-```yaml
-version: '3.8'
-services:
-  detrackify-guard:
-    image: ghcr.io/mrworf/detrackify-guard:latest
-    container_name: detrackify-guard
-    ports:
-      - "9090:9090"
-    environment:
-      - GUARD_SALT=your_secure_salt_here
-      - TIMEOUT=5
-      - PRIVACY=true
-      - RESOLVE=head
-    volumes:
-      - ./templates:/app/templates:ro
-      - ./resources:/app/resources:ro
-      - ./cache:/app/cache
-    restart: unless-stopped
-```
-
-Save this as `docker-compose.yml` and run:
-```bash
+# Or use Docker Compose from the docker/ directory
+cd docker
 docker-compose up -d
 ```
-```
 
-### Available Environment Variables
-
-- `GUARD_SALT` (required): Salt for hash validation
-- `TIMEOUT`: Seconds before continue button activates (default: 5)
-- `PRIVACY`: Enable privacy mode (true/false)
-- `RESOLVE`: Link resolution mode (head/get)
-- `RESOLVE_CACHE_FILE`: Path to cache file
-- `RESOLVE_CACHE_DAYS`: Days to keep cache entries (default: 30)
-- `RESOLVE_CACHE_MAX`: Maximum cache entries (default: 4096)
-- `STRIP_PARAM_PREFIX`: Comma-separated list of parameter prefixes to strip
-- `USER_AGENT`: Custom User-Agent for link resolution
-
-For more details, see the [Guard Server documentation](GUARD_SERVER.md).
+For complete Docker deployment instructions, configuration options, and production setup, see the [Docker documentation](docker/README.md).
 
 ## Known issues
 
@@ -339,9 +287,3 @@ Does this mean that I'm finally free from the tracking that companies do? No, no
 However, it does minimize the footprint and if you do load the images, it will not load the distinct tracking items.
 
 It's not unreasonable to try and "scramble" or even remove the parameters of some images in an attempt to further minmize the amount of tracking, but that's an exercise for a later day.
-
-## Future improvements
-
-- Whitelisting based on domains
-- Blacklisting based on domains
-- Stripping of tracking information from image URLs (you know, the ones you want to load to see the formatting), see `--stripquery` for initial steps.

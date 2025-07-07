@@ -47,7 +47,8 @@ def main():
     parser.add_argument('--guardwhitelistsender', action='append', default=[], help='Regex of sender addresses exempt from guarding')
     parser.add_argument('--guarddomainalias', action='append', default=[], help='Owner domain and aliases in format "owner:alias1,alias2" (e.g., "instacart.com:instacartemail.com")')
     parser.add_argument('--domainaliasesfile', help='Path to domain aliases YAML file (default: domain_aliases.yml)')
-    parser.add_argument('--blocklistfile', help='Path to blocklist YAML file (default: blocklist.yml)')
+    parser.add_argument('--whitelistfile', help='Path to whitelist YAML file (default: whitelist.yml)')
+    parser.add_argument('--blocklistfile', help='Path to blocklist YAML file (default: blacklist.yml)')
 
     # Parse command line arguments
     args = parser.parse_args()

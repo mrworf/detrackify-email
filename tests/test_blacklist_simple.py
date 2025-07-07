@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Simple test for blocklist functionality."""
+"""Simple test for blacklist functionality."""
 
 import sys
 import os
@@ -11,28 +11,34 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from detrackify_email.configuration import Configuration
 
-def test_blocklist():
-    """Test blocklist functionality."""
-    print("Testing blocklist functionality...")
+def test_blacklist():
+    """Test blacklist functionality."""
+    print("Testing blacklist functionality...")
     
-    # Create a test blocklist as a raw YAML string to avoid double escaping
-    test_blocklist_yaml = '''
+    # Create test whitelist and blacklist YAMLs
+    test_whitelist_yaml = '''
 whitelist:
   - 'https://trusted.example.com/logo.png'
   - 'https://cdn.example.org/.*'
-blacklist:
-  - sender: '^spam@malicious\.com$'
-  - sender: '^test.*@example\.org$'
-  - url: '^https://malicious\.com/.*'
-  - url: '^https://.*\.phishing\.net/.*'
 '''
-    # Write to temporary file
-    with open('test_blocklist.yml', 'w') as f:
-        f.write(test_blocklist_yaml)
+    test_blacklist_yaml = '''
+blacklist:
+  - sender: '^spam@malicious\\.com$'
+  - sender: '^test.*@example\\.org$'
+  - url: '^https://malicious\\.com/.*'
+  - url: '^https://.*\\.phishing\\.net/.*'
+'''
+    # Write to temporary files
+    with open('test_whitelist.yml', 'w') as f:
+        f.write(test_whitelist_yaml)
+    with open('test_blacklist.yml', 'w') as f:
+        f.write(test_blacklist_yaml)
 
     # Test configuration
     config = Configuration()
-    config.set(Configuration.CFG_BLOCKLIST_FILE, 'test_blocklist.yml')
+    config.set(Configuration.CFG_WHITELIST_FILE, 'test_whitelist.yml')
+    config.set(Configuration.CFG_BLOCKLIST_FILE, 'test_blacklist.yml')
+    config.load_whitelist_from_file()
     config.load_blocklist_from_file()
     
     # Test whitelist
@@ -56,7 +62,8 @@ blacklist:
     print("✓ URL blacklist working correctly")
     
     # Clean up
-    os.remove('test_blocklist.yml')
+    os.remove('test_whitelist.yml')
+    os.remove('test_blacklist.yml')
     
     print("All tests passed! ✓")
 
@@ -64,16 +71,15 @@ def test_url_blacklist_specific():
     """Test specific URL blacklist pattern that matches the test case."""
     print("Testing specific URL blacklist pattern...")
     
-    test_blocklist_yaml = '''
-whitelist: []
+    test_blacklist_yaml = '''
 blacklist:
   - url: '^https://other\\.com/.*'
 '''
-    with open('test_blocklist.yml', 'w') as f:
-        f.write(test_blocklist_yaml)
+    with open('test_blacklist.yml', 'w') as f:
+        f.write(test_blacklist_yaml)
 
     config = Configuration()
-    config.config['blocklist_file'] = 'test_blocklist.yml'  # Set before any loading
+    config.set(Configuration.CFG_BLOCKLIST_FILE, 'test_blacklist.yml')
     config.config['blacklist'] = []
     config.config['whitelist'] = []
     config.load_blocklist_from_file()
@@ -86,7 +92,7 @@ blacklist:
     
     for entry in config.config.get('blacklist', []):
         if isinstance(entry, dict) and 'url' in entry:
-            pattern = entry['url'].replace('\\\\', '\\')
+            pattern = entry['url'].replace('\\', '\\')
             print(f"Testing pattern: {repr(pattern)} against {repr(test_url)}")
             match = re.match(pattern, test_url)
             fullmatch = re.fullmatch(pattern, test_url)
@@ -96,15 +102,14 @@ blacklist:
     assert result, f"URL {test_url} should be blacklisted"
     print("✓ Specific URL blacklist working correctly")
     
-    os.remove('test_blocklist.yml')
+    os.remove('test_blacklist.yml')
 
 def test_sender_blacklist():
     """Test sender blacklist functionality."""
     print("Testing sender blacklist pattern...")
     
-    # Create a temporary blocklist with sender blacklist
-    blocklist_data = {
-        'whitelist': [],
+    # Create a temporary blacklist with sender blacklist
+    blacklist_data = {
         'blacklist': [
             {'sender': '^user@example\\.com$'}
         ]
@@ -113,16 +118,15 @@ def test_sender_blacklist():
     # Create temporary file
     import tempfile
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
-        yaml.dump(blocklist_data, f)
-        blocklist_path = f.name
+        yaml.dump(blacklist_data, f)
+        blacklist_path = f.name
     
     try:
         # Create configuration and clear any default blocklist/whitelist
         config = Configuration()
         config.config['blacklist'] = []
         config.config['whitelist'] = []
-        config.config['blocklist_file'] = blocklist_path  # Ensure only test file is loaded
-        config.set(Configuration.CFG_BLOCKLIST_FILE, blocklist_path)
+        config.set(Configuration.CFG_BLOCKLIST_FILE, blacklist_path)
         config.load_blocklist_from_file()
         
         # Test sender blacklist detection
@@ -151,7 +155,7 @@ def test_sender_blacklist():
         
     finally:
         # Clean up temporary file
-        os.unlink(blocklist_path)
+        os.unlink(blacklist_path)
 
 if __name__ == '__main__':
     # Only run the specific test for clarity

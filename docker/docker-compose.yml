@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   detrackify-guard:
-    build: .
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
     container_name: detrackify-guard
     ports:
       - "9090:9090"
@@ -27,9 +29,9 @@ services:
       # - STRIP_PARAM_PREFIX_3=utm_campaign
     volumes:
       # Optional: Mount custom templates
-      - ./templates:/app/templates:ro
+      - ../templates:/app/templates:ro
       # Optional: Mount custom resources
-      - ./resources:/app/resources:ro
+      - ../resources:/app/resources:ro
       # Optional: Persist URL resolution cache
       - ./cache:/app/cache
     # Command is now handled by the entrypoint script using environment variables
@@ -52,7 +54,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./extras/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../extras/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./ssl:/etc/nginx/ssl:ro  # Optional: SSL certificates
     depends_on:
       - detrackify-guard

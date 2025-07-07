@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test blocklist functionality."""
+"""Test blacklist functionality."""
 
 import os
 import tempfile
@@ -14,21 +14,27 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from detrackify_email import Configuration
 from detrackify_guard import GuardConfig, GuardServer
 
-
-class TestBlocklist(unittest.TestCase):
-    """Test blocklist functionality."""
+class TestBlacklist(unittest.TestCase):
+    """Test blacklist functionality."""
 
     def setUp(self):
         """Set up test fixtures."""
         self.temp_dir = tempfile.mkdtemp()
-        self.blocklist_file = os.path.join(self.temp_dir, 'test_blocklist.yml')
+        self.whitelist_file = os.path.join(self.temp_dir, 'test_whitelist.yml')
+        self.blacklist_file = os.path.join(self.temp_dir, 'test_blacklist.yml')
         
-        # Create a test blocklist file
-        test_blocklist = {
+        # Create a test whitelist file
+        test_whitelist = {
             'whitelist': [
                 'https://trusted.example.com/logo.png',
                 'https://cdn.example.org/.*'
-            ],
+            ]
+        }
+        with open(self.whitelist_file, 'w') as f:
+            yaml.dump(test_whitelist, f)
+        
+        # Create a test blacklist file
+        test_blacklist = {
             'blacklist': [
                 {'sender': '^spam@malicious\\.com$'},
                 {'sender': '^test.*@example\\.org$'},
@@ -37,19 +43,20 @@ class TestBlocklist(unittest.TestCase):
                 {'url': '^https://tracking\\.example\\.com/.*'}
             ]
         }
-        
-        with open(self.blocklist_file, 'w') as f:
-            yaml.dump(test_blocklist, f)
+        with open(self.blacklist_file, 'w') as f:
+            yaml.dump(test_blacklist, f)
 
     def tearDown(self):
         """Clean up test fixtures."""
         import shutil
         shutil.rmtree(self.temp_dir)
 
-    def test_detrackify_email_blocklist_loading(self):
-        """Test that detrackify_email.py loads blocklist correctly."""
+    def test_detrackify_email_blacklist_loading(self):
+        """Test that detrackify_email.py loads blacklist and whitelist correctly."""
         config = Configuration()
-        config.set(Configuration.CFG_BLOCKLIST_FILE, self.blocklist_file)
+        config.set(Configuration.CFG_WHITELIST_FILE, self.whitelist_file)
+        config.set(Configuration.CFG_BLOCKLIST_FILE, self.blacklist_file)
+        config.load_whitelist_from_file()
         config.load_blocklist_from_file()
         
         # Test whitelist loading
@@ -67,11 +74,11 @@ class TestBlocklist(unittest.TestCase):
         self.assertFalse(config.is_sender_blacklisted('good@example.com'))
         self.assertFalse(config.is_blacklisted('https://good.example.com/safe'))
 
-    def test_detrackify_guard_blocklist_loading(self):
-        """Test that detrackify_guard.py loads blocklist correctly."""
+    def test_detrackify_guard_blacklist_loading(self):
+        """Test that detrackify_guard.py loads blacklist correctly."""
         guard_config = GuardConfig(
             salt='test-salt',
-            blocklist_file=self.blocklist_file
+            blocklist_file=self.blacklist_file
         )
         
         server = GuardServer(guard_config)
@@ -84,8 +91,8 @@ class TestBlocklist(unittest.TestCase):
         # Test non-matching cases
         self.assertFalse(server.blocklist.is_url_blacklisted('https://good.example.com/safe'))
 
-    def test_blocklist_file_not_found(self):
-        """Test handling of missing blocklist file."""
+    def test_blacklist_file_not_found(self):
+        """Test handling of missing blacklist file."""
         config = Configuration()
         config.set(Configuration.CFG_BLOCKLIST_FILE, '/nonexistent/file.yml')
         
@@ -96,22 +103,21 @@ class TestBlocklist(unittest.TestCase):
         self.assertFalse(config.is_blacklisted('https://any.url'))
         self.assertFalse(config.is_sender_blacklisted('any@email.com'))
 
-    def test_invalid_blocklist_format(self):
-        """Test handling of invalid blocklist format."""
-        # Create invalid blocklist file
-        invalid_blocklist_file = os.path.join(self.temp_dir, 'invalid_blocklist.yml')
-        with open(invalid_blocklist_file, 'w') as f:
+    def test_invalid_blacklist_format(self):
+        """Test handling of invalid blacklist format."""
+        # Create invalid blacklist file
+        invalid_blacklist_file = os.path.join(self.temp_dir, 'invalid_blacklist.yml')
+        with open(invalid_blacklist_file, 'w') as f:
             f.write('invalid: yaml: content: [')
         
         config = Configuration()
-        config.set(Configuration.CFG_BLOCKLIST_FILE, invalid_blocklist_file)
+        config.set(Configuration.CFG_BLOCKLIST_FILE, invalid_blacklist_file)
         
         # Should not raise an exception
         config.load_blocklist_from_file()
         
         # Should not match anything
         self.assertFalse(config.is_blacklisted('https://any.url'))
-
 
 if __name__ == '__main__':
     unittest.main() 

@@ -9,16 +9,16 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
-COPY requirements.txt .
+COPY ../requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application files
-COPY detrackify_guard.py .
-COPY extras/docker-entrypoint.sh .
-COPY templates/ ./templates/
-COPY resources/ ./resources/
+COPY ../detrackify_guard.py .
+COPY ../extras/docker-entrypoint.sh .
+COPY ../templates/ ./templates/
+COPY ../resources/ ./resources/
 
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash detrackify && \
