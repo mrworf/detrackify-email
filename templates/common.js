@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Function to add tooltips to all URL elements
     function applyUrlTooltips() {
         // Find all URL elements that might need tooltips
-        var urlElements = document.querySelectorAll('.url-value, .result-message, .source-box');
+        var urlElements = document.querySelectorAll('.url-value, .result-message');
         urlElements.forEach(function(element) {
             addUrlTooltip(element);
         });

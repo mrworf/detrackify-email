@@ -54,6 +54,7 @@ body {font-family: sans-serif;}
     margin: 10px 20px;
     box-sizing: border-box;
     text-align: center;
+    overflow: hidden;
 }
 .destination-box {
     background-color: #f0f0f0;
@@ -116,6 +117,8 @@ body {font-family: sans-serif;}
 .url-original, .url-resolved {
     flex: 1;
     text-align: center;
+    min-width: 0; /* Allow flex items to shrink below content size */
+    overflow: hidden; /* Ensure content doesn't overflow */
 }
 
 .url-label {
@@ -128,27 +131,30 @@ body {font-family: sans-serif;}
 }
 
 /* URL display styles - CSS handles truncation naturally */
-.url-value, .result-message, #url, .source-box {
+.url-value, .result-message, #url {
     position: relative;
-    display: inline-block;
+    display: block;
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     cursor: help;
+    word-break: break-all;
+    word-wrap: break-word;
 }
 
 /* URL value specific styling */
 .url-value {
-    display: block;
     font-family: monospace;
     font-size: 14px;
     color: #333;
-    word-break: break-all;
     padding: 5px;
     background-color: #f0f0f0;
     border-radius: 4px;
     border: 1px solid #ccc;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* URL arrow */
@@ -156,6 +162,7 @@ body {font-family: sans-serif;}
     font-size: 24px;
     color: #666;
     margin: 0 20px;
+    flex-shrink: 0; /* Prevent arrow from shrinking */
 }
 
 /* Destination box for resolved URLs */
@@ -166,6 +173,8 @@ body {font-family: sans-serif;}
     padding: 10px;
     margin: 10px 0;
     box-sizing: border-box;
+    overflow: hidden;
+    width: 100%;
 }
 
 /* Phishing icon */
@@ -184,22 +193,19 @@ body {font-family: sans-serif;}
 /* Ensure highlighted domains are preserved */
 .url-value .highlight,
 .result-message .highlight,
-#url .highlight,
-.source-box .highlight {
+#url .highlight {
     font-weight: bold;
 }
 
 .url-value .highlight.bad,
 .result-message .highlight.bad,
-#url .highlight.bad,
-.source-box .highlight.bad {
+#url .highlight.bad {
     color: red;
 }
 
 .url-value .highlight.good,
 .result-message .highlight.good,
-#url .highlight.good,
-.source-box .highlight.good {
+#url .highlight.good {
     color: green;
 }
 
