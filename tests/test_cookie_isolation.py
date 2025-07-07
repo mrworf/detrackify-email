@@ -32,7 +32,7 @@ def test_session_creation_and_cleanup():
             with patch.object(server, 'resolve_get', True):
                 with patch.object(server, 'timeout', 5):
                     with patch.object(server, 'user_agent', 'test-agent'):
-                        with patch.object(server, 'strip_query_params', return_value="https://example.com"):
+                        with patch('guard.utils.GuardUtils.strip_query_parameters', return_value="https://example.com"):
                             # Simulate the session creation part of resolve_link
                             session = requests.Session()
                             session.headers.update({'User-Agent': 'test-agent'})
@@ -76,7 +76,7 @@ def test_multiple_sessions_are_isolated():
                 with patch.object(server, 'resolve_get', True):
                     with patch.object(server, 'timeout', 5):
                         with patch.object(server, 'user_agent', 'test-agent'):
-                            with patch.object(server, 'strip_query_params', return_value="https://example.com"):
+                            with patch('guard.utils.GuardUtils.strip_query_parameters', return_value="https://example.com"):
                                 # Each request should create a new session
                                 session = requests.Session()
                                 session.headers.update({'User-Agent': 'test-agent'})
@@ -116,7 +116,7 @@ def test_cookie_clearing_behavior():
             with patch.object(server, 'resolve_get', True):
                 with patch.object(server, 'timeout', 5):
                     with patch.object(server, 'user_agent', 'test-agent'):
-                        with patch.object(server, 'strip_query_params', return_value="https://example.com"):
+                        with patch('guard.utils.GuardUtils.strip_query_parameters', return_value="https://example.com"):
                             # Simulate the session creation and cookie clearing
                             session = requests.Session()
                             session.headers.update({'User-Agent': 'test-agent'})
@@ -162,7 +162,7 @@ def test_base64_validation():
     # Test valid base64 data
     for data in valid_base64_examples:
         # Mock the check_hash method to return True
-        with patch.object(server, 'check_hash', return_value=True):
+        with patch('guard.utils.GuardUtils.verify_hash', return_value=True):
             # Mock the choose_template method to avoid file system dependencies
             with patch.object(server, 'choose_template', return_value='guard_warning.html'):
                 # Mock the render_template to avoid template dependencies

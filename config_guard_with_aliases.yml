@@ -1,0 +1,30 @@
+# Example configuration file with domain aliases and blocklist
+options:
+  guard:
+    server: https://guard.example.com
+    salt: mysecret123
+    link: mismatch
+    capture_to: false
+    whitelist_links:
+      - '^https://trusted\\.example\\.com'
+    whitelist_senders:
+      - '^admin@example\\.org$'
+    # Domain aliases are now loaded from a shared file
+    # This ensures consistency between detrackify_email.py and detrackify_guard.py
+    domain_aliases_file: domain_aliases.yml
+    # See domain_aliases.yml for the format and examples
+
+# Blocklist file configuration
+blocklist_file: blocklist.yml
+# See blocklist.yml for the format and examples
+
+# Legacy configuration (deprecated - use blocklist.yml instead)
+blacklist:
+  - '.*tracking\\.example\\.com.*'
+
+whitelist:
+  - 'https://trusted.example.com/logo.png'
+
+rewrite:
+  - from: 'https://old.example.com/(.*)'
+    to: 'https://new.example.com/$1' 

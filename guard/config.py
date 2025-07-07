@@ -1,0 +1,188 @@
+#!/usr/bin/env python3
+"""Configuration management for Detrackify guard server."""
+
+import argparse
+import logging
+import os
+from dataclasses import dataclass, field
+from typing import Optional, List
+
+import yaml
+from guard.utils import GuardUtils
+
+
+@dataclass
+class GuardConfig:
+    """Configuration options for :class:`GuardServer`."""
+
+    # Core configuration
+    salt: str
+    timeout: int = 5
+    template_dir: str = "templates"
+    resource_dir: str = "resources"
+    privacy: bool = False
+    
+    # Network configuration
+    listen_ip: str = "127.0.0.1"
+    listen_port: int = 9090
+    
+    # URL resolution configuration
+    resolve: Optional[str] = None  # 'head', 'get', or None
+    cache_file: Optional[str] = None
+    cache_days: int = 30
+    cache_max: int = 4096
+    
+    # URL processing configuration
+    strip_param_prefixes: List[str] = field(default_factory=list)
+    user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    
+    # Localization and security
+    force_language: Optional[str] = None
+    domain_aliases_file: str = "domain_aliases.yml"
+    blocklist_file: str = "blocklist.yml"
+    
+    # Development options (command line only)
+    debug: bool = False
+
+    @classmethod
+    def from_yaml(cls, config_path: str) -> 'GuardConfig':
+        """Load configuration from YAML file."""
+        try:
+            with open(config_path, 'r', encoding='utf-8') as fh:
+                config_data = yaml.safe_load(fh)
+            if not isinstance(config_data, dict):
+                raise ValueError("Configuration file must contain a dictionary")
+            
+            # Extract configuration values with defaults
+            return cls(
+                salt=config_data.get('guardsalt', ''),
+                timeout=config_data.get('timeout', 5),
+                template_dir=config_data.get('template_dir', 'templates'),
+                resource_dir=config_data.get('resources_dir', 'resources'),
+                privacy=config_data.get('privacy', False),
+                listen_ip=config_data.get('listen_ip', '127.0.0.1'),
+                listen_port=config_data.get('listen_port', 9090),
+                resolve=config_data.get('resolve'),
+                cache_file=config_data.get('resolve_cache_file'),
+                cache_days=config_data.get('resolve_cache_days', 30),
+                cache_max=config_data.get('resolve_cache_max', 4096),
+                strip_param_prefixes=config_data.get('strip_param_prefix', []),
+                user_agent=config_data.get('user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'),
+                force_language=config_data.get('force_language'),
+                domain_aliases_file=config_data.get('domain_aliases_file', 'domain_aliases.yml'),
+                blocklist_file=config_data.get('blocklist_file', 'blocklist.yml'),
+            )
+        except FileNotFoundError:
+            logging.error("Configuration file not found: %s", config_path)
+            raise
+        except yaml.YAMLError as e:
+            logging.error("Invalid YAML in configuration file: %s", e)
+            raise
+        except Exception as e:
+            logging.error("Error loading configuration file: %s", e)
+            raise
+
+    @classmethod
+    def from_args(cls, args: argparse.Namespace, config_path: Optional[str] = None) -> 'GuardConfig':
+        """Create configuration from command line arguments and optional YAML file."""
+        # Start with default configuration
+        if config_path:
+            try:
+                config = cls.from_yaml(config_path)
+                logging.info("Loaded configuration from: %s", config_path)
+            except Exception as e:
+                logging.error("Failed to load configuration file: %s", e)
+                raise
+        else:
+            # Create with minimal defaults - salt will be required
+            config = cls(salt='')
+
+        # Override with command line arguments
+        if args.guardsalt is not None:
+            config.salt = args.guardsalt
+        if args.listen_ip is not None:
+            config.listen_ip = args.listen_ip
+        if args.listen_port is not None:
+            config.listen_port = args.listen_port
+        if args.template_dir is not None:
+            config.template_dir = args.template_dir
+        if args.resources_dir is not None:
+            config.resource_dir = args.resources_dir
+        if args.timeout is not None:
+            config.timeout = args.timeout
+        if args.privacy:
+            config.privacy = True
+        if args.resolve is not None:
+            config.resolve = args.resolve
+        if args.resolve_cache_file is not None:
+            config.cache_file = args.resolve_cache_file
+        if args.resolve_cache_days is not None:
+            config.cache_days = args.resolve_cache_days
+        if args.resolve_cache_max is not None:
+            config.cache_max = args.resolve_cache_max
+        if args.strip_param_prefix is not None:
+            config.strip_param_prefixes = args.strip_param_prefix
+        if args.user_agent is not None:
+            config.user_agent = args.user_agent
+        if args.debug:
+            config.debug = True
+        if args.force_language is not None:
+            config.force_language = args.force_language
+        if args.domain_aliases_file is not None:
+            config.domain_aliases_file = args.domain_aliases_file
+        if args.blocklist_file is not None:
+            config.blocklist_file = args.blocklist_file
+
+        # Validate required fields
+        if not config.salt:
+            raise ValueError("Guard salt is required. Specify with --guardsalt or in config file.")
+
+        return config
+
+    def validate(self) -> None:
+        """Validate configuration values."""
+        if not self.salt:
+            raise ValueError("Guard salt is required")
+        
+        if self.timeout < 0:
+            raise ValueError("Timeout must be non-negative")
+        
+        if self.listen_port < 1 or self.listen_port > 65535:
+            raise ValueError("Listen port must be between 1 and 65535")
+        
+        if self.resolve and self.resolve not in ['head', 'get']:
+            raise ValueError("Resolve must be 'head', 'get', or None")
+        
+        if self.cache_days < 0:
+            raise ValueError("Cache days must be non-negative")
+        
+        if self.cache_max < 1:
+            raise ValueError("Cache max must be positive")
+        
+        if self.force_language and not self._is_valid_language_code(self.force_language):
+            raise ValueError("Invalid language code format")
+
+    def _is_valid_language_code(self, lang_code: str) -> bool:
+        """Check if language code format is valid."""
+        return GuardUtils.validate_language_code(lang_code)
+
+    def to_dict(self) -> dict:
+        """Convert configuration to dictionary for serialization."""
+        return {
+            'guardsalt': self.salt,
+            'timeout': self.timeout,
+            'template_dir': self.template_dir,
+            'resources_dir': self.resource_dir,
+            'privacy': self.privacy,
+            'listen_ip': self.listen_ip,
+            'listen_port': self.listen_port,
+            'resolve': self.resolve,
+            'resolve_cache_file': self.cache_file,
+            'resolve_cache_days': self.cache_days,
+            'resolve_cache_max': self.cache_max,
+            'strip_param_prefix': self.strip_param_prefixes,
+            'user_agent': self.user_agent,
+            'force_language': self.force_language,
+            'domain_aliases_file': self.domain_aliases_file,
+            'blocklist_file': self.blocklist_file,
+        } 

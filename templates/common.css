@@ -190,6 +190,53 @@ body {font-family: sans-serif;}
     margin-top: 10px;
 }
 
+/* Blocking messages */
+.block-message {
+    display: flex;
+    align-items: flex-start;
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.block-icon {
+    font-size: 32px;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.block-content {
+    flex: 1;
+}
+
+.block-content h3 {
+    margin: 0 0 10px 0;
+    color: #856404;
+    font-size: 18px;
+}
+
+.block-content p {
+    margin: 8px 0;
+    color: #856404;
+    line-height: 1.5;
+}
+
+.block-content strong {
+    color: #856404;
+}
+
+#block-messages {
+    margin: 20px 0;
+}
+
+#blocked-state {
+    text-align: center;
+    margin: 20px 0;
+}
+
 /* Ensure highlighted domains are preserved */
 .url-value .highlight,
 .result-message .highlight,

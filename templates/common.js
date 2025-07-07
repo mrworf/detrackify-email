@@ -1,6 +1,16 @@
 document.addEventListener('DOMContentLoaded', function () {
     var opts = window.guardOpts || {};
 
+    // Check for blocking reason from server-side (now a string)
+    var blockReason = opts.block_reason || '';
+    
+    // Handle blocking - if there is a block reason, show blocking UI
+    // More explicit check for non-empty string
+    if (blockReason && typeof blockReason === 'string' && blockReason.trim().length > 0) {
+        handleBlocking(blockReason);
+        return; // Don't continue with normal flow
+    }
+
     // Function to add tooltip functionality to URL elements
     function addUrlTooltip(element) {
         if (!element) return;
@@ -180,6 +190,24 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Function to handle blocking
+    function handleBlocking(blockReason) {
+        // Hide the normal form
+        var form = document.getElementById('continueForm');
+        if (form) form.style.display = 'none';
+        
+        // Show the blocked state
+        var blockedState = document.getElementById('blocked-state');
+        if (blockedState) blockedState.classList.remove('hidden');
+        // Display the block reason if present
+        var reasonSpan = document.getElementById('block-reason');
+        var reasonLine = document.getElementById('block-reason-line');
+        if (blockReason && reasonSpan && reasonLine) {
+            reasonSpan.textContent = blockReason;
+            reasonLine.style.display = '';
+        }
+    }
+
     var enable = function () {
         var b = document.getElementById('cont');
         var progressBar = document.getElementById('button-progress');
@@ -244,6 +272,23 @@ document.addEventListener('DOMContentLoaded', function () {
             return r.json();
         })
         .then(function (data) {
+            // Check if the resolved URL is blocked
+            if (data.block) {
+                // Hide the normal resolve UI
+                if (progress) progress.style.display = 'none';
+                if (spinner) spinner.style.display = 'none';
+                
+                // Show the blocked URL message
+                var urlBlocked = document.getElementById('url-blocked');
+                if (urlBlocked) urlBlocked.classList.remove('hidden');
+                
+                // Hide the form since it's blocked
+                var form = document.getElementById('continueForm');
+                if (form) form.style.display = 'none';
+                
+                return; // Don't continue with normal flow
+            }
+            
             if (data.url && data.hash) {
                 var u = document.getElementById('final');
                 var h = document.getElementById('hash');

@@ -163,6 +163,8 @@ class Detector:
             src = img_tag.get('src', '')
             alt = img_tag.get('alt', None)
 
+            print(f"DEBUG: is_tracking_image - src: {src}, width: {width}, height: {height}, alt: {alt}")
+
             if width == None:
                 width = -1
             if height == None:
@@ -179,6 +181,7 @@ class Detector:
             # Check for small size (1x1 pixels)
             # There's 1x1, 0x0 but also None x None and None x 0, etc.
             size_check = (width <= 1 and height <= 1)
+            print(f"DEBUG: is_tracking_image - size_check: {size_check} ({width}x{height})")
 
             # However, if there's no size specified, we can't be sure, so we need to take some executive decisions
             if width == -1 and height == -1:
@@ -187,13 +190,16 @@ class Detector:
                 if not stripped_src:
                     # Unlikely a tracking image, probably just a lazy developer not providing size
                     logging.debug('(No size specified, but no tracking URL detected, assuming not a tracking pixel)')
+                    print(f"DEBUG: is_tracking_image - no size specified, no tracking URL detected, assuming not tracking")
                     size_check = False
 
             # Check if the image is hidden based on style attribute
             hidden_element = self.__is_invisible(style)
+            print(f"DEBUG: is_tracking_image - hidden_element: {hidden_element}")
 
             # This regex checks for typical tracking URL patterns, can be adjusted as needed
             tracking_url = re.search(r'track|pixel', src, re.IGNORECASE) is not None
+            print(f"DEBUG: is_tracking_image - tracking_url: {tracking_url}")
         except Exception as e:
             logging.error(f'Error processing image tag: {img_tag}')
             logging.exception(f"Error: {e}")
@@ -207,6 +213,7 @@ class Detector:
             reason.append(f'Tracker URL')
         if hidden_element:
             reason.append('Hidden element')
+        print(f"DEBUG: is_tracking_image - returning reasons: {reason}")
         return reason
 
 class Detrackify:
@@ -261,15 +268,26 @@ class Detrackify:
 
         # Find all image tags
         img_tags = soup.find_all('img')
+        print(f"DEBUG: Found {len(img_tags)} image tags to process")
 
-        for img_tag in img_tags:
+        for i, img_tag in enumerate(img_tags):
+            print(f"DEBUG: Processing image {i+1}/{len(img_tags)}")
             if not img_tag.has_attr('src'):
                 logging.warning('Image tag without src attribute')
+                print(f"DEBUG: Image {i+1} has no src attribute, skipping")
                 continue
+            
             original = img_tag['src']
-            img_tag['src'] = self.config.rewrite_url(img_tag['src'])
-            if img_tag['src'] != original:
+            print(f"DEBUG: Image {i+1} original src: {original}")
+            
+            # Check rewrite rules
+            rewritten_url = self.config.rewrite_url(img_tag['src'])
+            if rewritten_url != original:
+                print(f"DEBUG: Image {i+1} rewritten from {original} to {rewritten_url}")
                 self.rewrite_domains.append(original)
+                img_tag['src'] = rewritten_url
+            else:
+                print(f"DEBUG: Image {i+1} no rewrite rule applied")
 
             original = url = img_tag['src']
             replacement = self.blank_tracker
@@ -277,68 +295,105 @@ class Detrackify:
 
             if url.startswith('cid:'):
                 logging.debug(f'Ignoring CID URL: {url}')
+                print(f"DEBUG: Image {i+1} is CID URL, skipping: {url}")
                 continue
 
-            # Rewrite the URL if needed
-
+            # Check whitelist
             if self.config.is_whitelisted(url):
                 logging.debug(f'Whitelisted URL: {url}')
+                print(f"DEBUG: Image {i+1} is whitelisted, skipping: {url}")
                 continue
 
+            # Check blacklist
             if self.config.is_blacklisted(url):
                 tracker.append('Blacklist')
+                print(f"DEBUG: Image {i+1} is blacklisted: {url}")
 
             # If we still haven't found something bad, then test the image
             if not tracker:
-                tracker.extend(self.detector.is_tracking_image(img_tag))
+                print(f"DEBUG: Image {i+1} not blacklisted, checking if tracking image: {url}")
+                tracking_reasons = self.detector.is_tracking_image(img_tag)
+                tracker.extend(tracking_reasons)
+                if tracking_reasons:
+                    print(f"DEBUG: Image {i+1} detected as tracking: {tracking_reasons}")
 
+            # Check strip mode
             if self.config.get(Configuration.CFG_STRIP_ENABLE) and not tracker:
+                print(f"DEBUG: Image {i+1} strip mode enabled, processing: {url}")
                 replacement, reason = self.process_strip(img_tag)
                 tracker.extend(reason)
+                if reason:
+                    print(f"DEBUG: Image {i+1} strip processing result: {reason}")
 
             # Determine if we should replace the tracking pixel
             if tracker:
                 # Replace the src of the tracking pixel
                 logging.info(f'[{", ".join(tracker)}] {url}')
+                print(f"DEBUG: Image {i+1} REPLACING with blank tracker: {url} -> {replacement[:50]}...")
                 domain = self.get_domain(url).lower()
                 if domain in self.blocked_domains:
                     self.blocked_domains[domain].append({url: tracker}) 
                 else:
                     self.blocked_domains[domain] = [{url: tracker}]
                 url = replacement
+            else:
+                print(f"DEBUG: Image {i+1} KEEPING original: {url}")
 
             img_tag['src'] = url
 
         # Guard regular links if enabled
         mode = self.config.get(Configuration.CFG_GUARD_LINK, 'off')
         from_domain = None
+        sender_is_blacklisted = False
         if from_address and '@' in from_address:
             from_domain = from_address.split('@')[-1].lower()
+            sender_is_blacklisted = self.config.is_sender_blacklisted(from_address)
+            print(f"DEBUG: From address: {from_address}, domain: {from_domain}, sender blacklisted: {sender_is_blacklisted}")
+        
         if mode != 'off' and from_domain:
+            print(f"DEBUG: Guard mode: {mode}, processing links")
             sender_identity = from_address
             if self.config.is_guard_sender_whitelisted(sender_identity):
                 logging.debug('Sender %s is whitelisted from guarding', sender_identity)
+                print(f"DEBUG: Sender {sender_identity} is whitelisted from guarding")
             else:
                 links = soup.find_all('a')
+                print(f"DEBUG: Found {len(links)} links to process")
                 guard_server = self.config.get(Configuration.CFG_GUARD_SERVER).rstrip('/') if self.config.get(Configuration.CFG_GUARD_SERVER) else None
-                for link in links:
+                for i, link in enumerate(links):
                     href = link.get('href', '')
+                    print(f"DEBUG: Processing link {i+1}/{len(links)}: {href}")
                     if not href.startswith('http'):
+                        print(f"DEBUG: Link {i+1} not HTTP, skipping: {href}")
                         continue
                     if guard_server and href.startswith(f'{guard_server}/guard/'):
+                        print(f"DEBUG: Link {i+1} already guarded, skipping: {href}")
                         continue
                     pattern = self.config.is_guard_link_whitelisted(href)
                     if pattern:
                         logging.debug('Whitelisted link %s via %s', href, pattern)
+                        print(f"DEBUG: Link {i+1} whitelisted via pattern {pattern}: {href}")
                         continue
+                    block_reason = None
+                    # If sender is blacklisted, always guard the link
+                    if sender_is_blacklisted:
+                        block_reason = 'blacklisted'
+                        print(f"DEBUG: Link {i+1} sender is blacklisted")
+                    # Check if URL is blacklisted
+                    elif self.config.is_blacklisted(href):
+                        block_reason = 'blacklisted'
+                        print(f"DEBUG: Link {i+1} URL is blacklisted: {href}")
                     link_domain = self.get_domain(href).lower()
-                    def is_subdomain(d1, d2):
-                        """Return True if d1 is the same as or a subdomain of d2."""
-                        return d1 == d2 or d1.endswith('.' + d2)
-
-                    match = is_subdomain(link_domain, from_domain) or is_subdomain(from_domain, link_domain)
-                    if mode == 'always' or (mode == 'mismatch' and not match):
+                    match = self.config.are_domains_aliases(link_domain, from_domain)
+                    print(f"DEBUG: Link {i+1} domain match: {link_domain} vs {from_domain} = {match}")
+                    # If sender is blacklisted, always guard (ignore domain match)
+                    if sender_is_blacklisted or mode == 'always' or (mode == 'mismatch' and not match) or block_reason:
+                        print(f"DEBUG: Link {i+1} GUARDING: {href}")
+                        print(f"DEBUG: Link {i+1} guard reason: sender_blacklisted={sender_is_blacklisted}, mode={mode}, domain_match={match}, block_reason={block_reason}")
+                        
+                        # Process display text
                         display_html = link.decode_contents()
+                        print(f"DEBUG: Link {i+1} original display HTML: {display_html}")
                         display_soup = BeautifulSoup(display_html, 'html.parser')
                         for img in display_soup.find_all('img'):
                             alt = img.get('alt')
@@ -346,17 +401,45 @@ class Detrackify:
                         display_text = display_soup.get_text()
                         # Clean the display text to remove excess whitespace and newlines
                         display_text = ' '.join(display_text.split())
+                        print(f"DEBUG: Link {i+1} cleaned display text: {display_text}")
+                        
+                        # Create payload
                         payload = {
                             'display': display_text,
                             'domain': from_domain.strip() if from_domain else '',
                             'url': href.strip() if href else '',
                         }
+                        if block_reason:
+                            payload['block'] = block_reason
                         if self.config.get(Configuration.CFG_GUARD_CAPTURE_TO) and to_address:
                             payload['to'] = to_address.strip()
+                        print(f"DEBUG: Link {i+1} payload: {payload}")
+                        
+                        # Encode and create guarded URL
                         b64 = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode()
                         sha = hashlib.sha256((b64 + self.config.get(Configuration.CFG_GUARD_SALT)).encode()).hexdigest()
-                        link['href'] = f"{guard_server}/guard/{sha}/{b64}"
+                        new_href = f"{guard_server}/guard/{sha}/{b64}"
+                        print(f"DEBUG: Link {i+1} guarded: {href} -> {new_href[:50]}...")
+                        print(f"DEBUG: Link {i+1} full guarded URL: {new_href}")
+                        link['href'] = new_href
                         self.guarded_links += 1
+                    else:
+                        print(f"DEBUG: Link {i+1} KEEPING original: {href}")
+                        print(f"DEBUG: Link {i+1} keep reason: sender_blacklisted={sender_is_blacklisted}, mode={mode}, domain_match={match}, block_reason={block_reason}")
+        elif sender_is_blacklisted:
+            # Guard server is not in use, but sender is blacklisted: disable all links
+            print(f"DEBUG: Sender blacklisted but no guard server, disabling all links")
+            links = soup.find_all('a')
+            print(f"DEBUG: Disabling {len(links)} links")
+            for i, link in enumerate(links):
+                original_href = link.get('href', '')
+                print(f"DEBUG: Disabling link {i+1}: {original_href}")
+                print(f"DEBUG: Link {i+1} original style: {link.get('style', '')}")
+                link['href'] = '#'  # Or remove the href attribute: del link['href']
+                new_style = (link.get('style', '') + '; pointer-events: none; color: gray;').strip()
+                link['style'] = new_style
+                link['title'] = 'Blocked: blacklisted sender'
+                print(f"DEBUG: Link {i+1} disabled: href='#', style='{new_style}', title='Blocked: blacklisted sender'")
 
         # Return modified HTML
 
@@ -552,6 +635,9 @@ class Configuration:
     CFG_GUARD_CAPTURE_TO = 'options.guard.capture_to'
     CFG_GUARD_WHITELINK = 'options.guard.whitelist_links'
     CFG_GUARD_WHITELIST_SENDER = 'options.guard.whitelist_senders'
+    CFG_GUARD_DOMAIN_ALIASES = 'options.guard.domain_aliases'
+    CFG_DOMAIN_ALIASES_FILE = 'domain_aliases_file'
+    CFG_BLOCKLIST_FILE = 'blocklist_file'
 
     def __init__(self):
         # Ensure we have a sane default
@@ -571,9 +657,12 @@ class Configuration:
                     'link': 'off',
                     'capture_to': False,
                     'whitelist_links': [],
-                    'whitelist_senders': []
+                    'whitelist_senders': [],
+                    'domain_aliases': {}
                 }
             },
+            'domain_aliases_file': 'domain_aliases.yml',
+            'blocklist_file': None,
             'blacklist': [],
             'whitelist': [],
             'rewrite': []
@@ -585,12 +674,19 @@ class Configuration:
     def set(self, key, value):
         parts = key.split('.')
         config = self.config
-        for c in range(len(parts)-1):
-            if parts[c] in config:
-                config = config[parts[c]]
-                if c == len(parts)-2:
-                    config[parts[c+1]] = value
-                    break
+        
+        # Handle top-level keys (no dots)
+        if len(parts) == 1:
+            config[parts[0]] = value
+        else:
+            # Handle nested keys (with dots)
+            for c in range(len(parts)-1):
+                if parts[c] in config:
+                    config = config[parts[c]]
+                    if c == len(parts)-2:
+                        config[parts[c+1]] = value
+                        break
+        
         if key == Configuration.CFG_STRIP_ENABLE:
             self.load_learned(self.get(Configuration.CFG_STRIP_FILE))
         return
@@ -639,6 +735,13 @@ class Configuration:
         self.last_rewrite = len(self.config.get('rewrite', []))
         self.last_whitelist = len(self.config.get('whitelist', []))
         logging.debug(f'Loaded configuration file: {path} with {self.last_blacklist} blacklisted URLs and {self.last_rewrite} rewrite rules')
+        
+        # Load domain aliases from file
+        self.load_domain_aliases_from_file()
+        
+        # Load blocklist from file
+        self.load_blocklist_from_file()
+        
         return True
 
     def save_learned(self, path):
@@ -675,25 +778,82 @@ class Configuration:
 
     def __test_url(self, url, regex, ctx="list"):
         """Return matching regex or None and log context."""
-        for test in regex:
+        print(f"DEBUG: __test_url - testing {url} against {len(regex)} patterns in {ctx}")
+        for i, test in enumerate(regex):
             try:
+                # Fix double-escaped patterns from YAML loading
+                # YAML preserves literal backslashes, so we need to unescape them
+                if isinstance(test, str):
+                    # Replace double backslashes with single backslashes for regex
+                    original_test = test
+                    test = test.replace('\\\\', '\\')
+                    if original_test != test:
+                        print(f"DEBUG: __test_url - unescaped pattern {i+1}: {original_test} -> {test}")
+                print(f"DEBUG: __test_url - testing pattern {i+1}: {test}")
                 if re.match(test, url):
                     logging.debug('Match in %s: %s (%s)', ctx, url, test)
+                    print(f"DEBUG: __test_url - MATCH: {url} matches {test}")
                     return test
+                else:
+                    print(f"DEBUG: __test_url - NO MATCH: {url} does not match {test}")
             except Exception as e:  # pylint: disable=broad-except
                 logging.error('Error testing %s with %s in %s', url, test, ctx)
                 logging.exception('Exception: %s', e)
+                print(f"DEBUG: __test_url - ERROR testing {url} with {test}: {e}")
+        print(f"DEBUG: __test_url - NO MATCHES found for {url}")
         return None
     
     def is_blacklisted(self, url):
         # Check if the URL is blacklisted
-        return bool(self.__test_url(url, self.config.get('blacklist', []),
-                                    ctx='blacklist'))
+        print(f"DEBUG: is_blacklisted checking: {url}")
+        blacklist_entries = self.config.get('blacklist', [])
+        print(f"DEBUG: is_blacklisted entries: {blacklist_entries}")
+        for entry in blacklist_entries:
+            if isinstance(entry, dict) and 'url' in entry:
+                # New format: {'url': 'pattern'}
+                print(f"DEBUG: is_blacklisted testing dict entry: {entry['url']}")
+                if self.__test_url(url, [entry['url']], ctx='blacklist'):
+                    print(f"DEBUG: is_blacklisted MATCH: {url}")
+                    return True
+            elif isinstance(entry, str):
+                # Old format: direct string pattern
+                print(f"DEBUG: is_blacklisted testing string entry: {entry}")
+                if self.__test_url(url, [entry], ctx='blacklist'):
+                    print(f"DEBUG: is_blacklisted MATCH: {url}")
+                    return True
+        print(f"DEBUG: is_blacklisted NO MATCH: {url}")
+        return False
     
     def is_whitelisted(self, url):
         # Check if the URL is whitelisted
-        return bool(self.__test_url(url, self.config.get('whitelist', []),
-                                    ctx='whitelist'))
+        print(f"DEBUG: is_whitelisted checking: {url}")
+        whitelist_entries = self.config.get('whitelist', [])
+        print(f"DEBUG: is_whitelisted entries: {whitelist_entries}")
+        result = bool(self.__test_url(url, whitelist_entries, ctx='whitelist'))
+        print(f"DEBUG: is_whitelisted result: {result}")
+        return result
+
+    def is_sender_blacklisted(self, sender):
+        """Check if a sender email is blacklisted."""
+        print(f"DEBUG: is_sender_blacklisted called with sender={sender!r}, blacklist={self.config.get('blacklist', [])!r}")
+        if not sender:
+            return False
+        
+        blacklist_entries = self.config.get('blacklist', [])
+        for entry in blacklist_entries:
+            if isinstance(entry, dict) and 'sender' in entry:
+                pattern = entry['sender']
+                result = re.match(pattern, sender)
+                debug_line = f"DEBUG: Testing sender blacklist: pattern={pattern!r}, sender={sender!r}, match={result}\n"
+                try:
+                    with open('sender_blacklist_debug.log', 'a') as dbg:
+                        dbg.write(debug_line)
+                except Exception:
+                    pass
+                logging.debug(debug_line.strip())
+                if result:
+                    return True
+        return False
 
     def is_guard_link_whitelisted(self, url):
         """Check if link should bypass guarding."""
@@ -712,6 +872,124 @@ class Configuration:
                 ctx='guard sender whitelist'
             )
         )
+
+    def load_domain_aliases_from_file(self):
+        """Load domain aliases from the configured file."""
+        aliases_file = self.get(Configuration.CFG_DOMAIN_ALIASES_FILE)
+        if not aliases_file:
+            return
+        
+        try:
+            with open(aliases_file, 'r', encoding='utf-8') as f:
+                aliases_data = yaml.safe_load(f)
+                if isinstance(aliases_data, dict):
+                    # Merge with existing aliases (file takes precedence)
+                    existing_aliases = self.get(Configuration.CFG_GUARD_DOMAIN_ALIASES, {})
+                    
+                    # Process aliases data to ensure proper format
+                    processed_aliases = {}
+                    for owner, alias_list in aliases_data.items():
+                        # Convert single alias to list for consistent handling
+                        if isinstance(alias_list, str):
+                            processed_aliases[owner] = [alias_list]
+                        elif isinstance(alias_list, list):
+                            processed_aliases[owner] = alias_list
+                        else:
+                            logging.warning(f'Invalid alias format for {owner}: {alias_list}')
+                            continue
+                    
+                    existing_aliases.update(processed_aliases)
+                    self.config['options']['guard']['domain_aliases'] = existing_aliases
+                    logging.info(f'Loaded {len(processed_aliases)} domain aliases from {aliases_file}')
+                else:
+                    logging.warning(f'Invalid domain aliases file format: {aliases_file}')
+        except FileNotFoundError:
+            logging.warning(f'Domain aliases file not found: {aliases_file}')
+        except yaml.YAMLError as e:
+            logging.error(f'Error parsing domain aliases file {aliases_file}: {e}')
+        except Exception as e:
+            logging.error(f'Error loading domain aliases file {aliases_file}: {e}')
+
+    def load_blocklist_from_file(self):
+        """Load blocklist (whitelist and blacklist) from the configured file."""
+        blocklist_file = self.get(Configuration.CFG_BLOCKLIST_FILE)
+        print(f"DEBUG: load_blocklist_from_file called with blocklist_file={blocklist_file!r}")
+        if not blocklist_file:
+            return
+        
+        try:
+            with open(blocklist_file, 'r', encoding='utf-8') as f:
+                blocklist_data = yaml.safe_load(f)
+                print(f"DEBUG: loaded blocklist_data={blocklist_data!r}")
+                if isinstance(blocklist_data, dict):
+                    # Clear existing entries before loading new ones
+                    self.config['whitelist'] = []
+                    self.config['blacklist'] = []
+                    
+                    # Load whitelist entries
+                    whitelist_entries = blocklist_data.get('whitelist', [])
+                    if isinstance(whitelist_entries, list):
+                        self.config['whitelist'] = whitelist_entries
+                        logging.info(f'Loaded {len(whitelist_entries)} whitelist entries from {blocklist_file}')
+                    
+                    # Load blacklist entries
+                    blacklist_entries = blocklist_data.get('blacklisted', [])
+                    if isinstance(blacklist_entries, list):
+                        self.config['blacklist'] = blacklist_entries
+                        logging.info(f'Loaded {len(blacklist_entries)} blacklist entries from {blocklist_file}')
+                else:
+                    logging.warning(f'Invalid blocklist file format: {blocklist_file}')
+        except FileNotFoundError:
+            logging.warning(f'Blocklist file not found: {blocklist_file}')
+        except yaml.YAMLError as e:
+            logging.error(f'Error parsing blocklist file {blocklist_file}: {e}')
+        except Exception as e:
+            logging.error(f'Error loading blocklist file {blocklist_file}: {e}')
+
+    def are_domains_aliases(self, domain1, domain2):
+        """Check if two domains are aliases of each other."""
+        if not domain1 or not domain2:
+            return False
+        
+        domain1 = domain1.lower()
+        domain2 = domain2.lower()
+        
+        # Direct match
+        if domain1 == domain2:
+            return True
+        
+        # Check subdomain relationship
+        def is_subdomain(d1, d2):
+            """Return True if d1 is the same as or a subdomain of d2."""
+            return d1 == d2 or d1.endswith('.' + d2)
+        
+        if is_subdomain(domain1, domain2) or is_subdomain(domain2, domain1):
+            return True
+        
+        # Check configured aliases
+        aliases = self.get(Configuration.CFG_GUARD_DOMAIN_ALIASES, {})
+        for owner, alias_list in aliases.items():
+            owner = owner.lower()
+            # Convert single alias to list for consistent handling
+            if isinstance(alias_list, str):
+                alias_list = [alias_list]
+            elif not isinstance(alias_list, list):
+                continue
+            
+            alias_list = [alias.lower() for alias in alias_list]
+            
+            # Create a set of all domains in this alias group (owner + aliases)
+            alias_group = {owner} | set(alias_list)
+            
+            # Check if either domain is in this alias group
+            domain1_in_group = domain1 == owner or domain1 in alias_list or any(is_subdomain(domain1, d) for d in alias_group)
+            domain2_in_group = domain2 == owner or domain2 in alias_list or any(is_subdomain(domain2, d) for d in alias_group)
+            
+            if domain1_in_group and domain2_in_group:
+                logging.debug(f'Domain alias match: {domain1} and {domain2} in {owner} -> {alias_list}')
+                return True
+        
+        return False
     
     def rewrite_url(self, url):
         # Rewrite the URL if needed
@@ -766,6 +1044,8 @@ class Configuration:
         return True
 
 def main():
+    import sys
+    print(f"DEBUG: sys.argv = {sys.argv}")
     """Entry point for command-line execution."""
     # Configure logging
     log_format = '%(asctime)s - %(levelname)7s - %(filename)s:%(lineno)3d - %(message)s'
@@ -781,7 +1061,6 @@ def main():
     parser.add_argument('--verbose', help='Enable verbose logging', action='store_true')
     parser.add_argument('--debug', help='Enable early debug logging', action='store_true')
     parser.add_argument('--logfile', help='Save log instead of using stderr')
-    parser.add_argument('--hardfail', help='Do not passthru email on failure, stop processing', action='store_true')
     parser.add_argument('--strip', help='Remove parameters for images (experimental)', action='store_true')
     parser.add_argument('--config', help='Path to the configuration file')
     parser.add_argument('--testurl', help='Detect which query parameters can be stripped from the URL (WARNING! Will make requests to the URLs)')
@@ -793,9 +1072,19 @@ def main():
     parser.add_argument('--guardcaptureto', action='store_true', help='Capture the To address in guarded links')
     parser.add_argument('--guardwhitelink', action='append', default=[], help='Regex of links that should not be guarded')
     parser.add_argument('--guardwhitelistsender', action='append', default=[], help='Regex of sender addresses exempt from guarding')
+    parser.add_argument('--guarddomainalias', action='append', default=[], help='Owner domain and aliases in format "owner:alias1,alias2" (e.g., "instacart.com:instacartemail.com")')
+    parser.add_argument('--domainaliasesfile', help='Path to domain aliases YAML file (default: domain_aliases.yml)')
+    parser.add_argument('--blocklistfile', help='Path to blocklist YAML file (default: blocklist.yml)')
 
     # Parse command line arguments
     args = parser.parse_args()
+
+    # Call the scan_and_replace_trackers function with the input file path
+    config = Configuration()
+    # Set blocklist file path in config immediately after creating config
+    if args.blocklistfile:
+        config.config['blocklist_file'] = args.blocklistfile
+        print(f"DEBUG: config after setting blocklistfile: {config.config}")
 
     # Allow early debug logging
     if args.debug:
@@ -803,7 +1092,6 @@ def main():
         logging.debug('Early debug logging enabled')
 
     # Call the scan_and_replace_trackers function with the input file path
-    config = Configuration()
     if args.logfile:
         logging.basicConfig(
             level=logging.INFO,
@@ -853,6 +1141,27 @@ def main():
         config.config['options']['guard']['whitelist_links'].extend(args.guardwhitelink)
     if args.guardwhitelistsender:
         config.config['options']['guard']['whitelist_senders'].extend(args.guardwhitelistsender)
+    if args.guarddomainalias:
+        for alias_spec in args.guarddomainalias:
+            if ':' in alias_spec:
+                owner, aliases_str = alias_spec.split(':', 1)
+                owner = owner.strip()
+                aliases = [alias.strip() for alias in aliases_str.split(',')]
+                if owner and aliases:
+                    config.config['options']['guard']['domain_aliases'][owner] = aliases
+                    logging.info(f'Added domain alias: {owner} -> {aliases}')
+                else:
+                    logging.warning(f'Invalid domain alias format: {alias_spec}')
+            else:
+                logging.warning(f'Invalid domain alias format (missing colon): {alias_spec}')
+
+    if args.domainaliasesfile:
+        config.set(Configuration.CFG_DOMAIN_ALIASES_FILE, args.domainaliasesfile)
+
+    # Load domain aliases from file if specified
+    config.load_domain_aliases_from_file()
+    # Always load blocklist from the file specified in config (overridden by --blocklistfile if present)
+    config.load_blocklist_from_file()
 
     mode = config.get(Configuration.CFG_GUARD_LINK, 'off')
     if mode != 'off':

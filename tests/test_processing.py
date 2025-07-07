@@ -249,32 +249,20 @@ def test_guard_via_config_file():
 
 
 def test_strip_query_params():
-    cfg = detrackify_guard.GuardConfig(
-        salt="x",
-        strip_param_prefixes=["utm_"]
-    )
-    server = detrackify_guard.GuardServer(cfg)
-    url = server.strip_query_params("https://example.com/?a=1&utm_source=x&b=2")
+    from guard.utils import GuardUtils
+    url = GuardUtils.strip_query_parameters("https://example.com/?a=1&utm_source=x&b=2", ["utm_"])
     assert url == "https://example.com/?a=1"
 
 
 def test_strip_query_params_no_match():
-    cfg = detrackify_guard.GuardConfig(
-        salt="x",
-        strip_param_prefixes=["utm_"]
-    )
-    server = detrackify_guard.GuardServer(cfg)
-    url = server.strip_query_params("https://example.com/?a=1&b=2")
+    from guard.utils import GuardUtils
+    url = GuardUtils.strip_query_parameters("https://example.com/?a=1&b=2", ["utm_"])
     assert url == "https://example.com/?a=1&b=2"
 
 
 def test_strip_query_params_multiple_prefixes():
-    cfg = detrackify_guard.GuardConfig(
-        salt="x",
-        strip_param_prefixes=["foo", "utm_"]
-    )
-    server = detrackify_guard.GuardServer(cfg)
-    url = server.strip_query_params("https://example.com/?a=1&foo_id=2&utm_x=3&b=4")
+    from guard.utils import GuardUtils
+    url = GuardUtils.strip_query_parameters("https://example.com/?a=1&foo_id=2&utm_x=3&b=4", ["foo", "utm_"])
     assert url == "https://example.com/?a=1"
 
 
@@ -297,3 +285,188 @@ def test_resolve_get_enables_resolution():
     server = detrackify_guard.GuardServer(cfg)
     assert server.resolve_enabled is True
     assert server.resolve_get is True
+
+
+#########################
+# Blocklist tests
+#########################
+
+def test_guard_sender_blacklisted():
+    """Test that blacklisted senders result in blocked links with correct JSON payload."""
+    # Create a temporary blocklist file with sender blacklist
+    import tempfile
+    import yaml
+    
+    blocklist_data = {
+        'whitelist': [],
+        'blacklisted': [
+            {'sender': r'^user@example\.com$'}
+        ]
+    }
+    
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        yaml.dump(blocklist_data, f)
+        blocklist_path = f.name
+        f.flush()
+        os.fsync(f.fileno())
+    
+    try:
+        msg = process_email(GUARD_FILE, [
+            "--guardserver", SERVER,
+            "--guardsalt", SALT,
+            "--guardlink", "mismatch",
+            "--blocklistfile", blocklist_path,
+        ])
+        links = extract_links(msg)
+        
+        # Both links should be guarded due to blacklisted sender
+        assert links[0][1].startswith(f"{SERVER}/guard/")
+        assert links[1][1].startswith(f"{SERVER}/guard/")
+        
+        # Check that both links have block reasons in their payloads
+        for link in links:
+            b64 = link[1].split('/')[-1]
+            payload = json.loads(base64.urlsafe_b64decode(b64).decode())
+            assert "block" in payload
+            assert "blacklisted" in payload["block"]
+            assert payload["domain"] == "example.com"
+            
+    finally:
+        os.unlink(blocklist_path)
+
+
+def test_guard_url_blacklisted():
+    """Test that blacklisted URLs result in blocked links with correct JSON payload."""
+    # Create a temporary blocklist file with URL blacklist
+    import tempfile
+    import yaml
+    
+    blocklist_data = {
+        'whitelist': [],
+        'blacklisted': [
+            {'url': r'^https://other\.com/.*'}
+        ]
+    }
+    
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        yaml.dump(blocklist_data, f)
+        blocklist_path = f.name
+        f.flush()
+        os.fsync(f.fileno())
+    
+    try:
+        msg = process_email(GUARD_FILE, [
+            "--guardserver", SERVER,
+            "--guardsalt", SALT,
+            "--guardlink", "mismatch",
+            "--blocklistfile", blocklist_path,
+        ])
+        links = extract_links(msg)
+        
+        # First link should not be guarded (not blacklisted)
+        assert links[0][1] == "https://example.com/welcome"
+        
+        # Second link should be guarded due to blacklisted URL
+        assert links[1][1].startswith(f"{SERVER}/guard/")
+        
+        # Check that the guarded link has block reasons in its payload
+        b64 = links[1][1].split('/')[-1]
+        payload = json.loads(base64.urlsafe_b64decode(b64).decode())
+        print(f"Debug - Payload: {payload}")
+        print(f"Debug - Expected URL: https://other.com/path?x=1&y=2")
+        print(f"Debug - Actual URL: {payload.get('url')}")
+        assert "block" in payload
+        assert "blacklisted" in payload["block"]
+        assert payload["url"] == "https://other.com/path?x=1&y=2"
+        assert payload["domain"] == "example.com"
+        
+    finally:
+        os.unlink(blocklist_path)
+
+
+def test_guard_sender_and_url_blacklisted():
+    """Test that both blacklisted sender and URL result in blocked links with correct JSON payload."""
+    # Create a temporary blocklist file with both sender and URL blacklist
+    import tempfile
+    import yaml
+    
+    blocklist_data = {
+        'whitelist': [],
+        'blacklisted': [
+            {'sender': r'^user@example\.com$'},
+            {'url': r'^https://other\.com/.*'}
+        ]
+    }
+    
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        yaml.dump(blocklist_data, f)
+        blocklist_path = f.name
+        f.flush()
+        os.fsync(f.fileno())
+    
+    try:
+        msg = process_email(GUARD_FILE, [
+            "--guardserver", SERVER,
+            "--guardsalt", SALT,
+            "--guardlink", "mismatch",
+            "--blocklistfile", blocklist_path,
+        ])
+        links = extract_links(msg)
+        
+        # Both links should be guarded due to blacklisted sender
+        assert links[0][1].startswith(f"{SERVER}/guard/")
+        assert links[1][1].startswith(f"{SERVER}/guard/")
+        
+        # Check that both links have block reasons in their payloads
+        for link in links:
+            b64 = link[1].split('/')[-1]
+            payload = json.loads(base64.urlsafe_b64decode(b64).decode())
+            assert "block" in payload
+            assert "blacklisted" in payload["block"]
+            assert payload["domain"] == "example.com"
+        
+    finally:
+        os.unlink(blocklist_path)
+
+
+def test_guard_no_blocklist_no_block_field():
+    """Test that links without blocklist reasons don't have block field in JSON payload."""
+    # Create a temporary empty blocklist file
+    import tempfile
+    import yaml
+    
+    blocklist_data = {
+        'whitelist': [],
+        'blacklisted': []
+    }
+    
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        yaml.dump(blocklist_data, f)
+        blocklist_path = f.name
+        f.flush()
+        os.fsync(f.fileno())
+    
+    try:
+        msg = process_email(GUARD_FILE, [
+            "--guardserver", SERVER,
+            "--guardsalt", SALT,
+            "--guardlink", "mismatch",
+            "--blocklistfile", blocklist_path,
+        ])
+        links = extract_links(msg)
+        
+        # First link should not be guarded (same domain)
+        assert links[0][1] == "https://example.com/welcome"
+        
+        # Second link should be guarded due to domain mismatch
+        assert links[1][1].startswith(f"{SERVER}/guard/")
+        
+        # Check that the guarded link does NOT have block field in its payload
+        b64 = links[1][1].split('/')[-1]
+        payload = json.loads(base64.urlsafe_b64decode(b64).decode())
+        assert "block" not in payload
+        assert payload["url"] == "https://other.com/path?x=1&y=2"
+        assert payload["domain"] == "example.com"
+        
+    finally:
+        os.unlink(blocklist_path)

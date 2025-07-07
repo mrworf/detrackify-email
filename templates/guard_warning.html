@@ -24,6 +24,29 @@
       <p class="noselect source-box"><span id="url">{{ url }}</span></p>
       <p class="hint">note the different domain highlighted in red</p>
     </div>
+    
+    <!-- Blocking messages - hidden by default, shown by JavaScript -->
+    <div id="block-messages" class="hidden">
+      <!-- Blacklisted message -->
+      <div id="block-blacklisted" class="block-message hidden">
+        <div class="block-icon">🚫</div>
+        <div class="block-content">
+          <h3>This link has been blocked</h3>
+          <p>This website has been blocked by your administrator because it may be unsafe or inappropriate. This helps keep you safe from harmful content.</p>
+          <p><strong>What this means:</strong> The website you're trying to visit has been identified as potentially dangerous, like a website that might try to trick you or contain harmful content.</p>
+          <p><strong>What you should do:</strong> Don't try to visit this website. If you think this is a mistake, contact your administrator.</p>
+        </div>
+      </div>
+      
+      <!-- Future blocking reasons can be added here -->
+      <div id="block-unknown" class="block-message hidden">
+        <div class="block-icon">⚠️</div>
+        <div class="block-content">
+          <h3>This link has been blocked</h3>
+          <p>This website has been blocked by your administrator for security reasons.</p>
+        </div>
+      </div>
+    </div>
     {% if resolve %}
     <div class="spinner" id="resolve-spinner"></div>
     <div class="link-box link-box-left">
@@ -34,7 +57,7 @@
         <div class="url-transition">
           <div class="url-original">
             <span class="url-label">Original link:</span>
-            <span class="url-value">{{ url }}</span>
+            <span class="url-value noselect">{{ url }}</span>
           </div>
           <div class="url-arrow">→</div>
           <div class="url-resolved">
@@ -53,7 +76,7 @@
         <div class="url-transition">
           <div class="url-original">
             <span class="url-label">Original link:</span>
-            <span class="url-value">{{ url }}</span>
+            <span class="url-value noselect">{{ url }}</span>
           </div>
           <div class="url-arrow">→</div>
           <div class="url-resolved">
@@ -65,6 +88,19 @@
           </div>
         </div>
         <p class="hint">The final destination differs from the sender's domain - proceed with caution.</p>
+      </div>
+      
+      <!-- URL is blocked -->
+      <div id="url-blocked" class="hidden">
+        <div class="block-message">
+          <div class="block-icon">🚫</div>
+          <div class="block-content">
+            <h3>This website has been blocked</h3>
+            <p>The final destination of this link has been blocked by your administrator because it may be unsafe or inappropriate.</p>
+            <p><strong>What this means:</strong> Even though the original link looked okay, the website it leads to has been identified as potentially dangerous.</p>
+            <p><strong>What you should do:</strong> Don't try to visit this website. If you think this is a mistake, contact your administrator.</p>
+          </div>
+        </div>
       </div>
       <div id="error" class="error-message"></div>
     </div>
@@ -81,6 +117,18 @@
         <span>{% if resolve %}Redirecting to final destination...{% else %}Redirecting...{% endif %}</span>
       </div>
     </form>
+    
+    <!-- Blocked state - no form, just message -->
+    <div id="blocked-state" class="hidden">
+      <div class="block-message">
+        <div class="block-icon">🚫</div>
+        <div class="block-content">
+          <h3>This link has been blocked</h3>
+          <p>This website has been blocked by your administrator and cannot be accessed.</p>
+          <p id="block-reason-line" style="display:none;"><strong>Reason:</strong> <span id="block-reason"></span></p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 </body>

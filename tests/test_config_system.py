@@ -10,11 +10,11 @@ import yaml
 # Add the parent directory to the path so we can import detrackify_guard
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from detrackify_guard import load_config_from_yaml, GuardConfig
+from guard.config import GuardConfig
 
 
 class TestLoadConfigFromYaml(unittest.TestCase):
-    """Test the load_config_from_yaml function."""
+    """Test the GuardConfig.from_yaml method."""
 
     def test_load_valid_config(self):
         """Test loading a valid YAML configuration."""
@@ -33,8 +33,14 @@ class TestLoadConfigFromYaml(unittest.TestCase):
             config_path = f.name
         
         try:
-            loaded_config = load_config_from_yaml(config_path)
-            self.assertEqual(loaded_config, config_data)
+            config = GuardConfig.from_yaml(config_path)
+            self.assertEqual(config.salt, 'test-salt-123')
+            self.assertEqual(config.listen_ip, '0.0.0.0')
+            self.assertEqual(config.listen_port, 8080)
+            self.assertEqual(config.timeout, 3)
+            self.assertTrue(config.privacy)
+            self.assertEqual(config.resolve, 'head')
+            self.assertEqual(config.strip_param_prefixes, ['utm_', 'fbclid'])
         finally:
             os.unlink(config_path)
 
@@ -46,14 +52,14 @@ class TestLoadConfigFromYaml(unittest.TestCase):
         
         try:
             with self.assertRaises(yaml.YAMLError):
-                load_config_from_yaml(config_path)
+                GuardConfig.from_yaml(config_path)
         finally:
             os.unlink(config_path)
 
     def test_load_missing_file(self):
         """Test loading a non-existent file raises FileNotFoundError."""
         with self.assertRaises(FileNotFoundError):
-            load_config_from_yaml('/nonexistent/file.yml')
+            GuardConfig.from_yaml('/nonexistent/file.yml')
 
     def test_load_empty_file(self):
         """Test loading an empty YAML file."""
@@ -63,7 +69,7 @@ class TestLoadConfigFromYaml(unittest.TestCase):
         
         try:
             with self.assertRaises(ValueError):
-                load_config_from_yaml(config_path)
+                GuardConfig.from_yaml(config_path)
         finally:
             os.unlink(config_path)
 
@@ -75,7 +81,7 @@ class TestLoadConfigFromYaml(unittest.TestCase):
         
         try:
             with self.assertRaises(ValueError):
-                load_config_from_yaml(config_path)
+                GuardConfig.from_yaml(config_path)
         finally:
             os.unlink(config_path)
 
@@ -102,8 +108,20 @@ class TestLoadConfigFromYaml(unittest.TestCase):
             config_path = f.name
         
         try:
-            loaded_config = load_config_from_yaml(config_path)
-            self.assertEqual(loaded_config, config_data)
+            config = GuardConfig.from_yaml(config_path)
+            self.assertEqual(config.salt, 'complex-salt-456')
+            self.assertEqual(config.listen_ip, '127.0.0.1')
+            self.assertEqual(config.listen_port, 9090)
+            self.assertEqual(config.template_dir, 'custom_templates')
+            self.assertEqual(config.resource_dir, 'custom_resources')
+            self.assertEqual(config.timeout, 10)
+            self.assertFalse(config.privacy)
+            self.assertEqual(config.resolve, 'get')
+            self.assertEqual(config.cache_file, '/var/cache/resolve.json')
+            self.assertEqual(config.cache_days, 60)
+            self.assertEqual(config.cache_max, 8192)
+            self.assertEqual(config.strip_param_prefixes, ['utm_', 'fbclid', 'gclid', 'msclkid'])
+            self.assertEqual(config.user_agent, 'Custom User Agent String')
         finally:
             os.unlink(config_path)
 
@@ -173,8 +191,8 @@ class TestConfigEdgeCases(unittest.TestCase):
             config_path = f.name
         
         try:
-            loaded_config = load_config_from_yaml(config_path)
-            self.assertEqual(loaded_config['strip_param_prefix'], ['utm_', 'fbclid', 'gclid'])
+            config = GuardConfig.from_yaml(config_path)
+            self.assertEqual(config.strip_param_prefixes, ['utm_', 'fbclid', 'gclid'])
         finally:
             os.unlink(config_path)
 
@@ -182,8 +200,7 @@ class TestConfigEdgeCases(unittest.TestCase):
         """Test that boolean values are loaded correctly from YAML."""
         config_data = {
             'guardsalt': 'test-salt',
-            'privacy': True,
-            'debug': False
+            'privacy': True
         }
         
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
@@ -191,9 +208,8 @@ class TestConfigEdgeCases(unittest.TestCase):
             config_path = f.name
         
         try:
-            loaded_config = load_config_from_yaml(config_path)
-            self.assertTrue(loaded_config['privacy'])
-            self.assertFalse(loaded_config['debug'])
+            config = GuardConfig.from_yaml(config_path)
+            self.assertTrue(config.privacy)
         finally:
             os.unlink(config_path)
 

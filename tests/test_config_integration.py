@@ -11,7 +11,8 @@ import yaml
 # Add the parent directory to the path so we can import detrackify_guard
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from detrackify_guard import main, GuardConfig
+from detrackify_guard import main
+from guard.config import GuardConfig
 
 
 def no_exit(code=0):
@@ -25,18 +26,12 @@ class TestConfigIntegration(unittest.TestCase):
         """Test that command line arguments override YAML configuration."""
         with patch('sys.exit', side_effect=no_exit), \
              patch('sys.argv', ['detrackify_guard.py', '--config', 'test.yml', '--guardsalt', 'cmd-salt']), \
-             patch('detrackify_guard.load_config_from_yaml') as mock_load_config, \
+             patch('guard.config.GuardConfig.from_yaml') as mock_load_config, \
              patch('detrackify_guard.GuardServer') as mock_server, \
              patch('detrackify_guard.atexit.register'):
             
             # Mock YAML config
-            yaml_config = {
-                'guardsalt': 'yaml-salt',
-                'listen_ip': '0.0.0.0',
-                'listen_port': 8080,
-                'timeout': 3,
-                'privacy': True
-            }
+            yaml_config = GuardConfig(salt='yaml-salt', listen_ip='0.0.0.0', listen_port=8080, timeout=3, privacy=True)
             mock_load_config.return_value = yaml_config
             
             # Mock server instance
@@ -76,19 +71,12 @@ class TestConfigIntegration(unittest.TestCase):
         """Test configuration with only YAML file."""
         with patch('sys.exit', side_effect=no_exit), \
              patch('sys.argv', ['detrackify_guard.py', '--config', 'test.yml']), \
-             patch('detrackify_guard.load_config_from_yaml') as mock_load_config, \
+             patch('guard.config.GuardConfig.from_yaml') as mock_load_config, \
              patch('detrackify_guard.GuardServer') as mock_server, \
              patch('detrackify_guard.atexit.register'):
             
             # Mock YAML config
-            yaml_config = {
-                'guardsalt': 'yaml-only-salt',
-                'listen_ip': '192.168.1.1',
-                'listen_port': 7070,
-                'timeout': 7,
-                'privacy': True,
-                'resolve': 'get'
-            }
+            yaml_config = GuardConfig(salt='yaml-only-salt', listen_ip='192.168.1.1', listen_port=7070, timeout=7, privacy=True, resolve='get')
             mock_load_config.return_value = yaml_config
             
             # Mock server instance
@@ -120,7 +108,7 @@ class TestConfigIntegration(unittest.TestCase):
         """Test that YAML load errors are handled properly."""
         with patch('sys.exit', side_effect=no_exit), \
              patch('sys.argv', ['detrackify_guard.py', '--config', 'test.yml']), \
-             patch('detrackify_guard.load_config_from_yaml') as mock_load_config:
+             patch('guard.config.GuardConfig.from_yaml') as mock_load_config:
             
             # Mock YAML load to raise an exception
             mock_load_config.side_effect = FileNotFoundError("Config file not found")
@@ -133,11 +121,11 @@ class TestConfigIntegration(unittest.TestCase):
         """Test that debug is only settable via command line."""
         with patch('sys.exit', side_effect=no_exit), \
              patch('sys.argv', ['detrackify_guard.py', '--config', 'test.yml', '--debug']), \
-             patch('detrackify_guard.load_config_from_yaml') as mock_load_config, \
+             patch('guard.config.GuardConfig.from_yaml') as mock_load_config, \
              patch('detrackify_guard.GuardServer') as mock_server, \
              patch('detrackify_guard.atexit.register'):
             
-            yaml_config = {'guardsalt': 'test-salt', 'debug': True}
+            yaml_config = GuardConfig(salt='test-salt')
             mock_load_config.return_value = yaml_config
             
             main()
@@ -151,11 +139,11 @@ class TestConfigIntegration(unittest.TestCase):
         """Test that force_language is only settable via command line."""
         with patch('sys.exit', side_effect=no_exit), \
              patch('sys.argv', ['detrackify_guard.py', '--config', 'test.yml', '--force-language', 'de']), \
-             patch('detrackify_guard.load_config_from_yaml') as mock_load_config, \
+             patch('guard.config.GuardConfig.from_yaml') as mock_load_config, \
              patch('detrackify_guard.GuardServer') as mock_server, \
              patch('detrackify_guard.atexit.register'):
             
-            yaml_config = {'guardsalt': 'test-salt', 'force_language': 'es'}
+            yaml_config = GuardConfig(salt='test-salt')
             mock_load_config.return_value = yaml_config
             
             main()

@@ -119,6 +119,8 @@ For more details, see the [Guard Server documentation](GUARD_SERVER.md).
 `--guardcaptureto` include the `To:` address in guarded links so the guard server can log who clicked.
 `--guardwhitelink` regex of links that should never be rewritten (may be used multiple times).
 `--guardwhitelistsender` regex of sender addresses that bypass link guarding (may be used multiple times).
+`--guarddomainalias` owner domain and aliases in format "owner:alias1,alias2" (may be used multiple times, e.g., "instacart.com:instacartemail.com").
+`--guarddomainaliasesfile` path to domain aliases YAML file (default: domain_aliases.yml).
 
 ### Guard settings
 
@@ -140,13 +142,121 @@ options:
     link: mismatch
     capture_to: false
     whitelist_links:
-      - '^https://trusted\\.example\\.com'
+      - '^https://trusted\.example\.com'
     whitelist_senders:
-      - '^admin@example\\.org$'
+      - '^admin@example\.org$'
     # sender patterns are checked against the full address
+    domain_aliases_file: domain_aliases.yml
+  # domain_aliases_file specifies the path to a shared domain aliases configuration file
+  # this file is used by both detrackify_email.py and detrackify_guard.py
+  # see domain_aliases.yml for the format and examples
 ```
 
 See the [guard server guide](GUARD_SERVER.md) for more details on running the guard server, enabling privacy mode and using a reverse proxy.
+
+## Blocklist Configuration
+
+The blocklist system allows you to control which URLs and senders are allowed or blocked. This provides fine-grained control over email security by blocking known malicious sources and allowing trusted ones.
+
+Both `detrackify_email.py` and `detrackify_guard.py` use a shared blocklist configuration file (`blocklist.yml` by default) to ensure consistency across the system.
+
+### Blocklist File Format
+
+The blocklist file uses YAML format with two main sections:
+
+```yaml
+# Whitelist entries - URLs that are always allowed
+whitelist:
+  - 'https://trusted.example.com/logo.png'
+  - 'https://cdn.example.org/.*'
+
+# Blacklist entries - URLs or senders that are blocked
+blacklisted:
+  # Block specific sender email addresses
+  - sender: '^spam@malicious\\.com$'
+  - sender: '^test.*@example\\.org$'
+  
+  # Block specific URLs or domains
+  - url: '^https://malicious\\.com/.*'
+  - url: '^https://.*\\.phishing\\.net/.*'
+  - url: '^https://tracking\\.example\\.com/.*'
+```
+
+### How Blocking Works
+
+**In detrackify_email.py:**
+- Sender blacklisting: If the email sender matches a blacklist pattern, all links in the email are sent to the guard server
+- URL blacklisting: If any link in the email matches a blacklist pattern, it's sent to the guard server
+- Whitelisting: URLs that match whitelist patterns are never processed or guarded
+
+**In detrackify_guard.py:**
+- URL blacklisting: If the original or resolved URL matches a blacklist pattern, the user sees a blocking message
+- The blocking message explains why the site is blocked in child-friendly language
+- No redirect is allowed to blacklisted URLs
+
+### Configuration
+
+**YAML Configuration:**
+```yaml
+# In your main config file
+blocklist_file: blocklist.yml  # Path to blocklist file
+```
+
+**Command Line:**
+```bash
+# For detrackify_email.py
+python detrackify_email.py --blocklistfile /path/to/blocklist.yml
+
+# For detrackify_guard.py  
+python detrackify_guard.py --blocklist-file /path/to/blocklist.yml
+```
+
+## Domain Aliases
+
+Domain aliases allow you to specify that certain domains belong to the same organization. This is useful when companies use different domains for their email services. For example, Instacart uses `instacartemail.com` for emails but `instacart.com` for their main site.
+
+Both `detrackify_email.py` and `detrackify_guard.py` use a shared domain aliases configuration file (`domain_aliases.yml` by default) to ensure consistency across the system.
+
+### Domain Aliases File Format
+
+The domain aliases file uses a simple key-value format:
+
+```yaml
+# Owner domain: list of aliases or single alias
+instacart.com: [instacartemail.com]
+amazon.com: [amazon-email.com, amazon-news.com, amazon-support.com]
+google.com: google-email.com  # Single alias
+microsoft.com: [outlook.com, hotmail.com, live.com]
+```
+
+### Configuration
+
+**YAML Configuration:**
+```yaml
+options:
+  guard:
+    domain_aliases_file: domain_aliases.yml  # Path to aliases file
+```
+
+**Command Line:**
+```bash
+# For detrackify_email.py
+python detrackify_email.py --domainaliasesfile /path/to/aliases.yml
+
+# For detrackify_guard.py  
+python detrackify_guard.py --domain-aliases-file /path/to/aliases.yml
+```
+
+### How It Works
+
+When checking if a link should be guarded, the system:
+1. Extracts the link domain and sender domain
+2. Checks if they're the same domain (direct match)
+3. Checks if they have a subdomain relationship
+4. Checks if they're in the same alias group from the shared file
+5. Only guards the link if none of these conditions are met (in `mismatch` mode)
+
+This ensures that legitimate links from trusted domains (even if they use different domain names for email services) are not unnecessarily guarded, while still protecting against phishing attempts from unrelated domains.
 
 ## Ubuntu installation
 

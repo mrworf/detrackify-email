@@ -1,0 +1,23 @@
+# Blocklist configuration for Detrackify
+# This file contains both whitelist and blacklist entries
+
+# Whitelist entries - URLs that are always allowed
+whitelist:
+  - 'https://trusted.example.com/logo.png'
+  - 'https://cdn.example.org/.*'
+
+# Blacklist entries - URLs or senders that are blocked
+# Each entry must specify whether it's a 'sender' or 'url' pattern
+blacklisted:
+  # Block specific sender email addresses
+  - sender: '^spam@malicious\.com$'
+  - sender: '^test.*@example\.org$'
+  
+  # Block specific URLs or domains
+  - url: '^https://malicious\.com/.*'
+  - url: '^https://.*\.phishing\.net/.*'
+  - url: '^https://tracking\.example\.com/.*'
+  
+  # Block entire domains
+  - url: '^https://.*\.suspicious\.org/.*'
+  - url: '^https://.*\.malware\.com/.*' 

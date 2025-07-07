@@ -1,0 +1,4 @@
+blacklisted:
+    
+    # Block specific URLs or domains
+    - url: '^https://t.co/.*'

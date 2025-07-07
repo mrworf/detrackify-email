@@ -1,0 +1,7 @@
+options:
+  guard:
+    server: http://localhost:9090/
+    salt: abcd1234
+    link: mismatch
+    capture_to: false
+blocklist_file: blacklist.yml

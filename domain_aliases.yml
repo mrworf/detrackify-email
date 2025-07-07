@@ -1,0 +1,17 @@
+# Domain Aliases Configuration
+# This file contains domain alias mappings that are shared between detrackify_email.py and detrackify_guard.py
+# Format: owner_domain: [alias1, alias2, ...] or owner_domain: single_alias
+#
+# Domain aliases allow you to specify that certain domains belong to the same organization.
+# This is useful when companies use different domains for their email services.
+# For example, Instacart uses instacartemail.com for emails but instacart.com for their main site.
+
+# E-commerce and retail companies
+instacart.com: [instacartemail.com]
+
+# Example organizations (replace with your actual domains)
+example.org: [example-email.org, example-news.org]
+company.com: [company-email.com, company-news.com, company-support.com]
+
+# Add your own domain aliases below:
+# yourdomain.com: [yourdomain-email.com, yourdomain-news.com] 

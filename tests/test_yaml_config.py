@@ -9,7 +9,7 @@ import yaml
 # Add the current directory to the path so we can import detrackify_guard
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from detrackify_guard import load_config_from_yaml
+from guard.config import GuardConfig
 
 
 def test_yaml_config():
@@ -23,8 +23,7 @@ def test_yaml_config():
         'timeout': 3,
         'privacy': True,
         'resolve': 'head',
-        'strip_param_prefix': ['utm_', 'fbclid'],
-        'debug': True
+        'strip_param_prefix': ['utm_', 'fbclid']
     }
     
     # Create temporary YAML file
@@ -34,24 +33,22 @@ def test_yaml_config():
     
     try:
         # Test loading configuration
-        loaded_config = load_config_from_yaml(config_path)
+        config = GuardConfig.from_yaml(config_path)
         
         # Verify all values are loaded correctly
-        assert loaded_config['guardsalt'] == 'test-salt-123'
-        assert loaded_config['listen_ip'] == '0.0.0.0'
-        assert loaded_config['listen_port'] == 8080
-        assert loaded_config['timeout'] == 3
-        assert loaded_config['privacy'] is True
-        assert loaded_config['resolve'] == 'head'
-        assert loaded_config['strip_param_prefix'] == ['utm_', 'fbclid']
-        assert loaded_config['debug'] is True
+        assert config.salt == 'test-salt-123'
+        assert config.listen_ip == '0.0.0.0'
+        assert config.listen_port == 8080
+        assert config.timeout == 3
+        assert config.privacy is True
+        assert config.resolve == 'head'
+        assert config.strip_param_prefixes == ['utm_', 'fbclid']
         
         print("✅ YAML configuration loading test passed!")
-        return True
         
     except Exception as e:
         print(f"❌ YAML configuration loading test failed: {e}")
-        return False
+        raise
     finally:
         # Clean up temporary file
         os.unlink(config_path)
@@ -68,12 +65,10 @@ def test_invalid_yaml():
     try:
         # Test loading invalid configuration
         try:
-            load_config_from_yaml(config_path)
-            print("❌ Invalid YAML test failed - should have raised an exception")
-            return False
+            GuardConfig.from_yaml(config_path)
+            assert False, "Invalid YAML test failed - should have raised an exception"
         except yaml.YAMLError:
             print("✅ Invalid YAML handling test passed!")
-            return True
         
     finally:
         # Clean up temporary file
@@ -84,12 +79,10 @@ def test_missing_file():
     """Test handling of missing configuration file."""
     
     try:
-        load_config_from_yaml('/nonexistent/file.yml')
-        print("❌ Missing file test failed - should have raised an exception")
-        return False
+        GuardConfig.from_yaml('/nonexistent/file.yml')
+        assert False, "Missing file test failed - should have raised an exception"
     except FileNotFoundError:
         print("✅ Missing file handling test passed!")
-        return True
 
 
 if __name__ == '__main__':

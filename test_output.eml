@@ -1,0 +1,20 @@
+From: scammer1@example.com
+To: victim@example.com
+Subject: Special offer
+MIME-Version: 1.0
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: base64
+X-Detrackify: Processed by Detrackify
+X-Detrackify-Blocked: tracker.example.com:
+ https://tracker.example.com/open.gif?uid=1 (Size check 1x1, Tracker URL)
+X-Detrackify-Guarded-Links: 1
+X-Detrackify-Guard-Mode: always
+
+PGh0bWw+Cjxib2R5Pgo8cD5CdXkgbm93ITwvcD4KPGltZyBoZWlnaHQ9IjEiIHNyYz0iZGF0YTpp
+bWFnZS9wbmc7YmFzZTY0LGlWQk9SdzBLR2dvQUFBQU5TVWhFVWdBQUFBRUFBQUFCQ0FZQUFBQWZG
+Y1NKQUFBQURVbEVRVlI0bkdQNC8vOC9Bd0FJL0FMK3A1cWdvQUFBQUFCSlJVNUVya0pnZ2c9PSIg
+d2lkdGg9IjEiLz4KPGEgaHJlZj0iaHR0cDovLzEyNy4wLjAuMTo5MDkwL2d1YXJkL2M2Y2IxNzVj
+N2RmMGI3ZWQwZjdjYTAwOTZjYWJlYzg0ZGViNGVlYWNhOWFiMjZjZmIwMzIwMDhlNTZkZWFmMDEv
+ZXlKa2FYTndiR0Y1SWpvZ0lreHZaMmx1SUdobGNtVWlMQ0FpWkc5dFlXbHVJam9nSW1WNFlXMXdi
+R1V1WTI5dElpd2dJblZ5YkNJNklDSm9kSFJ3Y3pvdkwyMWhiR2xqYVc5MWN5NWpiMjB2Ykc5bmFX
+NGlmUT09Ij5Mb2dpbiBoZXJlPC9hPgo8L2JvZHk+CjwvaHRtbD4K
