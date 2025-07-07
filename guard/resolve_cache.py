@@ -42,8 +42,10 @@ class ResolveCache:
         with self.lock:
             return self.data.get(key)
 
-    def set(self, key, url, title=''):
+    def set(self, key, url, title='', warning=None):
         entry = {'url': url, 'title': title or '', 'ts': time.time()}
+        if warning:
+            entry['warning'] = warning
         with self.lock:
             self.data[key] = entry
             if len(self.data) > self.max_entries:

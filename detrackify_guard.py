@@ -187,6 +187,7 @@ class GuardServer:
             'data': data if valid else '',
             'sender_domain': sender if valid else '',
             'block_reason': block_reason,
+            'domain_aliases': self.domain_aliases.aliases if self.domain_aliases else {},
         }
         logging.debug(f'opts_js: sending opts = {opts}')
         resp = make_response(render_template('opts.js', opts=opts))
@@ -209,9 +210,11 @@ class GuardServer:
         b64_sha = GuardUtils.generate_hash(data, '')
         key = GuardUtils.generate_hash(data + b64_sha, '')
         entry = self.cache.get(key) if self.cache else None
+        resolution_warning = None  # Initialize here for all code paths
         if entry:
             url = entry['url']
             title = entry.get('title', '')
+            resolution_warning = entry.get('warning')  # Retrieve warning from cache
         else:
             info = GuardUtils.decode_base64_payload(data)
             if not info:
@@ -243,11 +246,79 @@ class GuardServer:
                 # Clear any cookies that might have been set during the request
                 session.cookies.clear()
                 session.close()
+                
+            except requests.exceptions.SSLError as ssl_exc:
+                # SSL certificate verification failed - log warning but try to get final destination
+                logging.warning('SSL certificate verification failed for %s: %s', target, str(ssl_exc))
+                try:
+                    # Try to follow redirects manually to get the final destination
+                    # This bypasses SSL verification but still gets the final URL
+                    session = requests.Session()
+                    session.headers.update({'User-Agent': self.user_agent})
+                    session.cookies.clear()
+                    
+                    # Disable SSL verification for this request only
+                    session.verify = False
+                    
+                    if self.resolve_get:
+                        resp = session.get(target, allow_redirects=True, timeout=self.timeout)
+                        url = GuardUtils.strip_query_parameters(resp.url, self.strip_prefixes)
+                        try:
+                            soup = BeautifulSoup(resp.text, 'html.parser')
+                            if soup.title and soup.title.string:
+                                title = soup.title.string.strip()
+                        except Exception:  # pylint: disable=broad-except
+                            pass
+                    else:
+                        resp = session.head(target, allow_redirects=True, timeout=self.timeout)
+                        url = GuardUtils.strip_query_parameters(resp.url, self.strip_prefixes)
+                    
+                    session.cookies.clear()
+                    session.close()
+                    resolution_warning = 'ssl_certificate:This website has security certificate issues'
+                except Exception as fallback_exc:
+                    # If even the fallback fails, use the original URL
+                    logging.warning('Fallback resolution also failed for %s: %s', target, str(fallback_exc))
+                    url = target
+                    title = ''
+                    resolution_warning = 'ssl_certificate:This website has security certificate issues and could not be reached'
+                
+            except requests.exceptions.ConnectionError as conn_exc:
+                # Connection errors (DNS, network, etc.) - log warning but continue
+                logging.warning('Connection error resolving %s: %s', target, str(conn_exc))
+                url = target
+                title = ''
+                resolution_warning = 'connection_error:Connection error'
+                
+            except requests.exceptions.Timeout as timeout_exc:
+                # Timeout errors - log warning but continue
+                logging.warning('Timeout resolving %s: %s', target, str(timeout_exc))
+                url = target
+                title = ''
+                resolution_warning = 'connection_timeout:Connection timeout'
+                
+            except requests.exceptions.TooManyRedirects as redirect_exc:
+                # Too many redirects - log warning but continue
+                logging.warning('Too many redirects for %s: %s', target, str(redirect_exc))
+                url = target
+                title = ''
+                resolution_warning = 'too_many_redirects:Too many redirects'
+                
+            except requests.exceptions.RequestException as req_exc:
+                # Other request-related errors - log warning but continue
+                logging.warning('Request error resolving %s: %s', target, str(req_exc))
+                url = target
+                title = ''
+                resolution_warning = 'request_error:Request error'
+                
             except Exception as exc:  # pylint: disable=broad-except
-                logging.exception('Failed to resolve %s', target)
-                return jsonify({'error': 'Failed to resolve URL'}), 500
+                # Unexpected errors - log error but continue with original URL
+                logging.exception('Unexpected error resolving %s', target)
+                url = target
+                title = ''
+                resolution_warning = 'unexpected_error:Unexpected error'
             if self.cache:
-                self.cache.set(key, url, title)
+                self.cache.set(key, url, title, resolution_warning)
         # Check if the resolved URL is blacklisted
         block_reason = None
         if self.blocklist.is_url_blacklisted(url):
@@ -257,6 +328,8 @@ class GuardServer:
         response_data = {'url': url, 'hash': result_sha, 'title': title}
         if block_reason:
             response_data['block'] = block_reason
+        if resolution_warning:
+            response_data['warning'] = resolution_warning
         return jsonify(response_data), 200
 
     def go(self):
@@ -359,6 +432,8 @@ class GuardServer:
             'ts': start,
             'timeout_ms': self.timeout * 1000,
             'block_reason': block_reason,
+            'domain_aliases': self.domain_aliases.aliases if self.domain_aliases else {},
+            'resolve': self.resolve_enabled,
         }
         return render_template(template, **context)
 
@@ -397,7 +472,9 @@ def main():
                         help='Path to blocklist YAML file (default: blocklist.yml)')
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO)
+    # Set logging level based on debug flag
+    log_level = logging.DEBUG if args.debug else logging.INFO
+    logging.basicConfig(level=log_level)
 
     try:
         # Create configuration from YAML file and command line arguments

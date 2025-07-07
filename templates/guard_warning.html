@@ -24,29 +24,6 @@
       <p class="noselect source-box"><span id="url">{{ url }}</span></p>
       <p class="hint">note the different domain highlighted in red</p>
     </div>
-    
-    <!-- Blocking messages - hidden by default, shown by JavaScript -->
-    <div id="block-messages" class="hidden">
-      <!-- Blacklisted message -->
-      <div id="block-blacklisted" class="block-message hidden">
-        <div class="block-icon">🚫</div>
-        <div class="block-content">
-          <h3>This link has been blocked</h3>
-          <p>This website has been blocked by your administrator because it may be unsafe or inappropriate. This helps keep you safe from harmful content.</p>
-          <p><strong>What this means:</strong> The website you're trying to visit has been identified as potentially dangerous, like a website that might try to trick you or contain harmful content.</p>
-          <p><strong>What you should do:</strong> Don't try to visit this website. If you think this is a mistake, contact your administrator.</p>
-        </div>
-      </div>
-      
-      <!-- Future blocking reasons can be added here -->
-      <div id="block-unknown" class="block-message hidden">
-        <div class="block-icon">⚠️</div>
-        <div class="block-content">
-          <h3>This link has been blocked</h3>
-          <p>This website has been blocked by your administrator for security reasons.</p>
-        </div>
-      </div>
-    </div>
     {% if resolve %}
     <div class="spinner" id="resolve-spinner"></div>
     <div class="link-box link-box-left">
@@ -131,5 +108,90 @@
     </div>
   </div>
 </div>
+
+<!-- Warning Modal Dialog -->
+<div id="warning-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="warning-header"></h3>
+    </div>
+    <div class="modal-body">
+      <p id="warning-message"></p>
+      <div class="warning-section">
+        <p><strong id="warning-meaning-header"></strong> <span id="warning-meaning-content"></span></p>
+      </div>
+      <div class="warning-section">
+        <p><strong id="warning-action-header"></strong> <span id="warning-action-content"></span></p>
+      </div>
+      <p id="warning-details" class="hidden">
+        <a id="warning-link" href="#" target="_blank" rel="noopener noreferrer">Learn more about this warning</a>
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button id="warning-acknowledge" class="button-large">I understand and want to continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- Warning Definitions -->
+<script>
+const WARNING_DEFINITIONS = {
+  'ssl_certificate': {
+    header: '⚠️ Security Certificate Warning',
+    message: 'This website has security certificate issues',
+    meaningHeader: 'What this means',
+    meaningContent: 'The website\'s security certificate is invalid, expired, or cannot be verified. This could mean the website is not secure or someone is trying to intercept your connection.',
+    actionHeader: 'What you should do',
+    actionContent: 'Only proceed if you trust this website and understand the risks. Consider contacting the website owner if this is unexpected.',
+    details: 'https://support.mozilla.org/en-US/kb/error-codes-secure-websites'
+  },
+  'connection_error': {
+    header: '⚠️ Connection Warning',
+    message: 'Connection error',
+    meaningHeader: 'What this means',
+    meaningContent: 'We could not establish a secure connection to verify the final destination of this link. This could be due to network issues or the website being temporarily unavailable.',
+    actionHeader: 'What you should do',
+    actionContent: 'Check your internet connection and try again. If the problem persists, the website may be down or unreachable.',
+    details: null
+  },
+  'connection_timeout': {
+    header: '⚠️ Connection Timeout',
+    message: 'Connection timeout',
+    meaningHeader: 'What this means',
+    meaningContent: 'The website took too long to respond when we tried to verify the final destination. This could indicate the website is slow, overloaded, or experiencing issues.',
+    actionHeader: 'What you should do',
+    actionContent: 'Try again later, or proceed with caution if you trust the website.',
+    details: null
+  },
+  'too_many_redirects': {
+    header: '⚠️ Redirect Warning',
+    message: 'Too many redirects',
+    meaningHeader: 'What this means',
+    meaningContent: 'The website has too many redirects, which could indicate a configuration problem or an attempt to hide the final destination.',
+    actionHeader: 'What you should do',
+    actionContent: 'Proceed with extreme caution. This could be a legitimate website with configuration issues, or it could be trying to hide where it\'s actually taking you.',
+    details: null
+  },
+  'request_error': {
+    header: '⚠️ Request Error',
+    message: 'Request error',
+    meaningHeader: 'What this means',
+    meaningContent: 'We encountered an error while trying to verify the final destination of this link. This could be due to various technical issues.',
+    actionHeader: 'What you should do',
+    actionContent: 'Try again, or proceed with caution if you trust the source of this link.',
+    details: null
+  },
+  'unexpected_error': {
+    header: '⚠️ Verification Error',
+    message: 'Unexpected error',
+    meaningHeader: 'What this means',
+    meaningContent: 'We encountered an unexpected error while trying to verify the final destination of this link.',
+    actionHeader: 'What you should do',
+    actionContent: 'Try again, or proceed with caution if you trust the source of this link.',
+    details: null
+  }
+};
+</script>
+
 </body>
 </html>
