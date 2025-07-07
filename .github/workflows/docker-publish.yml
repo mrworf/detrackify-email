@@ -6,7 +6,7 @@ on:
     tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:  # Allow manual triggering
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -66,4 +66,4 @@ jobs:
       if: github.event_name != 'pull_request'
       run: |
         echo "Built and pushed the following tags:"
-        echo "${{ steps.meta.outputs.tags }}" | tr ' ' '\n' 
+        echo "${{ steps.meta.outputs.tags }}" | tr ' ' '\n'
