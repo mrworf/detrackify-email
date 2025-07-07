@@ -286,3 +286,69 @@ body {font-family: sans-serif;}
     box-sizing: border-box;
     word-break: break-all;
 }
+
+/* URL truncation styles */
+.url-value, .result-message, #url {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Ensure proper display for truncated URLs */
+.url-value[data-full-url], 
+.result-message[data-full-url], 
+#url[data-full-url] {
+    cursor: help;
+    border-bottom: 1px dotted #666;
+    /* Add touch-friendly padding for mobile */
+    padding: 4px 0;
+    min-height: 20px;
+}
+
+/* Custom tooltip styles */
+#url-tooltip {
+    position: absolute;
+    background: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: monospace;
+    max-width: 400px;
+    word-wrap: break-word;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    pointer-events: none;
+}
+
+/* Mobile-specific tooltip adjustments */
+@media (max-width: 768px) {
+    #url-tooltip {
+        max-width: 90vw;
+        font-size: 11px;
+        padding: 10px 14px;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    
+    /* Make truncated URLs more touch-friendly on mobile */
+    .url-value[data-full-url], 
+    .result-message[data-full-url], 
+    #url[data-full-url] {
+        padding: 8px 0;
+        min-height: 24px;
+        border-bottom: 2px dotted #666;
+    }
+    
+    /* Add visual indicator for touch devices */
+    .url-value[data-full-url]::after, 
+    .result-message[data-full-url]::after, 
+    #url[data-full-url]::after {
+        content: " 👆";
+        font-size: 14px;
+        opacity: 0.7;
+    }
+}

@@ -1,6 +1,122 @@
 document.addEventListener('DOMContentLoaded', function () {
     var opts = window.guardOpts || {};
 
+    // Function to truncate URLs with ellipsis and add hover tooltip
+    function truncateUrl(element, maxLength) {
+        if (!element || !element.textContent) return;
+        
+        var fullUrl = element.textContent.trim();
+        if (fullUrl.length <= maxLength) return; // No need to truncate
+        
+        // Create truncated version
+        var truncatedUrl = fullUrl.substring(0, maxLength - 3) + '...';
+        
+        // Store original content and set truncated version
+        element.setAttribute('data-full-url', fullUrl);
+        element.textContent = truncatedUrl;
+        
+        // Add hover functionality
+        element.style.cursor = 'help';
+        element.title = fullUrl; // Browser tooltip
+        
+        // Add custom tooltip on hover (desktop)
+        element.addEventListener('mouseenter', function() {
+            showTooltip(fullUrl, element);
+        });
+        
+        element.addEventListener('mouseleave', function() {
+            hideTooltip();
+        });
+        
+        // Add touch functionality (mobile)
+        var touchTimeout;
+        var tooltipShown = false;
+        
+        element.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            if (tooltipShown) {
+                hideTooltip();
+                tooltipShown = false;
+            } else {
+                showTooltip(fullUrl, element);
+                tooltipShown = true;
+                
+                // Auto-hide tooltip after 3 seconds
+                touchTimeout = setTimeout(function() {
+                    hideTooltip();
+                    tooltipShown = false;
+                }, 3000);
+            }
+        });
+        
+        // Hide tooltip when touching elsewhere
+        element.addEventListener('touchend', function(e) {
+            e.preventDefault();
+        });
+        
+        // Add click outside to hide tooltip
+        document.addEventListener('click', function(e) {
+            if (tooltipShown && !element.contains(e.target) && !document.getElementById('url-tooltip')?.contains(e.target)) {
+                hideTooltip();
+                tooltipShown = false;
+                clearTimeout(touchTimeout);
+            }
+        });
+    }
+    
+    // Function to show custom tooltip
+    function showTooltip(text, element) {
+        // Remove existing tooltip
+        hideTooltip();
+        
+        var tooltip = document.createElement('div');
+        tooltip.id = 'url-tooltip';
+        tooltip.textContent = text;
+        tooltip.style.cssText = `
+            position: absolute;
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+            max-width: 400px;
+            word-wrap: break-word;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            pointer-events: none;
+        `;
+        
+        document.body.appendChild(tooltip);
+        
+        // Position tooltip
+        var rect = element.getBoundingClientRect();
+        var tooltipRect = tooltip.getBoundingClientRect();
+        
+        var left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+        var top = rect.top - tooltipRect.height - 10;
+        
+        // Adjust if tooltip goes off screen
+        if (left < 10) left = 10;
+        if (left + tooltipRect.width > window.innerWidth - 10) {
+            left = window.innerWidth - tooltipRect.width - 10;
+        }
+        if (top < 10) {
+            top = rect.bottom + 10;
+        }
+        
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+    }
+    
+    // Function to hide custom tooltip
+    function hideTooltip() {
+        var tooltip = document.getElementById('url-tooltip');
+        if (tooltip) {
+            tooltip.remove();
+        }
+    }
+
     // Initialize button progress bar animation
     var button = document.getElementById('cont');
     var progressBar = document.getElementById('button-progress');
@@ -51,6 +167,19 @@ document.addEventListener('DOMContentLoaded', function () {
     var urlEl = document.getElementById('url');
     if (urlEl) {
         urlEl.innerHTML = highlight(urlEl.textContent);
+        // Apply URL truncation to main URL display
+        truncateUrl(urlEl, 80);
+    }
+
+    // Function to apply truncation to all URL elements
+    function applyUrlTruncation() {
+        // Find all URL elements that might need truncation
+        var urlElements = document.querySelectorAll('.url-value, .result-message');
+        urlElements.forEach(function(element) {
+            if (element.textContent && element.textContent.length > 80) {
+                truncateUrl(element, 80);
+            }
+        });
     }
 
     var enable = function () {
@@ -164,6 +293,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             }
                         }
                         
+                        // Apply URL truncation to newly added URL elements
+                        setTimeout(applyUrlTruncation, 100);
+                        
                         // Start progress bar after URL resolution completes
                         startProgressBar(opts.timeout_ms || 2000);
                     }
@@ -202,6 +334,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         urlMismatch.style.display = 'block';
                         if (resultMismatch) resultMismatch.textContent = msg;
                     }
+                    
+                    // Apply URL truncation to newly added URL elements
+                    setTimeout(applyUrlTruncation, 100);
                     
                     // Start progress bar after error handling completes
                     startProgressBar(opts.timeout_ms || 2000);
