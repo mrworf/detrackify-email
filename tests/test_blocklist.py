@@ -29,7 +29,7 @@ class TestBlocklist(unittest.TestCase):
                 'https://trusted.example.com/logo.png',
                 'https://cdn.example.org/.*'
             ],
-            'blacklisted': [
+            'blacklist': [
                 {'sender': '^spam@malicious\\.com$'},
                 {'sender': '^test.*@example\\.org$'},
                 {'url': '^https://malicious\\.com/.*'},

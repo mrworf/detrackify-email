@@ -17,6 +17,7 @@ import base64
 import hashlib
 import json
 import sys
+import logging
 
 
 def generate_guarded_url(server_url, salt, url, from_addr, to_addr=None, block_reason=None):
@@ -87,9 +88,13 @@ Examples:
     
     args = parser.parse_args()
     
+    # Configure logging for verbose output
+    if args.verbose:
+        logging.basicConfig(level=logging.INFO, format='%(message)s')
+    
     # Validate salt length
     if len(args.salt) < 8:
-        print("Error: Salt must be at least 8 characters long", file=sys.stderr)
+        sys.stderr.write("Error: Salt must be at least 8 characters long\n")
         sys.exit(1)
     
     # Create the payload
@@ -106,9 +111,9 @@ Examples:
         payload['block'] = args.block
     
     if args.verbose:
-        print("Payload:")
-        print(json.dumps(payload, indent=2))
-        print()
+        logging.info("Payload:")
+        logging.info(json.dumps(payload, indent=2))
+        logging.info("")
     
     # Encode the payload
     b64 = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode()
@@ -120,13 +125,13 @@ Examples:
     guarded_url = f"{args.server.rstrip('/')}/guard/{sha}/{b64}"
     
     if args.verbose:
-        print("Base64 encoded payload:")
-        print(b64)
-        print()
-        print("SHA256 hash:")
-        print(sha)
-        print()
-        print("Guarded URL:")
+        logging.info("Base64 encoded payload:")
+        logging.info(b64)
+        logging.info("")
+        logging.info("SHA256 hash:")
+        logging.info(sha)
+        logging.info("")
+        logging.info("Guarded URL:")
     
     print(guarded_url)
 

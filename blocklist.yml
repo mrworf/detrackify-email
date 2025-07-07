@@ -8,7 +8,7 @@ whitelist:
 
 # Blacklist entries - URLs or senders that are blocked
 # Each entry must specify whether it's a 'sender' or 'url' pattern
-blacklisted:
+blacklist:
   # Block specific sender email addresses
   - sender: '^spam@malicious\.com$'
   - sender: '^test.*@example\.org$'

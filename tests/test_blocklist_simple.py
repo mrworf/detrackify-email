@@ -9,7 +9,7 @@ import re
 # Add the current directory to the Python path so we can import detrackify_email
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from detrackify_email import Configuration
+from detrackify_email.configuration import Configuration
 
 def test_blocklist():
     """Test blocklist functionality."""
@@ -20,7 +20,7 @@ def test_blocklist():
 whitelist:
   - 'https://trusted.example.com/logo.png'
   - 'https://cdn.example.org/.*'
-blacklisted:
+blacklist:
   - sender: '^spam@malicious\.com$'
   - sender: '^test.*@example\.org$'
   - url: '^https://malicious\.com/.*'
@@ -66,7 +66,7 @@ def test_url_blacklist_specific():
     
     test_blocklist_yaml = '''
 whitelist: []
-blacklisted:
+blacklist:
   - url: '^https://other\\.com/.*'
 '''
     with open('test_blocklist.yml', 'w') as f:
@@ -105,7 +105,7 @@ def test_sender_blacklist():
     # Create a temporary blocklist with sender blacklist
     blocklist_data = {
         'whitelist': [],
-        'blacklisted': [
+        'blacklist': [
             {'sender': '^user@example\\.com$'}
         ]
     }

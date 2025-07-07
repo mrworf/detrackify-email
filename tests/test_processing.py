@@ -13,6 +13,7 @@ import pytest
 from bs4 import BeautifulSoup
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import detrackify_guard
+import logging
 
 # Path to the script under test
 SCRIPT = os.path.join(os.path.dirname(os.path.dirname(__file__)), "detrackify_email.py")
@@ -299,7 +300,7 @@ def test_guard_sender_blacklisted():
     
     blocklist_data = {
         'whitelist': [],
-        'blacklisted': [
+        'blacklist': [
             {'sender': r'^user@example\.com$'}
         ]
     }
@@ -343,7 +344,7 @@ def test_guard_url_blacklisted():
     
     blocklist_data = {
         'whitelist': [],
-        'blacklisted': [
+        'blacklist': [
             {'url': r'^https://other\.com/.*'}
         ]
     }
@@ -372,9 +373,9 @@ def test_guard_url_blacklisted():
         # Check that the guarded link has block reasons in its payload
         b64 = links[1][1].split('/')[-1]
         payload = json.loads(base64.urlsafe_b64decode(b64).decode())
-        print(f"Debug - Payload: {payload}")
-        print(f"Debug - Expected URL: https://other.com/path?x=1&y=2")
-        print(f"Debug - Actual URL: {payload.get('url')}")
+        logging.debug(f"Debug - Payload: {payload}")
+        logging.debug(f"Debug - Expected URL: https://other.com/path?x=1&y=2")
+        logging.debug(f"Debug - Actual URL: {payload.get('url')}")
         assert "block" in payload
         assert "blacklisted" in payload["block"]
         assert payload["url"] == "https://other.com/path?x=1&y=2"
@@ -392,7 +393,7 @@ def test_guard_sender_and_url_blacklisted():
     
     blocklist_data = {
         'whitelist': [],
-        'blacklisted': [
+        'blacklist': [
             {'sender': r'^user@example\.com$'},
             {'url': r'^https://other\.com/.*'}
         ]
@@ -437,7 +438,7 @@ def test_guard_no_blocklist_no_block_field():
     
     blocklist_data = {
         'whitelist': [],
-        'blacklisted': []
+        'blacklist': []
     }
     
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:

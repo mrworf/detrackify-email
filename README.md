@@ -171,7 +171,7 @@ whitelist:
   - 'https://cdn.example.org/.*'
 
 # Blacklist entries - URLs or senders that are blocked
-blacklisted:
+blacklist:
   # Block specific sender email addresses
   - sender: '^spam@malicious\\.com$'
   - sender: '^test.*@example\\.org$'

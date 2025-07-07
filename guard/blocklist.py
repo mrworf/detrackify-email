@@ -13,7 +13,7 @@ class Blocklist:
     def _load_blocklist(self):
         if not self.blocklist_file or not os.path.isfile(self.blocklist_file):
             logging.warning(f'Blocklist file not found: {self.blocklist_file}')
-            return {'whitelist': [], 'blacklisted': []}
+            return {'whitelist': [], 'blacklist': []}
         try:
             with open(self.blocklist_file, 'r', encoding='utf-8') as f:
                 blocklist_data = yaml.safe_load(f)
@@ -22,19 +22,19 @@ class Blocklist:
                     return blocklist_data
                 else:
                     logging.warning(f'Invalid blocklist file format: {self.blocklist_file}')
-                    return {'whitelist': [], 'blacklisted': []}
+                    return {'whitelist': [], 'blacklist': []}
         except yaml.YAMLError as e:
             logging.error(f'Error parsing blocklist file {self.blocklist_file}: {e}')
-            return {'whitelist': [], 'blacklisted': []}
+            return {'whitelist': [], 'blacklist': []}
         except Exception as e:
             logging.error(f'Error loading blocklist file {self.blocklist_file}: {e}')
-            return {'whitelist': [], 'blacklisted': []}
+            return {'whitelist': [], 'blacklist': []}
 
     def is_url_blacklisted(self, url):
         """Check if a URL is blacklisted."""
         if not url:
             return False
-        blacklist_entries = self.blocklist.get('blacklisted', [])
+        blacklist_entries = self.blocklist.get('blacklist', [])
         for entry in blacklist_entries:
             if isinstance(entry, dict) and 'url' in entry:
                 try:
