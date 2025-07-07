@@ -2,24 +2,16 @@ document.addEventListener('DOMContentLoaded', function () {
     var opts = window.guardOpts || {};
 
     // Function to truncate URLs with ellipsis and add hover tooltip
-    function truncateUrl(element, maxLength) {
-        if (!element || !element.textContent) return;
+    function truncateUrl(element) {
+        if (!element) return;
         
+        // Get the full URL from the element's HTML content
         var fullUrl = element.textContent.trim();
-        if (fullUrl.length <= maxLength) return; // No need to truncate
         
-        // Create truncated version
-        var truncatedUrl = fullUrl.substring(0, maxLength - 3) + '...';
-        
-        // Store original content and set truncated version
+        // Store original content for tooltip
         element.setAttribute('data-full-url', fullUrl);
-        element.textContent = truncatedUrl;
         
-        // Add hover functionality
-        element.style.cursor = 'help';
-        element.title = fullUrl; // Browser tooltip
-        
-        // Add custom tooltip on hover (desktop)
+        // Add hover functionality (desktop)
         element.addEventListener('mouseenter', function() {
             showTooltip(fullUrl, element);
         });
@@ -168,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (urlEl) {
         urlEl.innerHTML = highlight(urlEl.textContent);
         // Apply URL truncation to main URL display
-        truncateUrl(urlEl, 80);
+        truncateUrl(urlEl);
     }
 
     // Function to apply truncation to all URL elements
@@ -176,9 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Find all URL elements that might need truncation
         var urlElements = document.querySelectorAll('.url-value, .result-message');
         urlElements.forEach(function(element) {
-            if (element.textContent && element.textContent.length > 80) {
-                truncateUrl(element, 80);
-            }
+            truncateUrl(element);
         });
     }
 

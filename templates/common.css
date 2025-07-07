@@ -295,17 +295,36 @@ body {font-family: sans-serif;}
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    cursor: help;
 }
 
 /* Ensure proper display for truncated URLs */
 .url-value[data-full-url], 
 .result-message[data-full-url], 
 #url[data-full-url] {
-    cursor: help;
     border-bottom: 1px dotted #666;
     /* Add touch-friendly padding for mobile */
     padding: 4px 0;
     min-height: 20px;
+}
+
+/* Ensure highlighted domains are preserved in truncated URLs */
+.url-value .highlight,
+.result-message .highlight,
+#url .highlight {
+    font-weight: bold;
+}
+
+.url-value .highlight.bad,
+.result-message .highlight.bad,
+#url .highlight.bad {
+    color: red;
+}
+
+.url-value .highlight.good,
+.result-message .highlight.good,
+#url .highlight.good {
+    color: green;
 }
 
 /* Custom tooltip styles */
