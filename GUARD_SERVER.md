@@ -28,11 +28,56 @@ Start the server with at least the salt option:
 python3 detrackify_guard.py --guardsalt changeme123
 ```
 
+### Using YAML Configuration File
+
+Instead of specifying all options on the command line, you can use a YAML configuration file:
+
+```bash
+python3 detrackify_guard.py --config config_guard.yml
+```
+
+The configuration file supports all the same options as command line arguments, except for `debug` and `force_language`, which are command line only. Command line arguments will override values from the configuration file.
+
+Example configuration file (`config_guard.yml`):
+
+```yaml
+# Required: Guard salt for hash validation
+guardsalt: "your-secret-salt-here"
+
+# Server settings
+listen_ip: "127.0.0.1"
+listen_port: 9090
+
+# Security and behavior settings
+timeout: 5
+privacy: false
+
+# Link resolution settings
+resolve: "head"
+resolve_cache_file: "cache/resolve_cache.json"
+resolve_cache_days: 30
+resolve_cache_max: 4096
+
+# URL parameter stripping
+strip_param_prefix:
+  - "utm_"
+  - "fbclid"
+  - "gclid"
+
+# User agent for link resolution requests
+user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+
+# Note: 'debug' and 'force_language' are command line only options and cannot be set in this file.
+```
+
+### Command Line Parameters
+
 Optional parameters:
 
+* `--config`, `-c` Path to YAML configuration file
 * `--listen-ip` IP to bind to (default `127.0.0.1`)
-* `--listen-ip` IP to bind to (default `0.0.0.0`)
 * `--listen-port` Port to listen on (default `9090`)
+* `--guardsalt` Guard salt for hash validation (required if not in config file)
 * `--template-dir` Directory containing templates (default `templates`)
 * `--resources-dir` Directory containing additional resources (images only)
 * `--timeout` Seconds to wait before the continue button activates (default `5`)
@@ -43,7 +88,7 @@ Optional parameters:
 * `--resolve-cache-max` Maximum number of cached items (default `4096`)
 * `--user-agent` User-Agent string for link resolution requests (default: Chrome browser)
 * `--debug` Enable debug mode with template auto-reload
-* `--force-language` Force serving a specific language template (e.g., de, es, fr, zh, ar)
+* `--force-language` Force serving a specific language template (e.g., da, de, es, fr, zh, ar)
 * `--strip-param-prefix` Remove tracking parameters starting with PREFIX and everything after (may be used multiple times)
 
 The `--strip-param-prefix` option is useful for removing marketing parameters such as `utm_source`. The first matching parameter and all subsequent parameters are dropped from the URL before displaying it or performing the redirect.
@@ -123,7 +168,25 @@ When using a proxy, set `guard.server` to the external URL clients will access (
 
 The guard server can be deployed using Docker for easier deployment and management. A `Dockerfile` and `docker-compose.yml` are provided for containerized deployment.
 
-### Building the Docker Image
+### Using the Published Image
+
+The official Docker image is available from GitHub Container Registry:
+
+```bash
+# Pull the latest image
+docker pull ghcr.io/mrworf/detrackify-guard:latest
+
+# Run with basic configuration
+docker run -d \
+  --name detrackify-guard \
+  -p 9090:9090 \
+  -e GUARD_SALT=your_secure_salt_here \
+  ghcr.io/mrworf/detrackify-guard:latest
+```
+```
+```
+
+### Building the Docker Image Locally
 
 To build the Docker image locally:
 
@@ -150,7 +213,7 @@ docker run -d \
   -e GUARD_SALT=your_secure_salt_here \
   -e TIMEOUT=5 \
   -e RESOLVE=head \
-  detrackify-guard
+  ghcr.io/mrworf/detrackify-guard:latest
 ```
 
 #### With Custom Configuration

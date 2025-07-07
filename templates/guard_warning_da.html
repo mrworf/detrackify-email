@@ -1,0 +1,88 @@
+<!doctype html>
+<!-- Machine-generated translation / Maskinoversat -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Detrackify Guard</title>
+<link rel="stylesheet" href="/guard/common.css">
+<script src="/guard/opts.js"></script>
+<script src="/guard/common.js"></script>
+</head>
+<body>
+<div class="content-container">
+  <div class="main-box">
+    <div class="logo-title">
+      <a href="https://github.com/mrworf/detrackify-email" class="noselect">Detrackify</a>
+    </div>
+    <div class="link-box link-box-left">
+      <img src="/resource/phishing.png" alt="Phishing" class="phishing-icon">
+
+      <p>Dette link ser ud til at være et phishing-forsøg - hvor nogen prøver at bedrage dig ved at udgive sig for at være en betroet kilde. Ligesom fiskeri bruger madding til at fange bytte, bruger phishing vildledende links til at fange følsomme oplysninger.</p>
+      <p>For at beskytte dig viser vi dig det faktiske mål for dette link, som adskiller sig fra det, der blev præsenteret. Denne gennemsigtighed hjælper dig med at træffe en informeret beslutning, før du fortsætter.</p>
+    </div>
+    <div class="link-box link-box-left">
+      <p class="text-center">Linket du klikkede på sagde <span class="display-box">{{ display }}</span> og kom fra <span class="domain-box">{{ domain }}</span> men at klikke på det vil åbne følgende side:</p>
+      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
+      <p class="hint">bemærk den forskellige domæne fremhævet i rød</p>
+    </div>
+    {% if resolve %}
+    <div class="spinner" id="resolve-spinner"></div>
+    <div class="link-box link-box-left">
+      <p class="noselect progress-message" id="progress">Bestemmer endelig destination, vent venligst...</p>
+      
+      <!-- URL matches domain (green) -->
+      <div id="url-match" class="hidden">
+        <div class="url-transition">
+          <div class="url-original">
+            <span class="url-label">Oprindeligt link:</span>
+            <span class="url-value">{{ url }}</span>
+          </div>
+          <div class="url-arrow">→</div>
+          <div class="url-resolved">
+            <span class="url-label">Endelig destination:</span>
+            <div class="destination-box">
+              <p class="noselect title-message hidden" id="title-match"></p>
+              <p class="noselect result-message" id="result-match"></p>
+            </div>
+          </div>
+        </div>
+        <p class="hint">Den endelige destination matcher afsenderens domæne - dette ser sikkert ud.</p>
+      </div>
+      
+      <!-- URL doesn't match domain (red) -->
+      <div id="url-mismatch" class="hidden">
+        <div class="url-transition">
+          <div class="url-original">
+            <span class="url-label">Oprindeligt link:</span>
+            <span class="url-value">{{ url }}</span>
+          </div>
+          <div class="url-arrow">→</div>
+          <div class="url-resolved">
+            <span class="url-label">Endelig destination:</span>
+            <div class="destination-box">
+              <p class="noselect title-message hidden" id="title-mismatch"></p>
+              <p class="noselect result-message" id="result-mismatch"></p>
+            </div>
+          </div>
+        </div>
+        <p class="hint">Den endelige destination adskiller sig fra afsenderens domæne - fortsæt med forsigtighed.</p>
+      </div>
+      <div id="error" class="error-message"></div>
+    </div>
+    {% endif %}
+    <form method="post" action="{% if resolve %}/guard/go{% endif %}" autocomplete="off" id="continueForm">
+      <input type="hidden" name="ts" value="{{ ts }}">
+      {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
+      <button id="cont" class="button-large" disabled>
+        <div class="button-progress" id="button-progress"></div>
+        <span id="button-text">{% if resolve %}Fortsæt til endelig destination{% else %}Ja, jeg forstår og vil fortsætte{% endif %}</span>
+      </button>
+      <div id="redirecting-state" class="hidden">
+        <div class="button-spinner"></div>
+        <span>{% if resolve %}Omdirigerer til endelig destination...{% else %}Omdirigerer...{% endif %}</span>
+      </div>
+    </form>
+  </div>
+</div>
+</body>
+</html> 

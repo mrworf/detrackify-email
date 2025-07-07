@@ -9,6 +9,7 @@ import tempfile
 import base64
 import json
 import hashlib
+import pytest
 from bs4 import BeautifulSoup
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import detrackify_guard
@@ -62,7 +63,18 @@ def test_clean_emails():
 
 def test_pylint():
     """Ensure the code passes pylint."""
-    subprocess.run(["pylint", "-E", SCRIPT], check=True)
+    try:
+        # First check if pylint is available
+        subprocess.run([sys.executable, "-m", "pylint", "--version"], check=True, capture_output=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # Skip only if pylint is not available
+        pytest.skip("pylint not available")
+    
+    # If pylint is available, run the actual check
+    result = subprocess.run([sys.executable, "-m", "pylint", "-E", SCRIPT], capture_output=True, text=True)
+    if result.returncode != 0:
+        # If pylint finds errors, fail the test and show the output
+        pytest.fail(f"pylint found errors:\n{result.stdout}\n{result.stderr}")
 
 
 #########################

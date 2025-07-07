@@ -1,0 +1,8 @@
+# Simple Detrackify Guard Configuration
+guardsalt: "my-secret-salt-123"
+listen_ip: "0.0.0.0"
+listen_port: 9090
+timeout: 3
+privacy: true
+
+# Note: 'debug' and 'force_language' are command line only options and cannot be set in this file. 

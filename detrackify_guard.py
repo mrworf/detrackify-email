@@ -26,6 +26,7 @@ from dataclasses import dataclass, field
 import urllib.parse
 
 import requests
+import yaml
 from bs4 import BeautifulSoup
 from flask import (
     Flask,
@@ -116,6 +117,25 @@ class ResolveCache:
         self.stop.set()
         self.thread.join(timeout=1)
         self.save()
+
+
+def load_config_from_yaml(config_path: str) -> dict:
+    """Load configuration from YAML file."""
+    try:
+        with open(config_path, 'r', encoding='utf-8') as fh:
+            config_data = yaml.safe_load(fh)
+        if not isinstance(config_data, dict):
+            raise ValueError("Configuration file must contain a dictionary")
+        return config_data
+    except FileNotFoundError:
+        logging.error("Configuration file not found: %s", config_path)
+        raise
+    except yaml.YAMLError as e:
+        logging.error("Invalid YAML in configuration file: %s", e)
+        raise
+    except Exception as e:
+        logging.error("Error loading configuration file: %s", e)
+        raise
 
 
 class GuardServer:
@@ -471,58 +491,91 @@ class GuardServer:
 
 def main():
     parser = argparse.ArgumentParser(description='Detrackify guard server')
-    parser.add_argument('--listen-ip', default='127.0.0.1', help='Listen IP')
-    parser.add_argument('--listen-port', default=9090, type=int, help='Listen port')
-    parser.add_argument('--guardsalt', required=True, help='Guard salt')
-    parser.add_argument('--template-dir', default='templates', help='Template directory')
-    parser.add_argument('--resources-dir', default='resources', help='Directory for additional resources')
-    parser.add_argument('--timeout', type=int, default=5,
+    parser.add_argument('--config', '-c', help='Path to YAML configuration file')
+    parser.add_argument('--listen-ip', default=None, help='Listen IP')
+    parser.add_argument('--listen-port', default=None, type=int, help='Listen port')
+    parser.add_argument('--guardsalt', help='Guard salt')
+    parser.add_argument('--template-dir', default=None, help='Template directory')
+    parser.add_argument('--resources-dir', default=None, help='Directory for additional resources')
+    parser.add_argument('--timeout', type=int, default=None,
                         help='Seconds before continue button activates')
     parser.add_argument('--privacy', action='store_true',
                         help='Disable logging of visited links')
-    parser.add_argument('--resolve', choices=['head', 'get'],
+    parser.add_argument('--resolve', choices=['head', 'get'], default=None,
                         help='Resolve final destination using HEAD or GET requests')
-    parser.add_argument('--resolve-cache-file', help='Path to JSON cache file')
-    parser.add_argument('--resolve-cache-days', type=int, default=30,
+    parser.add_argument('--resolve-cache-file', default=None, help='Path to JSON cache file')
+    parser.add_argument('--resolve-cache-days', type=int, default=None,
                         help='Days to keep resolve results (default 30)')
-    parser.add_argument('--resolve-cache-max', type=int, default=4096,
+    parser.add_argument('--resolve-cache-max', type=int, default=None,
                         help='Maximum number of cached entries (default 4096)')
-    parser.add_argument('--strip-param-prefix', action='append', default=[],
+    parser.add_argument('--strip-param-prefix', action='append', default=None,
                         help='Strip query parameters starting with PREFIX and everything after')
     parser.add_argument('--user-agent', 
-                        default='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        default=None,
                         help='User-Agent string for link resolution requests (default: Chrome browser)')
     parser.add_argument('--debug', action='store_true',
-                        help='Enable debug mode with template auto-reload')
+                        help='Enable debug mode with template auto-reload (command line only)')
     parser.add_argument('--force-language', 
-                        help='Force serving a specific language template (e.g., de, es, fr, zh, ar)')
+                        help='Force serving a specific language template (e.g., de, es, fr, zh, ar) (command line only)')
     args = parser.parse_args()
+
+    # Load configuration from YAML file if specified
+    config_data = {}
+    if args.config:
+        try:
+            config_data = load_config_from_yaml(args.config)
+            logging.info("Loaded configuration from: %s", args.config)
+        except Exception as e:
+            logging.error("Failed to load configuration file: %s", e)
+            return 1
+
+    # Command line arguments override YAML configuration
+    guardsalt = args.guardsalt or config_data.get('guardsalt')
+    if not guardsalt:
+        logging.error("Guard salt is required. Specify with --guardsalt or in config file.")
+        return 1
+
+    listen_ip = args.listen_ip if args.listen_ip is not None else config_data.get('listen_ip', '127.0.0.1')
+    listen_port = args.listen_port if args.listen_port is not None else config_data.get('listen_port', 9090)
+    template_dir = args.template_dir if args.template_dir is not None else config_data.get('template_dir', 'templates')
+    resources_dir = args.resources_dir if args.resources_dir is not None else config_data.get('resources_dir', 'resources')
+    timeout = args.timeout if args.timeout is not None else config_data.get('timeout', 5)
+    privacy = args.privacy or config_data.get('privacy', False)
+    resolve = args.resolve if args.resolve is not None else config_data.get('resolve')
+    resolve_cache_file = args.resolve_cache_file if args.resolve_cache_file is not None else config_data.get('resolve_cache_file')
+    resolve_cache_days = args.resolve_cache_days if args.resolve_cache_days is not None else config_data.get('resolve_cache_days', 30)
+    resolve_cache_max = args.resolve_cache_max if args.resolve_cache_max is not None else config_data.get('resolve_cache_max', 4096)
+    strip_param_prefix = args.strip_param_prefix if args.strip_param_prefix is not None else config_data.get('strip_param_prefix', [])
+    user_agent = args.user_agent if args.user_agent is not None else config_data.get('user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+    # debug and force_language are command line only
+    debug = args.debug
+    force_language = args.force_language
 
     logging.basicConfig(level=logging.INFO)
 
     config = GuardConfig(
-        salt=args.guardsalt,
-        timeout=args.timeout,
-        template_dir=args.template_dir,
-        resource_dir=args.resources_dir,
-        privacy=args.privacy,
-        resolve=args.resolve,
-        cache_file=args.resolve_cache_file,
-        cache_days=args.resolve_cache_days,
-        cache_max=args.resolve_cache_max,
-        strip_param_prefixes=args.strip_param_prefix,
-        user_agent=args.user_agent,
-        force_language=args.force_language,
+        salt=guardsalt,
+        timeout=timeout,
+        template_dir=template_dir,
+        resource_dir=resources_dir,
+        privacy=privacy,
+        resolve=resolve,
+        cache_file=resolve_cache_file,
+        cache_days=resolve_cache_days,
+        cache_max=resolve_cache_max,
+        strip_param_prefixes=strip_param_prefix,
+        user_agent=user_agent,
+        force_language=force_language,
     )
     server = GuardServer(config)
-    if args.debug:
+    if debug:
         server.app.config['DEBUG'] = True
         server.app.config['TEMPLATES_AUTO_RELOAD'] = True
-    if args.privacy:
+    if privacy:
         logging.info('Privacy Mode Enabled; no logging of email address, link, domain, or recipient will happen')
-    if args.resolve or args.resolve_get:
+    if resolve:
         atexit.register(server.cache.close)
-    server.app.run(host=args.listen_ip, port=args.listen_port)
+    server.app.run(host=listen_ip, port=listen_port)
 
 
 if __name__ == '__main__':

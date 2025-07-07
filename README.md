@@ -9,6 +9,52 @@ Processes standard emails and tries to determine what images within are used to 
 - Integrates with your MTA, allowing server based tracking prevention
 - Failsafe, if tool fails for some reason, will revert to passthru of the email (configurable)
 
+## Docker Usage
+
+The Detrackify guard server is available as a Docker image from GitHub Container Registry:
+
+```bash
+# Pull the latest image
+docker pull ghcr.io/mrworf/detrackify-guard:latest
+
+# Run with basic configuration
+docker run -d \
+  --name detrackify-guard \
+  -p 9090:9090 \
+  -e GUARD_SALT=your_secure_salt_here \
+  ghcr.io/mrworf/detrackify-guard:latest
+
+# Run with custom configuration
+docker run -d \
+  --name detrackify-guard \
+  -p 9090:9090 \
+  -v $(pwd)/templates:/app/templates:ro \
+  -v $(pwd)/resources:/app/resources:ro \
+  -v $(pwd)/cache:/app/cache \
+  -e GUARD_SALT=your_secure_salt_here \
+  -e TIMEOUT=5 \
+  -e RESOLVE=head \
+  -e RESOLVE_CACHE_FILE=/app/cache/resolve_cache.json \
+  -e PRIVACY=true \
+  ghcr.io/mrworf/detrackify-guard:latest
+```
+```
+```
+
+### Available Environment Variables
+
+- `GUARD_SALT` (required): Salt for hash validation
+- `TIMEOUT`: Seconds before continue button activates (default: 5)
+- `PRIVACY`: Enable privacy mode (true/false)
+- `RESOLVE`: Link resolution mode (head/get)
+- `RESOLVE_CACHE_FILE`: Path to cache file
+- `RESOLVE_CACHE_DAYS`: Days to keep cache entries (default: 30)
+- `RESOLVE_CACHE_MAX`: Maximum cache entries (default: 4096)
+- `STRIP_PARAM_PREFIX`: Comma-separated list of parameter prefixes to strip
+- `USER_AGENT`: Custom User-Agent for link resolution
+
+For more details, see the [Guard Server documentation](GUARD_SERVER.md).
+
 ## Known issues
 
 - Will break DKIM since content and headers change, but this is expected.
