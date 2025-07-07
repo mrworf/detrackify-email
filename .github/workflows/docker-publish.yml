@@ -35,7 +35,6 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build and push Docker image
-      id: build
       uses: docker/build-push-action@v5
       with:
         context: .
@@ -47,6 +46,6 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    - name: Output image digest
+    - name: Build completed
       if: github.event_name != 'pull_request'
-      run: echo "Image digest: ${{ steps.build.outputs.digest }}"
+      run: echo "Docker image built and pushed successfully"
