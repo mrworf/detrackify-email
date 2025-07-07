@@ -1,5 +1,9 @@
 # Detrackify
 
+[![Build Status](https://github.com/mrworf/detrackify-email/workflows/Build%20and%20Publish%20Docker%20Image/badge.svg)](https://github.com/mrworf/detrackify-email/actions)
+[![Docker Image](https://img.shields.io/docker/image-size/ghcr.io/mrworf/detrackify-guard/latest)](https://ghcr.io/mrworf/detrackify-guard)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 Processes standard emails and tries to determine what images within are used to track you. If found, it will replace them with a embedded 1x1 transparent pixel, thus retaining the formatting but preventing the pixel from reporting in.
 
 ## Features
@@ -9,9 +13,17 @@ Processes standard emails and tries to determine what images within are used to 
 - Integrates with your MTA, allowing server based tracking prevention
 - Failsafe, if tool fails for some reason, will revert to passthru of the email (configurable)
 
-## Docker Usage
+## Docker
+
+### Container Registry
 
 The Detrackify guard server is available as a Docker image from GitHub Container Registry:
+
+**Registry:** `ghcr.io/mrworf/detrackify-guard`  
+**Latest Tag:** `ghcr.io/mrworf/detrackify-guard:latest`  
+**Specific Versions:** `ghcr.io/mrworf/detrackify-guard:v1.0.0` (replace with actual version)
+
+### Quick Start
 
 ```bash
 # Pull the latest image
@@ -38,6 +50,34 @@ docker run -d \
   -e PRIVACY=true \
   ghcr.io/mrworf/detrackify-guard:latest
 ```
+
+### Docker Compose
+
+For easier deployment, you can use Docker Compose:
+
+```yaml
+version: '3.8'
+services:
+  detrackify-guard:
+    image: ghcr.io/mrworf/detrackify-guard:latest
+    container_name: detrackify-guard
+    ports:
+      - "9090:9090"
+    environment:
+      - GUARD_SALT=your_secure_salt_here
+      - TIMEOUT=5
+      - PRIVACY=true
+      - RESOLVE=head
+    volumes:
+      - ./templates:/app/templates:ro
+      - ./resources:/app/resources:ro
+      - ./cache:/app/cache
+    restart: unless-stopped
+```
+
+Save this as `docker-compose.yml` and run:
+```bash
+docker-compose up -d
 ```
 ```
 

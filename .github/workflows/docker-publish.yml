@@ -6,6 +6,7 @@ on:
     tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:  # Allow manual triggering
 
 env:
   REGISTRY: ghcr.io
@@ -46,6 +47,7 @@ jobs:
           type=sha,prefix={{branch}}-
 
     - name: Build and push Docker image
+      id: build
       uses: docker/build-push-action@v5
       with:
         context: .
@@ -58,4 +60,10 @@ jobs:
 
     - name: Output image digest
       if: github.event_name != 'pull_request'
-      run: echo "Image digest: ${{ steps.build.outputs.digest }}" 
+      run: echo "Image digest: ${{ steps.build.outputs.digest }}"
+
+    - name: Output image tags
+      if: github.event_name != 'pull_request'
+      run: |
+        echo "Built and pushed the following tags:"
+        echo "${{ steps.meta.outputs.tags }}" | tr ' ' '\n' 
