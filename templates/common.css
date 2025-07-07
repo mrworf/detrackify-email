@@ -127,6 +127,18 @@ body {font-family: sans-serif;}
     text-transform: uppercase;
 }
 
+/* URL display styles - CSS handles truncation naturally */
+.url-value, .result-message, #url, .source-box {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: help;
+}
+
+/* URL value specific styling */
 .url-value {
     display: block;
     font-family: monospace;
@@ -139,11 +151,11 @@ body {font-family: sans-serif;}
     border: 1px solid #ccc;
 }
 
+/* URL arrow */
 .url-arrow {
     font-size: 24px;
     color: #666;
     margin: 0 20px;
-    font-weight: bold;
 }
 
 /* Destination box for resolved URLs */
@@ -169,7 +181,63 @@ body {font-family: sans-serif;}
     margin-top: 10px;
 }
 
+/* Ensure highlighted domains are preserved */
+.url-value .highlight,
+.result-message .highlight,
+#url .highlight,
+.source-box .highlight {
+    font-weight: bold;
+}
 
+.url-value .highlight.bad,
+.result-message .highlight.bad,
+#url .highlight.bad,
+.source-box .highlight.bad {
+    color: red;
+}
+
+.url-value .highlight.good,
+.result-message .highlight.good,
+#url .highlight.good,
+.source-box .highlight.good {
+    color: green;
+}
+
+/* Custom tooltip styles */
+#url-tooltip {
+    position: absolute;
+    background: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: monospace;
+    max-width: 400px;
+    word-wrap: break-word;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    pointer-events: none;
+}
+
+/* Mobile-specific tooltip adjustments */
+@media (max-width: 768px) {
+    #url-tooltip {
+        max-width: 90vw;
+        font-size: 11px;
+        padding: 10px 14px;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    
+    /* Make URLs more touch-friendly on mobile */
+    .url-value, 
+    .result-message, 
+    #url,
+    .source-box {
+        padding: 8px 0;
+        min-height: 24px;
+    }
+}
 
 /* Large button */
 .button-large {
@@ -285,89 +353,4 @@ body {font-family: sans-serif;}
     width: 100%;
     box-sizing: border-box;
     word-break: break-all;
-}
-
-/* URL truncation styles */
-.url-value, .result-message, #url {
-    position: relative;
-    display: inline-block;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    cursor: help;
-}
-
-/* Ensure proper display for truncated URLs */
-.url-value[data-full-url], 
-.result-message[data-full-url], 
-#url[data-full-url] {
-    border-bottom: 1px dotted #666;
-    /* Add touch-friendly padding for mobile */
-    padding: 4px 0;
-    min-height: 20px;
-}
-
-/* Ensure highlighted domains are preserved in truncated URLs */
-.url-value .highlight,
-.result-message .highlight,
-#url .highlight {
-    font-weight: bold;
-}
-
-.url-value .highlight.bad,
-.result-message .highlight.bad,
-#url .highlight.bad {
-    color: red;
-}
-
-.url-value .highlight.good,
-.result-message .highlight.good,
-#url .highlight.good {
-    color: green;
-}
-
-/* Custom tooltip styles */
-#url-tooltip {
-    position: absolute;
-    background: #333;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-family: monospace;
-    max-width: 400px;
-    word-wrap: break-word;
-    z-index: 1000;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    pointer-events: none;
-}
-
-/* Mobile-specific tooltip adjustments */
-@media (max-width: 768px) {
-    #url-tooltip {
-        max-width: 90vw;
-        font-size: 11px;
-        padding: 10px 14px;
-        border-radius: 6px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-    
-    /* Make truncated URLs more touch-friendly on mobile */
-    .url-value[data-full-url], 
-    .result-message[data-full-url], 
-    #url[data-full-url] {
-        padding: 8px 0;
-        min-height: 24px;
-        border-bottom: 2px dotted #666;
-    }
-    
-    /* Add visual indicator for touch devices */
-    .url-value[data-full-url]::after, 
-    .result-message[data-full-url]::after, 
-    #url[data-full-url]::after {
-        content: " 👆";
-        font-size: 14px;
-        opacity: 0.7;
-    }
 }

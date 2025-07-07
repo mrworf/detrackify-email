@@ -1,15 +1,12 @@
 document.addEventListener('DOMContentLoaded', function () {
     var opts = window.guardOpts || {};
 
-    // Function to truncate URLs with ellipsis and add hover tooltip
-    function truncateUrl(element) {
+    // Function to add tooltip functionality to URL elements
+    function addUrlTooltip(element) {
         if (!element) return;
         
         // Get the full URL from the element's HTML content
         var fullUrl = element.textContent.trim();
-        
-        // Store original content for tooltip
-        element.setAttribute('data-full-url', fullUrl);
         
         // Add hover functionality (desktop)
         element.addEventListener('mouseenter', function() {
@@ -156,19 +153,30 @@ document.addEventListener('DOMContentLoaded', function () {
         return url;
     }
 
-    var urlEl = document.getElementById('url');
-    if (urlEl) {
-        urlEl.innerHTML = highlight(urlEl.textContent);
-        // Apply URL truncation to main URL display
-        truncateUrl(urlEl);
+    function highlightAsPhishing(url) {
+        url = esc(url);
+        var m = url.match(/https?:\/\/([^/]+)/i);
+        if (m) {
+            var d = m[1];
+            // Always highlight as bad (red) for phishing warnings
+            return url.replace(d, '<span class="highlight bad">' + d + '</span>');
+        }
+        return url;
     }
 
-    // Function to apply truncation to all URL elements
-    function applyUrlTruncation() {
-        // Find all URL elements that might need truncation
-        var urlElements = document.querySelectorAll('.url-value, .result-message');
+    var urlEl = document.getElementById('url');
+    if (urlEl) {
+        urlEl.innerHTML = highlightAsPhishing(urlEl.textContent);
+        // Add tooltip functionality to main URL display
+        addUrlTooltip(urlEl);
+    }
+
+    // Function to add tooltips to all URL elements
+    function applyUrlTooltips() {
+        // Find all URL elements that might need tooltips
+        var urlElements = document.querySelectorAll('.url-value, .result-message, .source-box');
         urlElements.forEach(function(element) {
-            truncateUrl(element);
+            addUrlTooltip(element);
         });
     }
 
@@ -284,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                         
                         // Apply URL truncation to newly added URL elements
-                        setTimeout(applyUrlTruncation, 100);
+                        setTimeout(applyUrlTooltips, 100);
                         
                         // Start progress bar after URL resolution completes
                         startProgressBar(opts.timeout_ms || 2000);
@@ -326,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     
                     // Apply URL truncation to newly added URL elements
-                    setTimeout(applyUrlTruncation, 100);
+                    setTimeout(applyUrlTooltips, 100);
                     
                     // Start progress bar after error handling completes
                     startProgressBar(opts.timeout_ms || 2000);
