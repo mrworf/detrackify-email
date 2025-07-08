@@ -3,8 +3,8 @@
 
 # Whitelist entries - URLs that are always allowed
 whitelist:
-  - 'https://trusted.example.com/logo.png'
-  - 'https://cdn.example.org/.*'
+  - url: 'https://trusted.example.com/logo.png'
+  - url: 'https://cdn.example.org/.*'
 
 # Blacklist entries - URLs or senders that are blocked
 # Each entry must specify whether it's a 'sender' or 'url' pattern

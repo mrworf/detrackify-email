@@ -153,29 +153,67 @@ def test_guard_all_changes_all():
 
 
 def test_guard_whitelist_sender():
-    msg = process_email(GUARD_FILE, [
-        "--guardserver", SERVER,
-        "--guardsalt", SALT,
-        "--guardlink", "always",
-        "--guardwhitelistsender", "^user@example\\.com$",
-    ])
-    links = extract_links(msg)
-    assert links[0][1] == "https://example.com/welcome"
-    assert links[1][1] == "https://other.com/path?x=1&y=2"
-    assert msg["X-Detrackify-Guarded-Links"] == "0"
+    # Create a temporary guard whitelist file with sender whitelist
+    import tempfile
+    import yaml
+    
+    guard_whitelist_data = {
+        'whitelist': [
+            {'sender': '^user@example\\.com$'}
+        ]
+    }
+    
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        yaml.dump(guard_whitelist_data, f)
+        guard_whitelist_path = f.name
+        f.flush()
+        os.fsync(f.fileno())
+    
+    try:
+        msg = process_email(GUARD_FILE, [
+            "--guardserver", SERVER,
+            "--guardsalt", SALT,
+            "--guardlink", "always",
+            "--guard-whitelist-file", guard_whitelist_path,
+        ])
+        links = extract_links(msg)
+        assert links[0][1] == "https://example.com/welcome"
+        assert links[1][1] == "https://other.com/path?x=1&y=2"
+        assert msg["X-Detrackify-Guarded-Links"] == "0"
+    finally:
+        os.unlink(guard_whitelist_path)
 
 
 def test_guard_whitelist_link():
-    msg = process_email(GUARD_FILE, [
-        "--guardserver", SERVER,
-        "--guardsalt", SALT,
-        "--guardlink", "always",
-        "--guardwhitelink", "^https://other\\.com",
-    ])
-    links = extract_links(msg)
-    assert links[1][1] == "https://other.com/path?x=1&y=2"
-    assert links[0][1].startswith(SERVER)
-    assert msg["X-Detrackify-Guarded-Links"] == "1"
+    # Create a temporary guard whitelist file with link whitelist
+    import tempfile
+    import yaml
+    
+    guard_whitelist_data = {
+        'whitelist': [
+            {'url': '^https://other\\.com'}
+        ]
+    }
+    
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        yaml.dump(guard_whitelist_data, f)
+        guard_whitelist_path = f.name
+        f.flush()
+        os.fsync(f.fileno())
+    
+    try:
+        msg = process_email(GUARD_FILE, [
+            "--guardserver", SERVER,
+            "--guardsalt", SALT,
+            "--guardlink", "always",
+            "--guard-whitelist-file", guard_whitelist_path,
+        ])
+        links = extract_links(msg)
+        assert links[1][1] == "https://other.com/path?x=1&y=2"
+        assert links[0][1].startswith(SERVER)
+        assert msg["X-Detrackify-Guarded-Links"] == "1"
+    finally:
+        os.unlink(guard_whitelist_path)
 
 
 def test_guard_hash_matches_payload():
@@ -294,20 +332,19 @@ def test_resolve_get_enables_resolution():
 
 def test_guard_sender_blacklisted():
     """Test that blacklisted senders result in blocked links with correct JSON payload."""
-    # Create a temporary blocklist file with sender blacklist
+    # Create a temporary blacklist file with sender blacklist
     import tempfile
     import yaml
     
-    blocklist_data = {
-        'whitelist': [],
+    blacklist_data = {
         'blacklist': [
             {'sender': r'^user@example\.com$'}
         ]
     }
     
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
-        yaml.dump(blocklist_data, f)
-        blocklist_path = f.name
+        yaml.dump(blacklist_data, f)
+        blacklist_path = f.name
         f.flush()
         os.fsync(f.fileno())
     
@@ -316,7 +353,7 @@ def test_guard_sender_blacklisted():
             "--guardserver", SERVER,
             "--guardsalt", SALT,
             "--guardlink", "mismatch",
-            "--blocklistfile", blocklist_path,
+            "--blacklist-file", blacklist_path,
         ])
         links = extract_links(msg)
         
@@ -333,25 +370,24 @@ def test_guard_sender_blacklisted():
             assert payload["domain"] == "example.com"
             
     finally:
-        os.unlink(blocklist_path)
+        os.unlink(blacklist_path)
 
 
 def test_guard_url_blacklisted():
     """Test that blacklisted URLs result in blocked links with correct JSON payload."""
-    # Create a temporary blocklist file with URL blacklist
+    # Create a temporary blacklist file with URL blacklist
     import tempfile
     import yaml
     
-    blocklist_data = {
-        'whitelist': [],
+    blacklist_data = {
         'blacklist': [
             {'url': r'^https://other\.com/.*'}
         ]
     }
     
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
-        yaml.dump(blocklist_data, f)
-        blocklist_path = f.name
+        yaml.dump(blacklist_data, f)
+        blacklist_path = f.name
         f.flush()
         os.fsync(f.fileno())
     
@@ -360,7 +396,7 @@ def test_guard_url_blacklisted():
             "--guardserver", SERVER,
             "--guardsalt", SALT,
             "--guardlink", "mismatch",
-            "--blocklistfile", blocklist_path,
+            "--blacklist-file", blacklist_path,
         ])
         links = extract_links(msg)
         
@@ -382,17 +418,16 @@ def test_guard_url_blacklisted():
         assert payload["domain"] == "example.com"
         
     finally:
-        os.unlink(blocklist_path)
+        os.unlink(blacklist_path)
 
 
 def test_guard_sender_and_url_blacklisted():
     """Test that both blacklisted sender and URL result in blocked links with correct JSON payload."""
-    # Create a temporary blocklist file with both sender and URL blacklist
+    # Create a temporary blacklist file with both sender and URL blacklist
     import tempfile
     import yaml
     
-    blocklist_data = {
-        'whitelist': [],
+    blacklist_data = {
         'blacklist': [
             {'sender': r'^user@example\.com$'},
             {'url': r'^https://other\.com/.*'}
@@ -400,8 +435,8 @@ def test_guard_sender_and_url_blacklisted():
     }
     
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
-        yaml.dump(blocklist_data, f)
-        blocklist_path = f.name
+        yaml.dump(blacklist_data, f)
+        blacklist_path = f.name
         f.flush()
         os.fsync(f.fileno())
     
@@ -410,7 +445,7 @@ def test_guard_sender_and_url_blacklisted():
             "--guardserver", SERVER,
             "--guardsalt", SALT,
             "--guardlink", "mismatch",
-            "--blocklistfile", blocklist_path,
+            "--blacklist-file", blacklist_path,
         ])
         links = extract_links(msg)
         
@@ -427,23 +462,22 @@ def test_guard_sender_and_url_blacklisted():
             assert payload["domain"] == "example.com"
         
     finally:
-        os.unlink(blocklist_path)
+        os.unlink(blacklist_path)
 
 
 def test_guard_no_blocklist_no_block_field():
-    """Test that links without blocklist reasons don't have block field in JSON payload."""
-    # Create a temporary empty blocklist file
+    """Test that links without blacklist reasons don't have block field in JSON payload."""
+    # Create a temporary empty blacklist file
     import tempfile
     import yaml
     
-    blocklist_data = {
-        'whitelist': [],
+    blacklist_data = {
         'blacklist': []
     }
     
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
-        yaml.dump(blocklist_data, f)
-        blocklist_path = f.name
+        yaml.dump(blacklist_data, f)
+        blacklist_path = f.name
         f.flush()
         os.fsync(f.fileno())
     
@@ -452,7 +486,7 @@ def test_guard_no_blocklist_no_block_field():
             "--guardserver", SERVER,
             "--guardsalt", SALT,
             "--guardlink", "mismatch",
-            "--blocklistfile", blocklist_path,
+            "--blacklist-file", blacklist_path,
         ])
         links = extract_links(msg)
         
@@ -470,4 +504,4 @@ def test_guard_no_blocklist_no_block_field():
         assert payload["domain"] == "example.com"
         
     finally:
-        os.unlink(blocklist_path)
+        os.unlink(blacklist_path)

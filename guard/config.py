@@ -39,7 +39,7 @@ class GuardConfig:
     # Localization and security
     force_language: Optional[str] = None
     domain_aliases_file: str = "domain_aliases.yml"
-    blocklist_file: str = "blocklist.yml"
+    blacklist_file: str = "blacklist.yml"
     block_warnings: List[str] = field(default_factory=list)
     
     # Development options (command line only)
@@ -71,7 +71,7 @@ class GuardConfig:
                 user_agent=config_data.get('user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'),
                 force_language=config_data.get('force_language'),
                 domain_aliases_file=config_data.get('domain_aliases_file', 'domain_aliases.yml'),
-                blocklist_file=config_data.get('blocklist_file', 'blocklist.yml'),
+                blacklist_file=config_data.get('blacklist_file', 'blacklist.yml'),
                 block_warnings=config_data.get('block_warnings', []),
             )
         except FileNotFoundError:
@@ -132,8 +132,8 @@ class GuardConfig:
             config.force_language = args.force_language
         if args.domain_aliases_file is not None:
             config.domain_aliases_file = args.domain_aliases_file
-        if args.blocklist_file is not None:
-            config.blocklist_file = args.blocklist_file
+        if args.blacklist_file is not None:
+            config.blacklist_file = args.blacklist_file
         if args.block_warnings is not None:
             config.block_warnings = args.block_warnings
 
@@ -188,6 +188,6 @@ class GuardConfig:
             'user_agent': self.user_agent,
             'force_language': self.force_language,
             'domain_aliases_file': self.domain_aliases_file,
-            'blocklist_file': self.blocklist_file,
+            'blacklist_file': self.blacklist_file,
             'block_warnings': self.block_warnings,
         } 

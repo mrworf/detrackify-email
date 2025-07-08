@@ -36,12 +36,11 @@ docker run -d \
   -e GUARD_SALT=your_secure_salt_here \
   ghcr.io/mrworf/detrackify-guard:latest
 
-# Or use Docker Compose from the docker/ directory
-cd docker
+# Or use Docker Compose
 docker-compose up -d
 ```
 
-For complete Docker deployment instructions, configuration options, and production setup, see the [Docker documentation](docker/README.md).
+For complete Docker deployment instructions, configuration options, and production setup, see [DOCKER.md](DOCKER.md).
 
 ## Known issues
 
@@ -50,25 +49,49 @@ For complete Docker deployment instructions, configuration options, and producti
 
 ## Usage
 
+### Basic Options
+
 `--input` and `--output` to run from command line, will also output information about what was blocked
 
 `--message-id` to log the message id in the log output
 
 `--verbose` enable debug logging
 
+`--debug` enable early debug logging
+
 `--logfile` save logging to file instead of stderr
 
-`--hardfail` instead of outputting unprocessed mail when an error occurs, it stops processing and exits with 1 (note that when run from command line, this is always the behavior)
+`--config` path to YAML configuration file
 
-`--stripquery` will remove any parameters attached to an image's URL, ie `https://www.shady-site.com/nice-logo.png?track=879384yutr93478` becomes `https://www.shady-site.com/nice-logo.png`. This is *experimental* and without this option the log will show what images it would strip. It's experimental because there's no guarantee that this won't break the image.
+### Experimental Features
+
+`--strip` will remove any parameters attached to an image's URL, ie `https://www.shady-site.com/nice-logo.png?track=879384yutr93478` becomes `https://www.shady-site.com/nice-logo.png`. This is *experimental* and without this option the log will show what images it would strip. It's experimental because there's no guarantee that this won't break the image.
+
+`--testurl` detect which query parameters can be stripped from the URL (WARNING! Will make requests to the URLs)
+
+`--list` list all detected image URLs
+
+`--copy` copy the original email to this folder for debugging
+
+### Guard Server Options
+
 `--guardserver` specify address of the guard server used for rewriting links. Must include http or https.
+
 `--guardsalt` specify salt used when creating guarded links. Must be at least 8 characters.
+
 `--guardlink` link guarding mode: `off`, `mismatch`, or `always` (default `off`).
+
 `--guardcaptureto` include the `To:` address in guarded links so the guard server can log who clicked.
-`--guardwhitelink` regex of links that should never be rewritten (may be used multiple times).
-`--guardwhitelistsender` regex of sender addresses that bypass link guarding (may be used multiple times).
-`--guarddomainalias` owner domain and aliases in format "owner:alias1,alias2" (may be used multiple times, e.g., "instacart.com:instacartemail.com").
-`--guarddomainaliasesfile` path to domain aliases YAML file (default: domain_aliases.yml).
+
+`--guard-whitelist-file` path to guard whitelist YAML file (default: guard_whitelist.yml)
+
+`--domain-aliases-file` path to domain aliases YAML file (default: domain_aliases.yml).
+
+### Blocklist Options
+
+`--whitelist-file` path to whitelist YAML file (default: whitelist.yml)
+
+`--blacklist-file` path to blacklist YAML file (default: blacklist.yml)
 
 ### Guard settings
 
@@ -102,33 +125,109 @@ options:
 
 See the [guard server guide](GUARD_SERVER.md) for more details on running the guard server, enabling privacy mode and using a reverse proxy.
 
+## Guard Whitelist Configuration
+
+The guard whitelist system allows you to specify which links and senders should bypass link guarding. This is useful for trusted domains and senders where you don't want the warning page.
+
+### Guard Whitelist File Format
+
+The guard whitelist file uses YAML format with a single `whitelist` section containing both URL and sender entries:
+
+```yaml
+# Whitelist entries - URLs and senders that bypass guarding
+whitelist:
+  # URLs that bypass link guarding
+  - url: '^https://trusted\.example\.com/.*'
+  - url: '^https://cdn\.example\.org/.*'
+  - url: '^https://.*\.trusted-domain\.com/.*'
+  
+  # Sender email addresses that bypass link guarding
+  - sender: '^admin@example\.org$'
+  - sender: '^noreply@trusted\.com$'
+  - sender: '^security@bank\.com$'
+```
+
+### How Guard Whitelisting Works
+
+**Link Whitelisting:**
+- URLs that match `whitelist_links` patterns are not rewritten with guard server links
+- They still go through normal email processing (tracking pixel detection, etc.)
+- Use this for trusted domains where you don't need the warning page
+
+**Sender Whitelisting:**
+- All links in emails from senders matching `whitelist_senders` patterns bypass link guarding
+- Use this for trusted senders (like your bank, employer, etc.)
+- The entire email bypasses link guarding for these senders
+
+### Configuration
+
+**Command Line:**
+```bash
+python detrackify_email.py --guard-whitelist-file /path/to/guard_whitelist.yml
+```
+
+**YAML Configuration:**
+```yaml
+# In your main config file
+guard_whitelist_file: guard_whitelist.yml  # Path to guard whitelist file
+```
+
 ## Blocklist Configuration
 
 The blocklist system allows you to control which URLs and senders are allowed or blocked. This provides fine-grained control over email security by blocking known malicious sources and allowing trusted ones.
 
-Both `detrackify_email.py` and `detrackify_guard.py` use a shared blocklist configuration file (`blocklist.yml` by default) to ensure consistency across the system.
+Both `detrackify_email.py` and `detrackify_guard.py` use shared configuration files to ensure consistency across the system.
 
-### Blocklist File Format
+### File Formats
 
-The blocklist file uses YAML format with two main sections:
+You can use either a combined file or separate files:
+
+#### Combined Blocklist File (`blocklist.yml`)
+
+A single file containing both whitelist and blacklist entries:
 
 ```yaml
 # Whitelist entries - URLs that are always allowed
 whitelist:
-  - 'https://trusted.example.com/logo.png'
-  - 'https://cdn.example.org/.*'
+  - url: 'https://trusted.example.com/logo.png'
+  - url: 'https://cdn.example.org/.*'
 
 # Blacklist entries - URLs or senders that are blocked
 blacklist:
   # Block specific sender email addresses
-  - sender: '^spam@malicious\\.com$'
-  - sender: '^test.*@example\\.org$'
+  - sender: '^spam@malicious\.com$'
+  - sender: '^test.*@example\.org$'
   
   # Block specific URLs or domains
-  - url: '^https://malicious\\.com/.*'
-  - url: '^https://.*\\.phishing\\.net/.*'
-  - url: '^https://tracking\\.example\\.com/.*'
+  - url: '^https://malicious\.com/.*'
+  - url: '^https://.*\.phishing\.net/.*'
+  - url: '^https://tracking\.example\.com/.*'
 ```
+
+#### Separate Files
+
+You can also use separate files for whitelist and blacklist:
+
+**Whitelist file (`whitelist.yml`):**
+```yaml
+whitelist:
+  - url: 'https://trusted.example.com/logo.png'
+  - url: 'https://cdn.example.org/.*'
+```
+
+**Blacklist file (`blacklist.yml`):**
+```yaml
+blacklist:
+  # Block specific sender email addresses
+  - sender: '^spam@malicious\.com$'
+  - sender: '^test.*@example\.org$'
+  
+  # Block specific URLs or domains
+  - url: '^https://malicious\.com/.*'
+  - url: '^https://.*\.phishing\.net/.*'
+```
+
+> **Tip**: You can use the same file for both tools since they look for specific keys (`whitelist` and `blacklist`) in the YAML file. If a key is missing, it's simply ignored.
 
 ### How Blocking Works
 
@@ -139,7 +238,7 @@ blacklist:
 
 **In detrackify_guard.py:**
 - URL blacklisting: If the original or resolved URL matches a blacklist pattern, the user sees a blocking message
-- The blocking message explains why the site is blocked in child-friendly language
+- The blocking message explains why the site is blocked in friendly language
 - No redirect is allowed to blacklisted URLs
 
 ### Configuration
@@ -153,11 +252,15 @@ blocklist_file: blocklist.yml  # Path to blocklist file
 **Command Line:**
 ```bash
 # For detrackify_email.py
-python detrackify_email.py --blocklistfile /path/to/blocklist.yml
+python detrackify_email.py --blacklist-file /path/to/blacklist.yml
 
 # For detrackify_guard.py  
-python detrackify_guard.py --blocklist-file /path/to/blocklist.yml
+python detrackify_guard.py --blacklist-file /path/to/blacklist.yml
 ```
+
+**Default Files:**
+- `detrackify_email.py` looks for `blacklist.yml` by default
+- `detrackify_guard.py` looks for `blocklist.yml` by default
 
 ## Blocked Warnings Configuration
 
@@ -205,127 +308,4 @@ This provides an additional layer of security by preventing users from proceedin
 
 Domain aliases allow you to specify that certain domains belong to the same organization. This is useful when companies use different domains for their email services. For example, Instacart uses `instacartemail.com` for emails but `instacart.com` for their main site.
 
-Both `detrackify_email.py` and `detrackify_guard.py` use a shared domain aliases configuration file (`domain_aliases.yml` by default) to ensure consistency across the system.
-
-### Domain Aliases File Format
-
-The domain aliases file uses a simple key-value format:
-
-```yaml
-# Owner domain: list of aliases or single alias
-instacart.com: [instacartemail.com]
-amazon.com: [amazon-email.com, amazon-news.com, amazon-support.com]
-google.com: google-email.com  # Single alias
-microsoft.com: [outlook.com, hotmail.com, live.com]
-```
-
-### Configuration
-
-**YAML Configuration:**
-```yaml
-options:
-  guard:
-    domain_aliases_file: domain_aliases.yml  # Path to aliases file
-```
-
-**Command Line:**
-```bash
-# For detrackify_email.py
-python detrackify_email.py --domainaliasesfile /path/to/aliases.yml
-
-# For detrackify_guard.py  
-python detrackify_guard.py --domain-aliases-file /path/to/aliases.yml
-```
-
-### How It Works
-
-When checking if a link should be guarded, the system:
-1. Extracts the link domain and sender domain
-2. Checks if they're the same domain (direct match)
-3. Checks if they have a subdomain relationship
-4. Checks if they're in the same alias group from the shared file
-5. Only guards the link if none of these conditions are met (in `mismatch` mode)
-
-This ensures that legitimate links from trusted domains (even if they use different domain names for email services) are not unnecessarily guarded, while still protecting against phishing attempts from unrelated domains.
-
-## Ubuntu installation
-
-Please use the following apt line instead of pip3
-
-```
-apt install python3-bs4 python3-pil
-```
-
-# EXIM configuration
-
-This assumes you're somewhat comfortable with exim4's configuration.
-
-## Adding a transport
-
-```
-detrackify:
-  driver = pipe
-  transport_filter = /opt/detrackify-email/detrackify_email.py --message-id ${message_id} --logfile /var/log/exim4/detrackify.log
-  use_bsmtp
-  command = /usr/sbin/exim4 -oMr detrackify -bS
-  return_fail_output = true
-  log_output = true
-```
-
-We run this as a transport filter, to allow us to manipulate the content. Then we use `exim` to redeliver it, while also ensuring it's tagged as `detrackify` so we can avoid an infinite loop.
-
-Should the command fail, the sender will get an email back with the output from the command, ie, `exim4`.
-
-## Adding a new router
-
-```
-detrackify_router:
-  driver = accept
-  domains = +local_domains
-  local_parts = someuser
-  condition = ${if !eq{$received_protocol}{detrackify}{yes}{no}}
-  transport = detrackify
-```
-
-Setting `local_parts` to a local user allows you to test this on a single user, instead of doing it for all users. We also make sure we're testing how we received the email. If it came via exim4 (see transport), we don't want to process this email since it has already had a run.
-
-Due to how this all works, it's **important** that you add the router BEFORE any local delivery agents (LDA), such as dovecot, etc. But it also needs to happen after any other massaging you're doing to the email, to avoid wasting cycles on this if the email is spam.
-
-Ideally (and what I did) you put it 2nd to last, ie, right before your LDA.
-
-## Confirming that it works
-
-First of all, send yourself a message. If you've configured it correctly, you can check the `mainlog` for the following:
-
-```
-2024-09-09 04:04:47 1snTln-00000002pCO-24ge <= some@email.address.com U=Debian-exim P=detrackify S=85164 id=1006251088.8949486.1725847483059@address.com
-2024-09-09 04:04:48 1snTln-00000002pCO-24ge => Me <my@email.com> R=virtual_user T=dovecot_lda
-2024-09-09 04:04:48 1snTln-00000002pCO-24ge Completed
-2024-09-09 04:04:48 1snTll-00000002pCL-3y1e => Me <my@email.com> R=detrackify_router T=detrackify
-2024-09-09 04:04:48 1snTll-00000002pCL-3y1e Completed
-```
-
-Obviously there may be some differences, for example, if you don't use dovecot_lda, name of your routers, etc. but the gist of it should be very similar.
-
-You can also open `detrackify.log` and you'll see an entry for each received email with the exim message id and any findings.
-
-Next, look at the headers of your received email, there will be some new `X-Detrackify` headers, such as
-
-```
-X-Detrackify: Processed by Detrackify
-```
-
-If it removes tracking content, you'll see one or more entries like this:
-
-```
-X-Detrackify-Blocked: www.linkedin.com: =?utf-8?q?https=3A//www=2Elinkedin?=
-    .... ?= (Size check 1x1)
-```
-
-# Thoughts
-
-Does this mean that I'm finally free from the tracking that companies do? No, not really. Many companies leverage the fact that you like to see the styling and graphics of their email and more or less embed the tracking within. Ie, if you load that photo for the evite you got, you might very well be tracked as well.
-
-However, it does minimize the footprint and if you do load the images, it will not load the distinct tracking items.
-
-It's not unreasonable to try and "scramble" or even remove the parameters of some images in an attempt to further minmize the amount of tracking, but that's an exercise for a later day.
+Both `

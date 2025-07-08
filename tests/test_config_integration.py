@@ -19,6 +19,31 @@ def no_exit(code=0):
     raise RuntimeError(f"sys.exit({code}) called")
 
 
+def create_mock_args(**kwargs):
+    """Create a mock args object with all required attributes."""
+    args = MagicMock()
+    # Set default values for all arguments that GuardConfig.from_args expects
+    args.guardsalt = kwargs.get('guardsalt', None)
+    args.listen_ip = kwargs.get('listen_ip', None)
+    args.listen_port = kwargs.get('listen_port', None)
+    args.template_dir = kwargs.get('template_dir', None)
+    args.resources_dir = kwargs.get('resources_dir', None)
+    args.timeout = kwargs.get('timeout', None)
+    args.privacy = kwargs.get('privacy', False)
+    args.resolve = kwargs.get('resolve', None)
+    args.resolve_cache_file = kwargs.get('resolve_cache_file', None)
+    args.resolve_cache_days = kwargs.get('resolve_cache_days', None)
+    args.resolve_cache_max = kwargs.get('resolve_cache_max', None)
+    args.strip_param_prefix = kwargs.get('strip_param_prefix', None)
+    args.user_agent = kwargs.get('user_agent', None)
+    args.debug = kwargs.get('debug', False)
+    args.force_language = kwargs.get('force_language', None)
+    args.domain_aliases_file = kwargs.get('domain_aliases_file', None)
+    args.blacklist_file = kwargs.get('blacklist_file', None)
+    args.block_warnings = kwargs.get('block_warnings', None)
+    return args
+
+
 class TestConfigIntegration(unittest.TestCase):
     """Test configuration integration with command line arguments."""
 
@@ -28,7 +53,12 @@ class TestConfigIntegration(unittest.TestCase):
              patch('sys.argv', ['detrackify_guard.py', '--config', 'test.yml', '--guardsalt', 'cmd-salt']), \
              patch('guard.config.GuardConfig.from_yaml') as mock_load_config, \
              patch('detrackify_guard.GuardServer') as mock_server, \
-             patch('detrackify_guard.atexit.register'):
+             patch('detrackify_guard.atexit.register'), \
+             patch('argparse.ArgumentParser.parse_args') as mock_parse_args:
+            
+            # Mock the parsed args
+            mock_args = create_mock_args(guardsalt='cmd-salt')
+            mock_parse_args.return_value = mock_args
             
             # Mock YAML config
             yaml_config = GuardConfig(salt='yaml-salt', listen_ip='0.0.0.0', listen_port=8080, timeout=3, privacy=True)
@@ -60,7 +90,7 @@ class TestConfigIntegration(unittest.TestCase):
             # Call main function
             main()
             
-            # Verify GuardConfig was called with command line values
+            # Verify GuardServer was called with the config
             mock_server.assert_called_once()
             config_arg = mock_server.call_args[0][0]
             self.assertEqual(config_arg.salt, 'cmd-only-salt')
@@ -73,7 +103,12 @@ class TestConfigIntegration(unittest.TestCase):
              patch('sys.argv', ['detrackify_guard.py', '--config', 'test.yml']), \
              patch('guard.config.GuardConfig.from_yaml') as mock_load_config, \
              patch('detrackify_guard.GuardServer') as mock_server, \
-             patch('detrackify_guard.atexit.register'):
+             patch('detrackify_guard.atexit.register'), \
+             patch('argparse.ArgumentParser.parse_args') as mock_parse_args:
+            
+            # Mock the parsed args
+            mock_args = create_mock_args()
+            mock_parse_args.return_value = mock_args
             
             # Mock YAML config
             yaml_config = GuardConfig(salt='yaml-only-salt', listen_ip='192.168.1.1', listen_port=7070, timeout=7, privacy=True, resolve='get')
@@ -98,7 +133,12 @@ class TestConfigIntegration(unittest.TestCase):
         with patch('sys.exit', side_effect=no_exit), \
              patch('sys.argv', ['detrackify_guard.py']), \
              patch('detrackify_guard.GuardServer'), \
-             patch('detrackify_guard.atexit.register'):
+             patch('detrackify_guard.atexit.register'), \
+             patch('argparse.ArgumentParser.parse_args') as mock_parse_args:
+            
+            # Mock the parsed args with no salt
+            mock_args = create_mock_args()
+            mock_parse_args.return_value = mock_args
             
             # Call main function and expect it to return 1
             result = main()
@@ -108,7 +148,12 @@ class TestConfigIntegration(unittest.TestCase):
         """Test that YAML load errors are handled properly."""
         with patch('sys.exit', side_effect=no_exit), \
              patch('sys.argv', ['detrackify_guard.py', '--config', 'test.yml']), \
-             patch('guard.config.GuardConfig.from_yaml') as mock_load_config:
+             patch('guard.config.GuardConfig.from_yaml') as mock_load_config, \
+             patch('argparse.ArgumentParser.parse_args') as mock_parse_args:
+            
+            # Mock the parsed args
+            mock_args = create_mock_args()
+            mock_parse_args.return_value = mock_args
             
             # Mock YAML load to raise an exception
             mock_load_config.side_effect = FileNotFoundError("Config file not found")
@@ -123,7 +168,12 @@ class TestConfigIntegration(unittest.TestCase):
              patch('sys.argv', ['detrackify_guard.py', '--config', 'test.yml', '--debug']), \
              patch('guard.config.GuardConfig.from_yaml') as mock_load_config, \
              patch('detrackify_guard.GuardServer') as mock_server, \
-             patch('detrackify_guard.atexit.register'):
+             patch('detrackify_guard.atexit.register'), \
+             patch('argparse.ArgumentParser.parse_args') as mock_parse_args:
+            
+            # Mock the parsed args
+            mock_args = create_mock_args(debug=True)
+            mock_parse_args.return_value = mock_args
             
             yaml_config = GuardConfig(salt='test-salt')
             mock_load_config.return_value = yaml_config
@@ -141,7 +191,12 @@ class TestConfigIntegration(unittest.TestCase):
              patch('sys.argv', ['detrackify_guard.py', '--config', 'test.yml', '--force-language', 'de']), \
              patch('guard.config.GuardConfig.from_yaml') as mock_load_config, \
              patch('detrackify_guard.GuardServer') as mock_server, \
-             patch('detrackify_guard.atexit.register'):
+             patch('detrackify_guard.atexit.register'), \
+             patch('argparse.ArgumentParser.parse_args') as mock_parse_args:
+            
+            # Mock the parsed args
+            mock_args = create_mock_args(force_language='de')
+            mock_parse_args.return_value = mock_args
             
             yaml_config = GuardConfig(salt='test-salt')
             mock_load_config.return_value = yaml_config

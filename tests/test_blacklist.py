@@ -55,9 +55,9 @@ class TestBlacklist(unittest.TestCase):
         """Test that detrackify_email.py loads blacklist and whitelist correctly."""
         config = Configuration()
         config.set(Configuration.CFG_WHITELIST_FILE, self.whitelist_file)
-        config.set(Configuration.CFG_BLOCKLIST_FILE, self.blacklist_file)
+        config.set(Configuration.CFG_BLACKLIST_FILE, self.blacklist_file)
         config.load_whitelist_from_file()
-        config.load_blocklist_from_file()
+        config.load_blacklist_from_file()
         
         # Test whitelist loading
         self.assertTrue(config.is_whitelisted('https://trusted.example.com/logo.png'))
@@ -78,7 +78,7 @@ class TestBlacklist(unittest.TestCase):
         """Test that detrackify_guard.py loads blacklist correctly."""
         guard_config = GuardConfig(
             salt='test-salt',
-            blocklist_file=self.blacklist_file
+            blacklist_file=self.blacklist_file
         )
         
         server = GuardServer(guard_config)
@@ -94,10 +94,10 @@ class TestBlacklist(unittest.TestCase):
     def test_blacklist_file_not_found(self):
         """Test handling of missing blacklist file."""
         config = Configuration()
-        config.set(Configuration.CFG_BLOCKLIST_FILE, '/nonexistent/file.yml')
+        config.set(Configuration.CFG_BLACKLIST_FILE, '/nonexistent/file.yml')
         
         # Should not raise an exception
-        config.load_blocklist_from_file()
+        config.load_blacklist_from_file()
         
         # Should not match anything
         self.assertFalse(config.is_blacklisted('https://any.url'))
@@ -111,10 +111,10 @@ class TestBlacklist(unittest.TestCase):
             f.write('invalid: yaml: content: [')
         
         config = Configuration()
-        config.set(Configuration.CFG_BLOCKLIST_FILE, invalid_blacklist_file)
+        config.set(Configuration.CFG_BLACKLIST_FILE, invalid_blacklist_file)
         
         # Should not raise an exception
-        config.load_blocklist_from_file()
+        config.load_blacklist_from_file()
         
         # Should not match anything
         self.assertFalse(config.is_blacklisted('https://any.url'))

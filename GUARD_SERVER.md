@@ -22,6 +22,12 @@ If `options.guard.capture_to` is enabled, the recipient address is included in t
 
 ## Running the guard server
 
+### Using Docker (Recommended)
+
+For production deployments, we recommend using Docker. See [DOCKER.md](DOCKER.md) for complete Docker deployment instructions.
+
+### Using Python directly
+
 Start the server with at least the salt option:
 
 ```bash

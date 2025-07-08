@@ -1,0 +1,14 @@
+# Guard whitelist configuration for Detrackify
+# This file contains URLs and senders that bypass link guarding
+
+# Whitelist entries - URLs and senders that bypass guarding
+whitelist:
+  # URLs that bypass link guarding
+  - url: '^https://trusted\.example\.com/.*'
+  - url: '^https://cdn\.example\.org/.*'
+  - url: '^https://.*\.trusted-domain\.com/.*'
+  
+  # Sender email addresses that bypass link guarding
+  - sender: '^admin@example\.org$'
+  - sender: '^noreply@trusted\.com$'
+  - sender: '^security@bank\.com$' 

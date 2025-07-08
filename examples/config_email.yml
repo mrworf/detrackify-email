@@ -18,4 +18,4 @@ options:
 
 domain_aliases_file: domain_aliases.yml
 whitelist_file: whitelist.yml
-blocklist_file: blacklist.yml
+blacklist_file: blacklist.yml

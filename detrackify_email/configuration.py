@@ -29,7 +29,8 @@ class Configuration:
     CFG_GUARD_DOMAIN_ALIASES = 'options.guard.domain_aliases'
     CFG_DOMAIN_ALIASES_FILE = 'domain_aliases_file'
     CFG_WHITELIST_FILE = 'whitelist_file'
-    CFG_BLOCKLIST_FILE = 'blocklist_file'
+    CFG_BLACKLIST_FILE = 'blacklist_file'
+    CFG_GUARD_WHITELIST_FILE = 'guard_whitelist_file'
     
     def __init__(self):
         """Initialize configuration with defaults."""
@@ -62,8 +63,7 @@ class Configuration:
             },
             'domain_aliases_file': 'domain_aliases.yml',
             'whitelist_file': None,
-            'blocklist_file': None,
-            'blacklist': [],
+            'blacklist_file': None,
             'whitelist': [],
             'rewrite': []
         }
@@ -90,7 +90,7 @@ class Configuration:
         # Load additional files
         self.load_domain_aliases_from_file()
         self.load_whitelist_from_file()
-        self.load_blocklist_from_file()
+        self.load_blacklist_from_file()
         
         return True
     
@@ -116,35 +116,19 @@ class Configuration:
         if args.guardcaptureto:
             self.set(Configuration.CFG_GUARD_CAPTURE_TO, True)
         
-        if args.guardwhitelink:
-            self.config['options']['guard']['whitelist_links'].extend(args.guardwhitelink)
-        if args.guardwhitelistsender:
-            self.config['options']['guard']['whitelist_senders'].extend(args.guardwhitelistsender)
-        
-        if args.guarddomainalias:
-            for alias_spec in args.guarddomainalias:
-                if ':' in alias_spec:
-                    owner, aliases_str = alias_spec.split(':', 1)
-                    owner = owner.strip()
-                    aliases = [alias.strip() for alias in aliases_str.split(',')]
-                    if owner and aliases:
-                        self.config['options']['guard']['domain_aliases'][owner] = aliases
-                        logging.info(f'Added domain alias: {owner} -> {aliases}')
-                    else:
-                        logging.warning(f'Invalid domain alias format: {alias_spec}')
-                else:
-                    logging.warning(f'Invalid domain alias format (missing colon): {alias_spec}')
-        
         # Only load additional files if the paths were actually set via command line arguments
-        if args.domainaliasesfile:
-            self.set(Configuration.CFG_DOMAIN_ALIASES_FILE, args.domainaliasesfile)
+        if args.domain_aliases_file:
+            self.set(Configuration.CFG_DOMAIN_ALIASES_FILE, args.domain_aliases_file)
             self.load_domain_aliases_from_file()
-        if args.whitelistfile:
-            self.set(Configuration.CFG_WHITELIST_FILE, args.whitelistfile)
+        if args.whitelist_file:
+            self.set(Configuration.CFG_WHITELIST_FILE, args.whitelist_file)
             self.load_whitelist_from_file()
-        if args.blocklistfile:
-            self.set(Configuration.CFG_BLOCKLIST_FILE, args.blocklistfile)
-            self.load_blocklist_from_file()
+        if args.blacklist_file:
+            self.set(Configuration.CFG_BLACKLIST_FILE, args.blacklist_file)
+            self.load_blacklist_from_file()
+        if args.guard_whitelist_file:
+            self.set(Configuration.CFG_GUARD_WHITELIST_FILE, args.guard_whitelist_file)
+            self.load_guard_whitelist_from_file()
     
     def _merge_settings(self, settings: Dict[str, Any]) -> None:
         """Merge settings into configuration."""
@@ -214,7 +198,14 @@ class Configuration:
     def is_whitelisted(self, url: str) -> bool:
         """Check if the URL is whitelisted."""
         whitelist_entries = self.config.get('whitelist', [])
-        return bool(EmailHelpers.test_url_against_patterns(url, whitelist_entries, 'whitelist'))
+        for entry in whitelist_entries:
+            if isinstance(entry, dict) and 'url' in entry:
+                if EmailHelpers.test_url_against_patterns(url, [entry['url']], 'whitelist'):
+                    return True
+            elif isinstance(entry, str):
+                if EmailHelpers.test_url_against_patterns(url, [entry], 'whitelist'):
+                    return True
+        return False
     
     def is_sender_blacklisted(self, sender: str) -> bool:
         """Check if a sender email is blacklisted."""
@@ -315,7 +306,7 @@ class Configuration:
         """Add a URL to the blacklist."""
         if not self.is_blacklisted(url):
             logging.info(f'Adding {url} to blacklist')
-            self.config['blacklist'].append(url)
+            self.config['blacklist'].append({'url': url})
             return True
         return False
     
@@ -323,7 +314,7 @@ class Configuration:
         """Add a URL to the whitelist."""
         if not self.is_whitelisted(url):
             logging.info(f'Adding {url} to whitelist')
-            self.config['whitelist'].append(url)
+            self.config['whitelist'].append({'url': url})
             return True
         return False
     
@@ -377,56 +368,73 @@ class Configuration:
         except Exception as e:
             logging.error(f'Error loading domain aliases file {aliases_file}: {e}')
     
+    def _load_list_from_file(self, file_path: str, list_type: str) -> list:
+        """Generic function to load whitelist or blacklist from file."""
+        if not file_path:
+            return []
+        
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = yaml.safe_load(f)
+                if isinstance(data, dict):
+                    entries = data.get(list_type, [])
+                    if isinstance(entries, list):
+                        logging.info(f'Loaded {len(entries)} {list_type} entries from {file_path}')
+                        return entries
+                    else:
+                        logging.warning(f'Invalid {list_type} format in {file_path}')
+                else:
+                    logging.warning(f'Invalid {list_type} file format: {file_path}')
+        except FileNotFoundError:
+            logging.warning(f'{list_type.capitalize()} file not found: {file_path}')
+        except yaml.YAMLError as e:
+            logging.error(f'Error parsing {list_type} file {file_path}: {e}')
+        except Exception as e:
+            logging.error(f'Error loading {list_type} file {file_path}: {e}')
+        
+        return []
+    
     def load_whitelist_from_file(self) -> None:
         """Load whitelist from the configured file."""
         whitelist_file = self.get(Configuration.CFG_WHITELIST_FILE)
-        if not whitelist_file:
-            return
-        try:
-            with open(whitelist_file, 'r', encoding='utf-8') as f:
-                whitelist_data = yaml.safe_load(f)
-                if isinstance(whitelist_data, dict):
-                    whitelist_entries = whitelist_data.get('whitelist', [])
-                    if isinstance(whitelist_entries, list):
-                        self.config['whitelist'] = whitelist_entries
-                        logging.info(f'Loaded {len(whitelist_entries)} whitelist entries from {whitelist_file}')
-                    else:
-                        logging.warning(f'Invalid whitelist format in {whitelist_file}')
-                else:
-                    logging.warning(f'Invalid whitelist file format: {whitelist_file}')
-        except FileNotFoundError:
-            logging.warning(f'Whitelist file not found: {whitelist_file}')
-        except yaml.YAMLError as e:
-            logging.error(f'Error parsing whitelist file {whitelist_file}: {e}')
-        except Exception as e:
-            logging.error(f'Error loading whitelist file {whitelist_file}: {e}')
+        entries = self._load_list_from_file(whitelist_file, 'whitelist')
+        self.config['whitelist'] = entries
     
-    def load_blocklist_from_file(self) -> None:
-        """Load blocklist from the configured file."""
-        blocklist_file = self.get(Configuration.CFG_BLOCKLIST_FILE)
-        logging.debug(f"DEBUG: load_blocklist_from_file called with blocklist_file={blocklist_file!r}")
-        if not blocklist_file:
+    def load_blacklist_from_file(self) -> None:
+        """Load blacklist from the configured file."""
+        blacklist_file = self.get(Configuration.CFG_BLACKLIST_FILE)
+        logging.debug(f"DEBUG: load_blacklist_from_file called with blacklist_file={blacklist_file!r}")
+        entries = self._load_list_from_file(blacklist_file, 'blacklist')
+        self.config['blacklist'] = entries
+        logging.debug(f"DEBUG: After loading blacklist: blacklist={self.config['blacklist']}")
+        logging.debug(f"DEBUG: config after blacklist load: {self.config}")
+    
+    def load_guard_whitelist_from_file(self) -> None:
+        """Load guard whitelist from the configured file."""
+        guard_whitelist_file = self.get(Configuration.CFG_GUARD_WHITELIST_FILE)
+        if not guard_whitelist_file:
             return
-        try:
-            with open(blocklist_file, 'r', encoding='utf-8') as f:
-                blocklist_data = yaml.safe_load(f)
-                if isinstance(blocklist_data, dict):
-                    blacklist_entries = blocklist_data.get('blacklist', [])
-                    if isinstance(blacklist_entries, list):
-                        self.config['blacklist'] = blacklist_entries
-                        logging.info(f'Loaded {len(blacklist_entries)} blacklist entries from {blocklist_file}')
-                        logging.debug(f"DEBUG: After loading blocklist: blacklist={self.config['blacklist']}")
-                    else:
-                        logging.warning(f'Invalid blacklist format in {blocklist_file}')
-                else:
-                    logging.warning(f'Invalid blocklist file format: {blocklist_file}')
-            logging.debug(f"DEBUG: config after blocklist load: {self.config}")
-        except FileNotFoundError:
-            logging.warning(f'Blocklist file not found: {blocklist_file}')
-        except yaml.YAMLError as e:
-            logging.error(f'Error parsing blocklist file {blocklist_file}: {e}')
-        except Exception as e:
-            logging.error(f'Error loading blocklist file {blocklist_file}: {e}')
+        
+        entries = self._load_list_from_file(guard_whitelist_file, 'whitelist')
+        
+        # Separate URL and sender entries
+        link_whitelist = []
+        sender_whitelist = []
+        
+        for entry in entries:
+            if isinstance(entry, dict):
+                if 'url' in entry:
+                    link_whitelist.append(entry['url'])
+                elif 'sender' in entry:
+                    sender_whitelist.append(entry['sender'])
+            elif isinstance(entry, str):
+                # For backward compatibility, treat string entries as URLs
+                link_whitelist.append(entry)
+        
+        self.config['options']['guard']['whitelist_links'] = link_whitelist
+        self.config['options']['guard']['whitelist_senders'] = sender_whitelist
+        
+        logging.info(f'Loaded {len(link_whitelist)} guard link whitelist and {len(sender_whitelist)} sender whitelist entries from {guard_whitelist_file}')
     
     def load_learned(self, path: str) -> bool:
         """Load learned rules from file."""

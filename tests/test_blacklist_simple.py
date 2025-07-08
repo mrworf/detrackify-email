@@ -18,8 +18,8 @@ def test_blacklist():
     # Create test whitelist and blacklist YAMLs
     test_whitelist_yaml = '''
 whitelist:
-  - 'https://trusted.example.com/logo.png'
-  - 'https://cdn.example.org/.*'
+  - url: 'https://trusted.example.com/logo.png'
+  - url: 'https://cdn.example.org/.*'
 '''
     test_blacklist_yaml = '''
 blacklist:
@@ -37,9 +37,9 @@ blacklist:
     # Test configuration
     config = Configuration()
     config.set(Configuration.CFG_WHITELIST_FILE, 'test_whitelist.yml')
-    config.set(Configuration.CFG_BLOCKLIST_FILE, 'test_blacklist.yml')
+    config.set(Configuration.CFG_BLACKLIST_FILE, 'test_blacklist.yml')
     config.load_whitelist_from_file()
-    config.load_blocklist_from_file()
+    config.load_blacklist_from_file()
     
     # Test whitelist
     print("Testing whitelist...")
@@ -79,10 +79,10 @@ blacklist:
         f.write(test_blacklist_yaml)
 
     config = Configuration()
-    config.set(Configuration.CFG_BLOCKLIST_FILE, 'test_blacklist.yml')
+    config.set(Configuration.CFG_BLACKLIST_FILE, 'test_blacklist.yml')
     config.config['blacklist'] = []
     config.config['whitelist'] = []
-    config.load_blocklist_from_file()
+    config.load_blacklist_from_file()
     
     test_url = 'https://other.com/path?x=1&y=2'
     result = config.is_blacklisted(test_url)
@@ -126,8 +126,8 @@ def test_sender_blacklist():
         config = Configuration()
         config.config['blacklist'] = []
         config.config['whitelist'] = []
-        config.set(Configuration.CFG_BLOCKLIST_FILE, blacklist_path)
-        config.load_blocklist_from_file()
+        config.set(Configuration.CFG_BLACKLIST_FILE, blacklist_path)
+        config.load_blacklist_from_file()
         
         # Test sender blacklist detection
         test_sender = "user@example.com"

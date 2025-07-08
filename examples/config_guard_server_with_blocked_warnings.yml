@@ -30,7 +30,7 @@ force_language: null  # Auto-detect from Accept-Language header
 
 # Domain aliases and blocklists
 domain_aliases_file: "domain_aliases.yml"
-blocklist_file: "blocklist.yml"
+blacklist_file: "blacklist.yml"
 
 # Block specific warning types
 # When a warning of these types is detected, access will be completely blocked

@@ -42,7 +42,7 @@ from markupsafe import escape
 from guard.config import GuardConfig
 from guard.resolve_cache import ResolveCache
 from guard.alias import DomainAliases
-from guard.blocklist import Blocklist
+from guard.blacklist import Blacklist
 from guard.utils import GuardUtils
 
 
@@ -64,7 +64,7 @@ class GuardServer:
         self.user_agent = config.user_agent
         self.force_language = config.force_language
         self.domain_aliases = DomainAliases(config.domain_aliases_file)
-        self.blocklist = Blocklist(config.blocklist_file)
+        self.blocklist = Blacklist(config.blacklist_file)
         self.block_warnings = config.block_warnings
         self.cache = (
             ResolveCache(config.cache_max, config.cache_days, config.cache_file)
@@ -486,8 +486,8 @@ def main():
                         help='Force serving a specific language template (e.g., de, es, fr, zh, ar) (command line only)')
     parser.add_argument('--domain-aliases-file', 
                         help='Path to domain aliases YAML file (default: domain_aliases.yml)')
-    parser.add_argument('--blocklist-file', 
-                        help='Path to blocklist YAML file (default: blocklist.yml)')
+    parser.add_argument('--blacklist-file', 
+                        help='Path to blacklist YAML file (default: blacklist.yml)')
     parser.add_argument('--block-warnings', action='append', default=None,
                         help='Block specific warnings (e.g., ssl_certificate, connection_error)')
     args = parser.parse_args()
