@@ -40,7 +40,7 @@ def create_mock_args(**kwargs):
     args.force_language = kwargs.get('force_language', None)
     args.domain_aliases_file = kwargs.get('domain_aliases_file', None)
     args.blacklist_file = kwargs.get('blacklist_file', None)
-    args.block_warnings = kwargs.get('block_warnings', None)
+    args.deny_on_warnings = kwargs.get('deny_on_warnings', None)
     return args
 
 

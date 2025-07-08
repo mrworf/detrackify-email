@@ -40,7 +40,7 @@ class GuardConfig:
     force_language: Optional[str] = None
     domain_aliases_file: str = "domain_aliases.yml"
     blacklist_file: str = "blacklist.yml"
-    block_warnings: List[str] = field(default_factory=list)
+    deny_on_warnings: List[str] = field(default_factory=list)
     
     # Development options (command line only)
     debug: bool = False
@@ -72,7 +72,7 @@ class GuardConfig:
                 force_language=config_data.get('force_language'),
                 domain_aliases_file=config_data.get('domain_aliases_file', 'domain_aliases.yml'),
                 blacklist_file=config_data.get('blacklist_file', 'blacklist.yml'),
-                block_warnings=config_data.get('block_warnings', []),
+                deny_on_warnings=config_data.get('deny_on_warnings', []),
             )
         except FileNotFoundError:
             logging.error("Configuration file not found: %s", config_path)
@@ -134,8 +134,8 @@ class GuardConfig:
             config.domain_aliases_file = args.domain_aliases_file
         if args.blacklist_file is not None:
             config.blacklist_file = args.blacklist_file
-        if args.block_warnings is not None:
-            config.block_warnings = args.block_warnings
+        if args.deny_on_warnings is not None:
+            config.deny_on_warnings = args.deny_on_warnings
 
         # Validate required fields
         if not config.salt:
@@ -189,5 +189,5 @@ class GuardConfig:
             'force_language': self.force_language,
             'domain_aliases_file': self.domain_aliases_file,
             'blacklist_file': self.blacklist_file,
-            'block_warnings': self.block_warnings,
+            'deny_on_warnings': self.deny_on_warnings,
         } 

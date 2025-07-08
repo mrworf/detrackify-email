@@ -32,16 +32,16 @@ force_language: null  # Auto-detect from Accept-Language header
 domain_aliases_file: "domain_aliases.yml"
 blacklist_file: "blacklist.yml"
 
-# Block specific warning types
-# When a warning of these types is detected, access will be completely blocked
-# instead of showing a warning modal. The blocked warning is displayed in the
+# Deny access for specific warning types
+# When a warning of these types is detected, access will be completely denied
+# instead of showing a warning modal. The denied warning is displayed in the
 # URL transition format with explanation and no continue button.
-block_warnings:
-  - "ssl_certificate"      # Block links with SSL certificate issues
-  - "connection_error"     # Block links that can't be reached
-  - "too_many_redirects"   # Block links with suspicious redirect chains
+deny_on_warnings:
+  - "ssl_certificate"      # Deny access for SSL certificate issues
+  - "connection_error"     # Deny access for connection errors
+  - "too_many_redirects"   # Deny access for suspicious redirect chains
 
-# Available warning types that can be blocked:
+# Available warning types that can be denied:
 # - ssl_certificate: SSL certificate verification failed
 # - connection_error: Connection errors (DNS, network, etc.)
 # - connection_timeout: Connection timeout

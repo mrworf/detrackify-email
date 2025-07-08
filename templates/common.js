@@ -545,13 +545,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             
             // Check if a warning should be blocked
-            if (data.warning && opts.block_warnings) {
+            if (data.warning && opts.deny_on_warnings) {
                 var warningType = 'unexpected_error'; // default
                 if (data.warning.includes(':')) {
                     warningType = data.warning.split(':', 2)[0];
                 }
                 
-                if (opts.block_warnings.includes(warningType)) {
+                if (opts.deny_on_warnings.includes(warningType)) {
                     // Calculate remaining time to meet minimum display requirement
                     var elapsed = Date.now() - resolveStartTime;
                     var remainingTime = Math.max(0, minDisplayTime - elapsed);

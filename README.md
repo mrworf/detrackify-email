@@ -262,13 +262,13 @@ python detrackify_guard.py --blacklist-file /path/to/blacklist.yml
 - `detrackify_email.py` looks for `blacklist.yml` by default
 - `detrackify_guard.py` looks for `blocklist.yml` by default
 
-## Blocked Warnings Configuration
+## Denied Warnings Configuration
 
-The blocked warnings feature allows you to completely block access to links that trigger specific types of warnings during URL resolution. Instead of showing a warning modal that users can acknowledge, these warnings result in a complete block with no option to proceed.
+The denied warnings feature allows you to completely deny access to links that trigger specific types of warnings during URL resolution. Instead of showing a warning modal that users can acknowledge, these warnings result in a complete denial with no option to proceed.
 
 ### Available Warning Types
 
-The following warning types can be blocked:
+The following warning types can be denied:
 
 - `ssl_certificate`: SSL certificate verification failed
 - `connection_error`: Connection errors (DNS, network, etc.)
@@ -282,27 +282,27 @@ The following warning types can be blocked:
 **YAML Configuration:**
 ```yaml
 # In your main config file
-block_warnings:
-  - "ssl_certificate"      # Block links with SSL certificate issues
-  - "connection_error"     # Block links that can't be reached
-  - "too_many_redirects"   # Block links with suspicious redirect chains
+deny_on_warnings:
+  - "ssl_certificate"      # Deny access for SSL certificate issues
+  - "connection_error"     # Deny access for connection errors
+  - "too_many_redirects"   # Deny access for suspicious redirect chains
 ```
 
 **Command Line:**
 ```bash
-python detrackify_guard.py --block-warnings ssl_certificate --block-warnings connection_error
+python detrackify_guard.py --deny-on-warnings ssl_certificate --deny-on-warnings connection_error
 ```
 
 ### How It Works
 
-When URL resolution detects a warning that's in the blocked warnings list:
+When URL resolution detects a warning that's in the denied warnings list:
 1. The normal warning modal is not shown
-2. Instead, the URL transition display shows "Access blocked:" instead of "Final destination:"
-3. The blocked warning is displayed in the same format as normal warnings, with meaning, action, and optional "Learn more" link
+2. Instead, the URL transition display shows "Access denied:" instead of "Final destination:"
+3. The denied warning is displayed in the same format as normal warnings, with meaning, action, and optional "Learn more" link
 4. No continue button is provided - access is completely denied
 5. The specific warning reason and explanation are displayed in a user-friendly format
 
-This provides an additional layer of security by preventing users from proceeding to potentially dangerous sites, while maintaining a familiar and informative user interface that explains why the link was blocked.
+This provides an additional layer of security by preventing users from proceeding to potentially dangerous sites, while maintaining a familiar and informative user interface that explains why the link was denied.
 
 ## Domain Aliases
 
