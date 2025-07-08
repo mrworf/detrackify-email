@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Machine-generated translation / Maskinoversat -->
+<!-- Machine-generated translation / Maskinoversættelse -->
 <html>
 <head>
 <meta charset="utf-8">
@@ -18,54 +18,54 @@
       <img src="/resource/phishing.png" alt="Phishing" class="phishing-icon">
 
       <p>Dette link ser ud til at være et phishing-forsøg - hvor nogen prøver at bedrage dig ved at udgive sig for at være en betroet kilde. Ligesom fiskeri bruger madding til at fange bytte, bruger phishing vildledende links til at fange følsomme oplysninger.</p>
-      <p>For at beskytte dig viser vi dig det faktiske mål for dette link, som adskiller sig fra det, der blev præsenteret. Denne gennemsigtighed hjælper dig med at træffe en informeret beslutning, før du fortsætter.</p>
+      <p>For at beskytte dig viser vi dig den faktiske destination for dette link, som adskiller sig fra det, der blev præsenteret. Denne gennemsigtighed hjælper dig med at træffe en informeret beslutning, før du fortsætter.</p>
     </div>
     <div class="link-box link-box-left">
       <p class="text-center">Linket du klikkede på sagde <span class="display-box">{{ display }}</span> og kom fra <span class="domain-box">{{ domain }}</span> men at klikke på det vil åbne følgende side:</p>
       <p class="noselect source-box"><span id="url">{{ url }}</span></p>
-      <p class="hint">bemærk den forskellige domæne fremhævet i rød</p>
+      <p class="hint">bemærk den forskellige domæne fremhævet i rødt</p>
     </div>
     {% if resolve %}
     <div class="spinner" id="resolve-spinner"></div>
     <div class="link-box link-box-left">
-      <p class="noselect progress-message" id="progress">Bestemmer endelig destination, vent venligst...</p>
+      <p class="noselect progress-message" id="progress">Løser slutdestination, vent venligst...</p>
       
       <!-- URL matches domain (green) -->
       <div id="url-match" class="hidden">
         <div class="url-transition">
           <div class="url-original">
-            <span class="url-label">Oprindeligt link:</span>
-            <span class="url-value">{{ url }}</span>
+            <span class="url-label">Originalt link:</span>
+            <span class="url-value noselect">{{ url }}</span>
           </div>
           <div class="url-arrow">→</div>
           <div class="url-resolved">
-            <span class="url-label">Endelig destination:</span>
+            <span class="url-label">Slutdestination:</span>
             <div class="destination-box">
               <p class="noselect title-message hidden" id="title-match"></p>
               <p class="noselect result-message" id="result-match"></p>
             </div>
           </div>
         </div>
-        <p class="hint">Den endelige destination matcher afsenderens domæne - dette ser sikkert ud.</p>
+        <p class="hint">Slutdestinationen matcher afsenderens domæne - dette ser ud til at være sikkert.</p>
       </div>
       
       <!-- URL doesn't match domain (red) -->
       <div id="url-mismatch" class="hidden">
         <div class="url-transition">
           <div class="url-original">
-            <span class="url-label">Oprindeligt link:</span>
-            <span class="url-value">{{ url }}</span>
+            <span class="url-label">Originalt link:</span>
+            <span class="url-value noselect">{{ url }}</span>
           </div>
           <div class="url-arrow">→</div>
           <div class="url-resolved">
-            <span class="url-label">Endelig destination:</span>
+            <span class="url-label">Slutdestination:</span>
             <div class="destination-box">
               <p class="noselect title-message hidden" id="title-mismatch"></p>
               <p class="noselect result-message" id="result-mismatch"></p>
             </div>
           </div>
         </div>
-        <p class="hint">Den endelige destination adskiller sig fra afsenderens domæne - fortsæt med forsigtighed.</p>
+        <p class="hint">Slutdestinationen adskiller sig fra afsenderens domæne - fortsæt med forsigtighed.</p>
       </div>
       <div id="error" class="error-message"></div>
     </div>
@@ -75,14 +75,132 @@
       {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
       <button id="cont" class="button-large" disabled>
         <div class="button-progress" id="button-progress"></div>
-        <span id="button-text">{% if resolve %}Fortsæt til endelig destination{% else %}Ja, jeg forstår og vil fortsætte{% endif %}</span>
+        <span id="button-text">Ja, jeg forstår og vil fortsætte</span>
       </button>
       <div id="redirecting-state" class="hidden">
         <div class="button-spinner"></div>
-        <span>{% if resolve %}Omdirigerer til endelig destination...{% else %}Omdirigerer...{% endif %}</span>
+        <span id="redirecting-text">Omdirigerer...</span>
       </div>
     </form>
   </div>
 </div>
+
+<!-- Warning Modal Dialog -->
+<div id="warning-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="warning-header"></h3>
+    </div>
+    <div class="modal-body">
+      <p id="warning-message"></p>
+      <div class="warning-section">
+        <p><strong id="warning-meaning-header"></strong>: <span id="warning-meaning-content"></span></p>
+      </div>
+      <div class="warning-section">
+        <p><strong id="warning-action-header"></strong>: <span id="warning-action-content"></span></p>
+      </div>
+      <p id="warning-details" class="hidden">
+        <a id="warning-link" href="#" target="_blank" rel="noopener noreferrer">Læs mere</a>
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button id="warning-acknowledge" class="button-large">Jeg forstår og vil fortsætte</button>
+    </div>
+  </div>
+</div>
+
+<!-- Warning Definitions -->
+<script>
+const WARNING_DEFINITIONS = {
+  'ssl_certificate': {
+    header: '⚠️ Sikkerhedscertifikat Advarsel',
+    message: 'Denne hjemmeside har sikkerhedscertifikat problemer',
+    meaningHeader: 'Hvad dette betyder',
+    meaningContent: 'Hjemmesidens sikkerhedscertifikat er ugyldigt, udløbet eller kan ikke verificeres. Dette kan betyde, at hjemmesiden ikke er sikker, eller at nogen prøver at aflytte din forbindelse.',
+    actionHeader: 'Hvad du skal gøre',
+    actionContent: 'Fortsæt kun, hvis du stoler på denne hjemmeside og forstår risici. Overvej at kontakte hjemmesidens ejer, hvis dette er uventet.',
+    details: null
+  },
+  'connection_error': {
+    header: '⚠️ Forbindelses Advarsel',
+    message: 'Forbindelsesfejl',
+    meaningHeader: 'Hvad dette betyder',
+    meaningContent: 'Vi kunne ikke etablere en sikker forbindelse for at verificere slutdestinationen for dette link. Dette kan skyldes netværksproblemer eller at hjemmesiden er midlertidigt utilgængelig.',
+    actionHeader: 'Hvad du skal gøre',
+    actionContent: 'Prøv igen senere. Hvis problemet fortsætter, kan hjemmesiden være nede eller utilgængelig.',
+    details: null
+  },
+  'connection_timeout': {
+    header: '⚠️ Forbindelses Timeout',
+    message: 'Forbindelses timeout',
+    meaningHeader: 'Hvad dette betyder',
+    meaningContent: 'Hjemmesiden tog for lang tid om at svare, da vi prøvede at verificere slutdestinationen. Dette kan indikere, at hjemmesiden er langsom, overbelastet eller oplever problemer.',
+    actionHeader: 'Hvad du skal gøre',
+    actionContent: 'Prøv igen senere, eller fortsæt med forsigtighed, hvis du stoler på hjemmesiden.',
+    details: null
+  },
+  'too_many_redirects': {
+    header: '⚠️ Omdirigerings Advarsel',
+    message: 'For mange omdirigeringer',
+    meaningHeader: 'Hvad dette betyder',
+    meaningContent: 'Hjemmesiden har for mange omdirigeringer, hvilket kan indikere et konfigurationsproblem eller et forsøg på at skjule slutdestinationen.',
+    actionHeader: 'Hvad du skal gøre',
+    actionContent: 'Fortsæt med ekstrem forsigtighed. Dette kan være en legitim hjemmeside med konfigurationsproblemer, eller den kan prøve at skjule, hvor den faktisk tager dig hen.',
+    details: null
+  },
+  'request_error': {
+    header: '⚠️ Anmodnings Fejl',
+    message: 'Anmodningsfejl',
+    meaningHeader: 'Hvad dette betyder',
+    meaningContent: 'Vi stødte på en fejl, da vi prøvede at verificere slutdestinationen for dette link. Dette kan skyldes forskellige tekniske problemer.',
+    actionHeader: 'Hvad du skal gøre',
+    actionContent: 'Prøv igen, eller fortsæt med forsigtighed, hvis du stoler på kilden til dette link.',
+    details: null
+  },
+  'unexpected_error': {
+    header: '⚠️ Verifikations Fejl',
+    message: 'Uventet fejl',
+    meaningHeader: 'Hvad dette betyder',
+    meaningContent: 'Vi stødte på en uventet fejl, da vi prøvede at verificere slutdestinationen for dette link.',
+    actionHeader: 'Hvad du skal gøre',
+    actionContent: 'Prøv igen, eller fortsæt med forsigtighed, hvis du stoler på kilden til dette link.',
+    details: null
+  }
+};
+
+// JavaScript UI Strings - for internationalization
+const JS_STRINGS = {
+  // Error messages
+  error_resolving_link: 'Fejl ved løsning af link',
+  connection_timed_out: 'Forbindelse timeout',
+  link_not_found: 'Link ikke fundet',
+  invalid_link_info: 'Ugyldig linkinformation',
+  internal_error: 'Intern fejl',
+  
+  // Warning messages
+  could_not_verify_timeout: 'Kunne ikke verificere slutdestinationen på grund af timeout',
+  could_not_verify: 'Kunne ikke verificere slutdestinationen',
+  could_not_verify_invalid: 'Kunne ikke verificere slutdestinationen på grund af ugyldig linkinformation',
+  could_not_verify_server: 'Kunne ikke verificere slutdestinationen på grund af serverfejl',
+  
+  // Fallback warning text
+  warning_generic: '⚠️ Advarsel',
+  unknown_warning: 'En ukendt advarsel opstod',
+  what_this_means: 'Hvad dette betyder',
+  issue_verifying_link: 'Vi stødte på et problem, da vi verificerede dette link.',
+  what_you_should_do: 'Hvad du skal gøre',
+  proceed_with_caution: 'Fortsæt med forsigtighed, hvis du stoler på kilden til dette link.',
+  
+  // Error state text
+  could_not_verify_destination: 'Kunne ikke verificere slutdestinationen',
+  
+  // Button and redirecting text
+  button_continue: 'Ja, jeg forstår og vil fortsætte',
+  button_continue_final: 'Fortsæt til slutdestination',
+  redirecting_generic: 'Omdirigerer...',
+  redirecting_final: 'Omdirigerer til slutdestination...'
+};
+</script>
+
 </body>
 </html> 

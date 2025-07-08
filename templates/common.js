@@ -304,16 +304,16 @@ document.addEventListener('DOMContentLoaded', function () {
             // Get warning definition
             var warningDef = WARNING_DEFINITIONS[warningType];
             if (!warningDef) {
-                // Fallback to generic warning if type not found
-                warningDef = {
-                    header: '⚠️ Warning',
-                    message: customMessage || 'An unknown warning occurred',
-                    meaningHeader: 'What this means',
-                    meaningContent: 'We encountered an issue while verifying this link.',
-                    actionHeader: 'What you should do',
-                    actionContent: 'Proceed with caution if you trust the source of this link.',
-                    details: null
-                };
+                            // Fallback to generic warning if type not found
+            warningDef = {
+                header: JS_STRINGS.warning_generic,
+                message: customMessage || JS_STRINGS.unknown_warning,
+                meaningHeader: JS_STRINGS.what_this_means,
+                meaningContent: JS_STRINGS.issue_verifying_link,
+                actionHeader: JS_STRINGS.what_you_should_do,
+                actionContent: JS_STRINGS.proceed_with_caution,
+                details: null
+            };
             }
             
             // Set modal content
@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Show mismatch div for errors (since we can't verify the domain)
                 if (urlMismatch) {
                     urlMismatch.style.display = 'block';
-                    if (resultMismatch) resultMismatch.textContent = 'Could not verify the final destination';
+                    if (resultMismatch) resultMismatch.textContent = JS_STRINGS.could_not_verify_destination;
                 }
                 
                 // Apply URL truncation to newly added URL elements
@@ -583,29 +583,29 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         })
         .catch(function (err) {
-            var msg = 'Error resolving link';
+            var msg = JS_STRINGS.error_resolving_link;
             var warningType = 'unexpected_error';
             var warningMsg = '';
             
             if (err.name === 'AbortError') { 
-                msg = 'Connection timed out'; 
+                msg = JS_STRINGS.connection_timed_out; 
                 warningType = 'connection_timeout';
-                warningMsg = 'Could not verify the final destination due to a timeout';
+                warningMsg = JS_STRINGS.could_not_verify_timeout;
             }
             else if (err.status === 404) { 
-                msg = 'Link not found'; 
-                warningMsg = 'Could not verify the final destination';
+                msg = JS_STRINGS.link_not_found; 
+                warningMsg = JS_STRINGS.could_not_verify;
             }
             else if (err.status === 403) { 
-                msg = 'Invalid link information'; 
-                warningMsg = 'Could not verify the final destination due to invalid link information';
+                msg = JS_STRINGS.invalid_link_info; 
+                warningMsg = JS_STRINGS.could_not_verify_invalid;
             }
             else if (err.status === 500) { 
-                msg = 'Internal error'; 
-                warningMsg = 'Could not verify the final destination due to a server error';
+                msg = JS_STRINGS.internal_error; 
+                warningMsg = JS_STRINGS.could_not_verify_server;
             }
             else {
-                warningMsg = 'Could not verify the final destination';
+                warningMsg = JS_STRINGS.could_not_verify;
             }
             
             if (err.message && err.name !== 'AbortError') { msg += ': ' + err.message; }

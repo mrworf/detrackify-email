@@ -17,11 +17,11 @@
     <div class="link-box link-box-left">
       <img src="/resource/phishing.png" alt="Phishing" class="phishing-icon">
 
-      <p>此链接似乎是钓鱼攻击尝试 - 有人试图通过伪装成可信来源来欺骗您。就像钓鱼使用诱饵捕获猎物一样，网络钓鱼使用欺骗性链接来获取敏感信息。</p>
-      <p>为了保护您，我们向您显示此链接的实际目标，这与所呈现的内容不同。这种透明度有助于您在继续之前做出明智的决定。</p>
+      <p>此链接似乎是钓鱼尝试 - 有人试图通过冒充可信来源来欺骗您。就像钓鱼使用诱饵来捕获猎物一样，网络钓鱼使用欺骗性链接来捕获敏感信息。</p>
+      <p>为了保护您，我们向您显示此链接的实际目标，这与所呈现的内容不同。这种透明度帮助您在继续之前做出明智的决定。</p>
     </div>
     <div class="link-box link-box-left">
-      <p class="text-center">您点击的链接显示为 <span class="display-box">{{ display }}</span> 并来自 <span class="domain-box">{{ domain }}</span>，但点击它将打开以下页面：</p>
+      <p class="text-center">您点击的链接显示 <span class="display-box">{{ display }}</span> 并来自 <span class="domain-box">{{ domain }}</span> 但点击它将打开以下页面：</p>
       <p class="noselect source-box"><span id="url">{{ url }}</span></p>
       <p class="hint">注意以红色突出显示的不同域名</p>
     </div>
@@ -32,20 +32,40 @@
       
       <!-- URL matches domain (green) -->
       <div id="url-match" class="hidden">
-        <div class="destination-box">
-          <p class="noselect title-message hidden" id="title-match"></p>
-          <p class="noselect result-message" id="result-match"></p>
+        <div class="url-transition">
+          <div class="url-original">
+            <span class="url-label">原始链接：</span>
+            <span class="url-value noselect">{{ url }}</span>
+          </div>
+          <div class="url-arrow">→</div>
+          <div class="url-resolved">
+            <span class="url-label">最终目标：</span>
+            <div class="destination-box">
+              <p class="noselect title-message hidden" id="title-match"></p>
+              <p class="noselect result-message" id="result-match"></p>
+            </div>
+          </div>
         </div>
-        <p class="hint">最终目标与发件人域名匹配 - 这似乎是安全的。</p>
+        <p class="hint">最终目标与发件人的域名匹配 - 这似乎是安全的。</p>
       </div>
       
       <!-- URL doesn't match domain (red) -->
       <div id="url-mismatch" class="hidden">
-        <div class="destination-box">
-          <p class="noselect title-message hidden" id="title-mismatch"></p>
-          <p class="noselect result-message" id="result-mismatch"></p>
+        <div class="url-transition">
+          <div class="url-original">
+            <span class="url-label">原始链接：</span>
+            <span class="url-value noselect">{{ url }}</span>
+          </div>
+          <div class="url-arrow">→</div>
+          <div class="url-resolved">
+            <span class="url-label">最终目标：</span>
+            <div class="destination-box">
+              <p class="noselect title-message hidden" id="title-mismatch"></p>
+              <p class="noselect result-message" id="result-mismatch"></p>
+            </div>
+          </div>
         </div>
-        <p class="hint">最终目标与发件人域名不同 - 请谨慎操作。</p>
+        <p class="hint">最终目标与发件人的域名不同 - 请谨慎继续。</p>
       </div>
       <div id="error" class="error-message"></div>
     </div>
@@ -55,14 +75,132 @@
       {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
       <button id="cont" class="button-large" disabled>
         <div class="button-progress" id="button-progress"></div>
-        <span id="button-text">{% if resolve %}继续前往最终目标{% else %}我已了解风险，仍要继续{% endif %}</span>
+        <span id="button-text">是的，我理解并想要继续</span>
       </button>
       <div id="redirecting-state" class="hidden">
         <div class="button-spinner"></div>
-        <span>{% if resolve %}正在跳转到最终目标...{% else %}正在跳转...{% endif %}</span>
+        <span id="redirecting-text">正在重定向...</span>
       </div>
     </form>
   </div>
 </div>
+
+<!-- Warning Modal Dialog -->
+<div id="warning-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="warning-header"></h3>
+    </div>
+    <div class="modal-body">
+      <p id="warning-message"></p>
+      <div class="warning-section">
+        <p><strong id="warning-meaning-header"></strong>: <span id="warning-meaning-content"></span></p>
+      </div>
+      <div class="warning-section">
+        <p><strong id="warning-action-header"></strong>: <span id="warning-action-content"></span></p>
+      </div>
+      <p id="warning-details" class="hidden">
+        <a id="warning-link" href="#" target="_blank" rel="noopener noreferrer">了解更多</a>
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button id="warning-acknowledge" class="button-large">我理解并想要继续</button>
+    </div>
+  </div>
+</div>
+
+<!-- Warning Definitions -->
+<script>
+const WARNING_DEFINITIONS = {
+  'ssl_certificate': {
+    header: '⚠️ 安全证书警告',
+    message: '此网站有安全证书问题',
+    meaningHeader: '这意味着什么',
+    meaningContent: '网站的安全证书无效、过期或无法验证。这可能意味着网站不安全或有人试图拦截您的连接。',
+    actionHeader: '您应该做什么',
+    actionContent: '只有在您信任此网站并了解风险时才继续。如果这是意外的，请考虑联系网站所有者。',
+    details: null
+  },
+  'connection_error': {
+    header: '⚠️ 连接警告',
+    message: '连接错误',
+    meaningHeader: '这意味着什么',
+    meaningContent: '我们无法建立安全连接来验证此链接的最终目标。这可能是由于网络问题或网站暂时不可用。',
+    actionHeader: '您应该做什么',
+    actionContent: '稍后再试。如果问题持续存在，网站可能已关闭或无法访问。',
+    details: null
+  },
+  'connection_timeout': {
+    header: '⚠️ 连接超时',
+    message: '连接超时',
+    meaningHeader: '这意味着什么',
+    meaningContent: '当我们尝试验证最终目标时，网站响应时间过长。这可能表明网站速度慢、过载或遇到问题。',
+    actionHeader: '您应该做什么',
+    actionContent: '稍后再试，或者如果您信任该网站，请谨慎继续。',
+    details: null
+  },
+  'too_many_redirects': {
+    header: '⚠️ 重定向警告',
+    message: '重定向过多',
+    meaningHeader: '这意味着什么',
+    meaningContent: '网站有太多重定向，这可能表明配置问题或试图隐藏最终目标。',
+    actionHeader: '您应该做什么',
+    actionContent: '极其谨慎地继续。这可能是具有配置问题的合法网站，或者它可能试图隐藏它实际带您去的地方。',
+    details: null
+  },
+  'request_error': {
+    header: '⚠️ 请求错误',
+    message: '请求错误',
+    meaningHeader: '这意味着什么',
+    meaningContent: '我们在尝试验证此链接的最终目标时遇到错误。这可能是由于各种技术问题。',
+    actionHeader: '您应该做什么',
+    actionContent: '重试，或者如果您信任此链接的来源，请谨慎继续。',
+    details: null
+  },
+  'unexpected_error': {
+    header: '⚠️ 验证错误',
+    message: '意外错误',
+    meaningHeader: '这意味着什么',
+    meaningContent: '我们在尝试验证此链接的最终目标时遇到意外错误。',
+    actionHeader: '您应该做什么',
+    actionContent: '重试，或者如果您信任此链接的来源，请谨慎继续。',
+    details: null
+  }
+};
+
+// JavaScript UI Strings - for internationalization
+const JS_STRINGS = {
+  // Error messages
+  error_resolving_link: '解析链接时出错',
+  connection_timed_out: '连接超时',
+  link_not_found: '未找到链接',
+  invalid_link_info: '无效的链接信息',
+  internal_error: '内部错误',
+  
+  // Warning messages
+  could_not_verify_timeout: '由于超时无法验证最终目标',
+  could_not_verify: '无法验证最终目标',
+  could_not_verify_invalid: '由于无效的链接信息无法验证最终目标',
+  could_not_verify_server: '由于服务器错误无法验证最终目标',
+  
+  // Fallback warning text
+  warning_generic: '⚠️ 警告',
+  unknown_warning: '发生未知警告',
+  what_this_means: '这意味着什么',
+  issue_verifying_link: '我们在验证此链接时遇到问题。',
+  what_you_should_do: '您应该做什么',
+  proceed_with_caution: '如果您信任此链接的来源，请谨慎继续。',
+  
+  // Error state text
+  could_not_verify_destination: '无法验证最终目标',
+  
+  // Button and redirecting text
+  button_continue: '是的，我理解并想要继续',
+  button_continue_final: '继续到最终目标',
+  redirecting_generic: '正在重定向...',
+  redirecting_final: '正在重定向到最终目标...'
+};
+</script>
+
 </body>
 </html>

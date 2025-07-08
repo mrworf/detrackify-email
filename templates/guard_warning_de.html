@@ -17,35 +17,55 @@
     <div class="link-box link-box-left">
       <img src="/resource/phishing.png" alt="Phishing" class="phishing-icon">
 
-      <p>Dieser Link scheint ein Phishing-Versuch zu sein - bei dem jemand versucht, Sie zu täuschen, indem er sich als vertrauenswürdige Quelle ausgibt. So wie das Angeln Köder verwendet, um Beute zu fangen, verwendet Phishing täuschende Links, um sensible Informationen zu erfassen.</p>
-      <p>Um Sie zu schützen, zeigen wir Ihnen das tatsächliche Ziel dieses Links, das sich von dem unterscheidet, was präsentiert wurde. Diese Transparenz hilft Ihnen, eine informierte Entscheidung zu treffen, bevor Sie fortfahren.</p>
+      <p>Dieser Link scheint ein Phishing-Versuch zu sein - bei dem jemand versucht, Sie zu täuschen, indem er sich als vertrauenswürdige Quelle ausgibt. Genau wie beim Angeln Köder verwendet werden, um Beute zu fangen, verwendet Phishing täuschende Links, um sensible Informationen zu erfassen.</p>
+      <p>Um Sie zu schützen, zeigen wir Ihnen das tatsächliche Ziel dieses Links, das sich von dem unterscheidet, was präsentiert wurde. Diese Transparenz hilft Ihnen, eine fundierte Entscheidung zu treffen, bevor Sie fortfahren.</p>
     </div>
     <div class="link-box link-box-left">
-      <p class="text-center">Der Link, den Sie angeklickt haben, zeigte <span class="display-box">{{ display }}</span> und kam von <span class="domain-box">{{ domain }}</span>, aber das Klicken darauf öffnet die folgende Seite:</p>
+      <p class="text-center">Der Link, auf den Sie geklickt haben, sagte <span class="display-box">{{ display }}</span> und kam von <span class="domain-box">{{ domain }}</span>, aber das Klicken darauf wird die folgende Seite öffnen:</p>
       <p class="noselect source-box"><span id="url">{{ url }}</span></p>
-      <p class="hint">beachten Sie die unterschiedliche Domain, die rot hervorgehoben ist</p>
+      <p class="hint">beachten Sie die andere Domain, die in Rot hervorgehoben ist</p>
     </div>
     {% if resolve %}
     <div class="spinner" id="resolve-spinner"></div>
     <div class="link-box link-box-left">
-      <p class="noselect progress-message" id="progress">Endziel wird ermittelt, bitte warten...</p>
+      <p class="noselect progress-message" id="progress">Löse das endgültige Ziel auf, bitte warten...</p>
       
       <!-- URL matches domain (green) -->
       <div id="url-match" class="hidden">
-        <div class="destination-box">
-          <p class="noselect title-message hidden" id="title-match"></p>
-          <p class="noselect result-message" id="result-match"></p>
+        <div class="url-transition">
+          <div class="url-original">
+            <span class="url-label">Originaler Link:</span>
+            <span class="url-value noselect">{{ url }}</span>
+          </div>
+          <div class="url-arrow">→</div>
+          <div class="url-resolved">
+            <span class="url-label">Endgültiges Ziel:</span>
+            <div class="destination-box">
+              <p class="noselect title-message hidden" id="title-match"></p>
+              <p class="noselect result-message" id="result-match"></p>
+            </div>
+          </div>
         </div>
-        <p class="hint">Das Endziel stimmt mit der Domain des Absenders überein - dies scheint sicher zu sein.</p>
+        <p class="hint">Das endgültige Ziel stimmt mit der Domain des Absenders überein - dies scheint sicher zu sein.</p>
       </div>
       
       <!-- URL doesn't match domain (red) -->
       <div id="url-mismatch" class="hidden">
-        <div class="destination-box">
-          <p class="noselect title-message hidden" id="title-mismatch"></p>
-          <p class="noselect result-message" id="result-mismatch"></p>
+        <div class="url-transition">
+          <div class="url-original">
+            <span class="url-label">Originaler Link:</span>
+            <span class="url-value noselect">{{ url }}</span>
+          </div>
+          <div class="url-arrow">→</div>
+          <div class="url-resolved">
+            <span class="url-label">Endgültiges Ziel:</span>
+            <div class="destination-box">
+              <p class="noselect title-message hidden" id="title-mismatch"></p>
+              <p class="noselect result-message" id="result-mismatch"></p>
+            </div>
+          </div>
         </div>
-        <p class="hint">Das Endziel unterscheidet sich von der Domain des Absenders - gehen Sie vorsichtig vor.</p>
+        <p class="hint">Das endgültige Ziel unterscheidet sich von der Domain des Absenders - fahren Sie mit Vorsicht fort.</p>
       </div>
       <div id="error" class="error-message"></div>
     </div>
@@ -55,14 +75,132 @@
       {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
       <button id="cont" class="button-large" disabled>
         <div class="button-progress" id="button-progress"></div>
-        <span id="button-text">{% if resolve %}Weiter zum endgültigen Ziel{% else %}Ja, ich verstehe und möchte fortfahren{% endif %}</span>
+        <span id="button-text">Ja, ich verstehe und möchte fortfahren</span>
       </button>
       <div id="redirecting-state" class="hidden">
         <div class="button-spinner"></div>
-        <span>{% if resolve %}Weiterleitung zum endgültigen Ziel...{% else %}Weiterleitung...{% endif %}</span>
+        <span id="redirecting-text">Weiterleitung...</span>
       </div>
     </form>
   </div>
 </div>
+
+<!-- Warning Modal Dialog -->
+<div id="warning-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="warning-header"></h3>
+    </div>
+    <div class="modal-body">
+      <p id="warning-message"></p>
+      <div class="warning-section">
+        <p><strong id="warning-meaning-header"></strong>: <span id="warning-meaning-content"></span></p>
+      </div>
+      <div class="warning-section">
+        <p><strong id="warning-action-header"></strong>: <span id="warning-action-content"></span></p>
+      </div>
+      <p id="warning-details" class="hidden">
+        <a id="warning-link" href="#" target="_blank" rel="noopener noreferrer">Mehr erfahren</a>
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button id="warning-acknowledge" class="button-large">Ich verstehe und möchte fortfahren</button>
+    </div>
+  </div>
+</div>
+
+<!-- Warning Definitions -->
+<script>
+const WARNING_DEFINITIONS = {
+  'ssl_certificate': {
+    header: '⚠️ Sicherheitszertifikat-Warnung',
+    message: 'Diese Website hat Sicherheitszertifikat-Probleme',
+    meaningHeader: 'Was das bedeutet',
+    meaningContent: 'Das Sicherheitszertifikat der Website ist ungültig, abgelaufen oder kann nicht verifiziert werden. Das könnte bedeuten, dass die Website nicht sicher ist oder jemand versucht, Ihre Verbindung abzufangen.',
+    actionHeader: 'Was Sie tun sollten',
+    actionContent: 'Fahren Sie nur fort, wenn Sie dieser Website vertrauen und die Risiken verstehen. Erwägen Sie, den Website-Besitzer zu kontaktieren, wenn dies unerwartet ist.',
+    details: null
+  },
+  'connection_error': {
+    header: '⚠️ Verbindungswarnung',
+    message: 'Verbindungsfehler',
+    meaningHeader: 'Was das bedeutet',
+    meaningContent: 'Wir konnten keine sichere Verbindung herstellen, um das endgültige Ziel dieses Links zu verifizieren. Das könnte an Netzwerkproblemen oder der temporären Unverfügbarkeit der Website liegen.',
+    actionHeader: 'Was Sie tun sollten',
+    actionContent: 'Versuchen Sie es später erneut. Wenn das Problem weiterhin besteht, könnte die Website ausgefallen oder unerreichbar sein.',
+    details: null
+  },
+  'connection_timeout': {
+    header: '⚠️ Verbindungs-Timeout',
+    message: 'Verbindungs-Timeout',
+    meaningHeader: 'Was das bedeutet',
+    meaningContent: 'Die Website brauchte zu lange, um zu antworten, als wir versuchten, das endgültige Ziel zu verifizieren. Das könnte darauf hinweisen, dass die Website langsam, überlastet oder von Problemen betroffen ist.',
+    actionHeader: 'Was Sie tun sollten',
+    actionContent: 'Versuchen Sie es später erneut, oder fahren Sie mit Vorsicht fort, wenn Sie der Website vertrauen.',
+    details: null
+  },
+  'too_many_redirects': {
+    header: '⚠️ Weiterleitungswarnung',
+    message: 'Zu viele Weiterleitungen',
+    meaningHeader: 'Was das bedeutet',
+    meaningContent: 'Die Website hat zu viele Weiterleitungen, was auf ein Konfigurationsproblem oder einen Versuch hinweisen könnte, das endgültige Ziel zu verbergen.',
+    actionHeader: 'Was Sie tun sollten',
+    actionContent: 'Fahren Sie mit äußerster Vorsicht fort. Das könnte eine legitime Website mit Konfigurationsproblemen sein, oder sie könnte versuchen zu verbergen, wohin sie Sie tatsächlich führt.',
+    details: null
+  },
+  'request_error': {
+    header: '⚠️ Anfragefehler',
+    message: 'Anfragefehler',
+    meaningHeader: 'Was das bedeutet',
+    meaningContent: 'Wir sind auf einen Fehler gestoßen, als wir versuchten, das endgültige Ziel dieses Links zu verifizieren. Das könnte an verschiedenen technischen Problemen liegen.',
+    actionHeader: 'Was Sie tun sollten',
+    actionContent: 'Versuchen Sie es erneut, oder fahren Sie mit Vorsicht fort, wenn Sie der Quelle dieses Links vertrauen.',
+    details: null
+  },
+  'unexpected_error': {
+    header: '⚠️ Verifikationsfehler',
+    message: 'Unerwarteter Fehler',
+    meaningHeader: 'Was das bedeutet',
+    meaningContent: 'Wir sind auf einen unerwarteten Fehler gestoßen, als wir versuchten, das endgültige Ziel dieses Links zu verifizieren.',
+    actionHeader: 'Was Sie tun sollten',
+    actionContent: 'Versuchen Sie es erneut, oder fahren Sie mit Vorsicht fort, wenn Sie der Quelle dieses Links vertrauen.',
+    details: null
+  }
+};
+
+// JavaScript UI Strings - for internationalization
+const JS_STRINGS = {
+  // Error messages
+  error_resolving_link: 'Fehler beim Auflösen des Links',
+  connection_timed_out: 'Verbindung ist abgelaufen',
+  link_not_found: 'Link nicht gefunden',
+  invalid_link_info: 'Ungültige Link-Informationen',
+  internal_error: 'Interner Fehler',
+  
+  // Warning messages
+  could_not_verify_timeout: 'Endgültiges Ziel konnte aufgrund eines Timeouts nicht verifiziert werden',
+  could_not_verify: 'Endgültiges Ziel konnte nicht verifiziert werden',
+  could_not_verify_invalid: 'Endgültiges Ziel konnte aufgrund ungültiger Link-Informationen nicht verifiziert werden',
+  could_not_verify_server: 'Endgültiges Ziel konnte aufgrund eines Serverfehlers nicht verifiziert werden',
+  
+  // Fallback warning text
+  warning_generic: '⚠️ Warnung',
+  unknown_warning: 'Eine unbekannte Warnung ist aufgetreten',
+  what_this_means: 'Was das bedeutet',
+  issue_verifying_link: 'Wir sind auf ein Problem gestoßen, als wir diesen Link verifiziert haben.',
+  what_you_should_do: 'Was Sie tun sollten',
+  proceed_with_caution: 'Fahren Sie mit Vorsicht fort, wenn Sie der Quelle dieses Links vertrauen.',
+  
+  // Error state text
+  could_not_verify_destination: 'Endgültiges Ziel konnte nicht verifiziert werden',
+  
+  // Button and redirecting text
+  button_continue: 'Ja, ich verstehe und möchte fortfahren',
+  button_continue_final: 'Zum endgültigen Ziel fortfahren',
+  redirecting_generic: 'Weiterleitung...',
+  redirecting_final: 'Weiterleitung zum endgültigen Ziel...'
+};
+</script>
+
 </body>
 </html>

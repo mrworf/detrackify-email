@@ -66,19 +66,6 @@
         </div>
         <p class="hint">The final destination differs from the sender's domain - proceed with caution.</p>
       </div>
-      
-      <!-- URL is blocked -->
-      <div id="url-blocked" class="hidden">
-        <div class="block-message">
-          <div class="block-icon">🚫</div>
-          <div class="block-content">
-            <h3>This website has been blocked</h3>
-            <p>The final destination of this link has been blocked by your administrator because it may be unsafe or inappropriate.</p>
-            <p><strong>What this means:</strong> Even though the original link looked okay, the website it leads to has been identified as potentially dangerous.</p>
-            <p><strong>What you should do:</strong> Don't try to visit this website. If you think this is a mistake, contact your administrator.</p>
-          </div>
-        </div>
-      </div>
       <div id="error" class="error-message"></div>
     </div>
     {% endif %}
@@ -87,25 +74,13 @@
       {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
       <button id="cont" class="button-large" disabled>
         <div class="button-progress" id="button-progress"></div>
-        <span id="button-text">{% if resolve %}Continue to final destination{% else %}Yes, I understand and want to continue{% endif %}</span>
+        <span id="button-text">Yes, I understand and want to continue</span>
       </button>
       <div id="redirecting-state" class="hidden">
         <div class="button-spinner"></div>
-        <span>{% if resolve %}Redirecting to final destination...{% else %}Redirecting...{% endif %}</span>
+        <span id="redirecting-text">Redirecting...</span>
       </div>
     </form>
-    
-    <!-- Blocked state - no form, just message -->
-    <div id="blocked-state" class="hidden">
-      <div class="block-message">
-        <div class="block-icon">🚫</div>
-        <div class="block-content">
-          <h3>This link has been blocked</h3>
-          <p>This website has been blocked by your administrator and cannot be accessed.</p>
-          <p id="block-reason-line" style="display:none;"><strong>Reason:</strong> <span id="block-reason"></span></p>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -118,13 +93,13 @@
     <div class="modal-body">
       <p id="warning-message"></p>
       <div class="warning-section">
-        <p><strong id="warning-meaning-header"></strong> <span id="warning-meaning-content"></span></p>
+        <p><strong id="warning-meaning-header"></strong>: <span id="warning-meaning-content"></span></p>
       </div>
       <div class="warning-section">
-        <p><strong id="warning-action-header"></strong> <span id="warning-action-content"></span></p>
+        <p><strong id="warning-action-header"></strong>: <span id="warning-action-content"></span></p>
       </div>
       <p id="warning-details" class="hidden">
-        <a id="warning-link" href="#" target="_blank" rel="noopener noreferrer">Learn more about this warning</a>
+        <a id="warning-link" href="#" target="_blank" rel="noopener noreferrer">Learn more</a>
       </p>
     </div>
     <div class="modal-footer">
@@ -143,7 +118,7 @@ const WARNING_DEFINITIONS = {
     meaningContent: 'The website\'s security certificate is invalid, expired, or cannot be verified. This could mean the website is not secure or someone is trying to intercept your connection.',
     actionHeader: 'What you should do',
     actionContent: 'Only proceed if you trust this website and understand the risks. Consider contacting the website owner if this is unexpected.',
-    details: 'https://support.mozilla.org/en-US/kb/error-codes-secure-websites'
+    details: null
   },
   'connection_error': {
     header: '⚠️ Connection Warning',
@@ -151,7 +126,7 @@ const WARNING_DEFINITIONS = {
     meaningHeader: 'What this means',
     meaningContent: 'We could not establish a secure connection to verify the final destination of this link. This could be due to network issues or the website being temporarily unavailable.',
     actionHeader: 'What you should do',
-    actionContent: 'Check your internet connection and try again. If the problem persists, the website may be down or unreachable.',
+    actionContent: 'Try again later. If the problem persists, the website may be down or unreachable.',
     details: null
   },
   'connection_timeout': {
@@ -190,6 +165,39 @@ const WARNING_DEFINITIONS = {
     actionContent: 'Try again, or proceed with caution if you trust the source of this link.',
     details: null
   }
+};
+
+// JavaScript UI Strings - for internationalization
+const JS_STRINGS = {
+  // Error messages
+  error_resolving_link: 'Error resolving link',
+  connection_timed_out: 'Connection timed out',
+  link_not_found: 'Link not found',
+  invalid_link_info: 'Invalid link information',
+  internal_error: 'Internal error',
+  
+  // Warning messages
+  could_not_verify_timeout: 'Could not verify the final destination due to a timeout',
+  could_not_verify: 'Could not verify the final destination',
+  could_not_verify_invalid: 'Could not verify the final destination due to invalid link information',
+  could_not_verify_server: 'Could not verify the final destination due to a server error',
+  
+  // Fallback warning text
+  warning_generic: '⚠️ Warning',
+  unknown_warning: 'An unknown warning occurred',
+  what_this_means: 'What this means',
+  issue_verifying_link: 'We encountered an issue while verifying this link.',
+  what_you_should_do: 'What you should do',
+  proceed_with_caution: 'Proceed with caution if you trust the source of this link.',
+  
+  // Error state text
+  could_not_verify_destination: 'Could not verify the final destination',
+  
+  // Button and redirecting text
+  button_continue: 'Yes, I understand and want to continue',
+  button_continue_final: 'Continue to final destination',
+  redirecting_generic: 'Redirecting...',
+  redirecting_final: 'Redirecting to final destination...'
 };
 </script>
 

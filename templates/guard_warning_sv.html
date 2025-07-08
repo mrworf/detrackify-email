@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Swedish translation / Svensk översättning -->
+<!-- Machine-generated translation / Maskinöversättning -->
 <html>
 <head>
 <meta charset="utf-8">
@@ -17,35 +17,55 @@
     <div class="link-box link-box-left">
       <img src="/resource/phishing.png" alt="Phishing" class="phishing-icon">
 
-      <p>Den här länken verkar vara ett försök till nätfiske – någon försöker lura dig genom att utge sig för att vara en betrodd källa. Precis som fiske använder bete för att fånga byten, använder nätfiske vilseledande länkar för att fånga känslig information.</p>
-      <p>För att skydda dig visar vi dig länkens verkliga slutdestination, som kan skilja sig från vad som presenterades. Denna transparens hjälper dig att fatta ett informerat beslut innan du fortsätter.</p>
+      <p>Denna länk verkar vara ett försök till phishing - där någon försöker lura dig genom att utge sig för att vara en betrodd källa. Precis som fiske använder beten för att fånga byte, använder phishing vilseledande länkar för att fånga känslig information.</p>
+      <p>För att skydda dig visar vi dig den faktiska destinationen för denna länk, som skiljer sig från vad som presenterades. Denna transparens hjälper dig att fatta ett informerat beslut innan du fortsätter.</p>
     </div>
     <div class="link-box link-box-left">
-      <p class="text-center">Länken du klickade på visade <span class="display-box">{{ display }}</span> och kom från <span class="domain-box">{{ domain }}</span> men att klicka på den öppnar följande sida:</p>
+      <p class="text-center">Länken du klickade på sa <span class="display-box">{{ display }}</span> och kom från <span class="domain-box">{{ domain }}</span> men att klicka på den kommer att öppna följande sida:</p>
       <p class="noselect source-box"><span id="url">{{ url }}</span></p>
-      <p class="hint">notera den avvikande domänen markerad i rött</p>
+      <p class="hint">notera den olika domänen markerad i rött</p>
     </div>
     {% if resolve %}
     <div class="spinner" id="resolve-spinner"></div>
     <div class="link-box link-box-left">
-      <p class="noselect progress-message" id="progress">Löser slutdestination, vänligen vänta...</p>
+      <p class="noselect progress-message" id="progress">Löser slutdestination, vänta...</p>
       
       <!-- URL matches domain (green) -->
       <div id="url-match" class="hidden">
-        <div class="destination-box">
-          <p class="noselect title-message hidden" id="title-match"></p>
-          <p class="noselect result-message" id="result-match"></p>
+        <div class="url-transition">
+          <div class="url-original">
+            <span class="url-label">Original länk:</span>
+            <span class="url-value noselect">{{ url }}</span>
+          </div>
+          <div class="url-arrow">→</div>
+          <div class="url-resolved">
+            <span class="url-label">Slutdestination:</span>
+            <div class="destination-box">
+              <p class="noselect title-message hidden" id="title-match"></p>
+              <p class="noselect result-message" id="result-match"></p>
+            </div>
+          </div>
         </div>
-        <p class="hint">Slutdestinationen matchar avsändarens domän – detta verkar vara säkert.</p>
+        <p class="hint">Slutdestinationen matchar avsändarens domän - detta verkar vara säkert.</p>
       </div>
       
       <!-- URL doesn't match domain (red) -->
       <div id="url-mismatch" class="hidden">
-        <div class="destination-box">
-          <p class="noselect title-message hidden" id="title-mismatch"></p>
-          <p class="noselect result-message" id="result-mismatch"></p>
+        <div class="url-transition">
+          <div class="url-original">
+            <span class="url-label">Original länk:</span>
+            <span class="url-value noselect">{{ url }}</span>
+          </div>
+          <div class="url-arrow">→</div>
+          <div class="url-resolved">
+            <span class="url-label">Slutdestination:</span>
+            <div class="destination-box">
+              <p class="noselect title-message hidden" id="title-mismatch"></p>
+              <p class="noselect result-message" id="result-mismatch"></p>
+            </div>
+          </div>
         </div>
-        <p class="hint">Slutdestinationen skiljer sig från avsändarens domän – fortsätt med försiktighet.</p>
+        <p class="hint">Slutdestinationen skiljer sig från avsändarens domän - fortsätt med försiktighet.</p>
       </div>
       <div id="error" class="error-message"></div>
     </div>
@@ -55,14 +75,132 @@
       {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
       <button id="cont" class="button-large" disabled>
         <div class="button-progress" id="button-progress"></div>
-        <span id="button-text">{% if resolve %}Fortsätt till slutdestinationen{% else %}Ja, jag förstår och vill fortsätta{% endif %}</span>
+        <span id="button-text">Ja, jag förstår och vill fortsätta</span>
       </button>
       <div id="redirecting-state" class="hidden">
         <div class="button-spinner"></div>
-        <span>{% if resolve %}Omdirigerar till slutdestinationen...{% else %}Omdirigerar...{% endif %}</span>
+        <span id="redirecting-text">Omdirigerar...</span>
       </div>
     </form>
   </div>
 </div>
+
+<!-- Warning Modal Dialog -->
+<div id="warning-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="warning-header"></h3>
+    </div>
+    <div class="modal-body">
+      <p id="warning-message"></p>
+      <div class="warning-section">
+        <p><strong id="warning-meaning-header"></strong>: <span id="warning-meaning-content"></span></p>
+      </div>
+      <div class="warning-section">
+        <p><strong id="warning-action-header"></strong>: <span id="warning-action-content"></span></p>
+      </div>
+      <p id="warning-details" class="hidden">
+        <a id="warning-link" href="#" target="_blank" rel="noopener noreferrer">Läs mer</a>
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button id="warning-acknowledge" class="button-large">Jag förstår och vill fortsätta</button>
+    </div>
+  </div>
+</div>
+
+<!-- Warning Definitions -->
+<script>
+const WARNING_DEFINITIONS = {
+  'ssl_certificate': {
+    header: '⚠️ Säkerhetscertifikat Varning',
+    message: 'Denna webbplats har säkerhetscertifikat problem',
+    meaningHeader: 'Vad detta betyder',
+    meaningContent: 'Webbplatsens säkerhetscertifikat är ogiltigt, utgånget eller kan inte verifieras. Detta kan betyda att webbplatsen inte är säker eller att någon försöker avlyssna din anslutning.',
+    actionHeader: 'Vad du ska göra',
+    actionContent: 'Fortsätt endast om du litar på denna webbplats och förstår riskerna. Överväg att kontakta webbplatsens ägare om detta är oväntat.',
+    details: null
+  },
+  'connection_error': {
+    header: '⚠️ Anslutnings Varning',
+    message: 'Anslutningsfel',
+    meaningHeader: 'Vad detta betyder',
+    meaningContent: 'Vi kunde inte upprätta en säker anslutning för att verifiera slutdestinationen för denna länk. Detta kan bero på nätverksproblem eller att webbplatsen är tillfälligt otillgänglig.',
+    actionHeader: 'Vad du ska göra',
+    actionContent: 'Försök igen senare. Om problemet kvarstår kan webbplatsen vara nere eller otillgänglig.',
+    details: null
+  },
+  'connection_timeout': {
+    header: '⚠️ Anslutnings Timeout',
+    message: 'Anslutnings timeout',
+    meaningHeader: 'Vad detta betyder',
+    meaningContent: 'Webbplatsen tog för lång tid att svara när vi försökte verifiera slutdestinationen. Detta kan indikera att webbplatsen är långsam, överbelastad eller upplever problem.',
+    actionHeader: 'Vad du ska göra',
+    actionContent: 'Försök igen senare, eller fortsätt med försiktighet om du litar på webbplatsen.',
+    details: null
+  },
+  'too_many_redirects': {
+    header: '⚠️ Omdirigerings Varning',
+    message: 'För många omdirigeringar',
+    meaningHeader: 'Vad detta betyder',
+    meaningContent: 'Webbplatsen har för många omdirigeringar, vilket kan indikera ett konfigurationsproblem eller ett försök att dölja slutdestinationen.',
+    actionHeader: 'Vad du ska göra',
+    actionContent: 'Fortsätt med extrem försiktighet. Detta kan vara en legitim webbplats med konfigurationsproblem, eller den kan försöka dölja var den faktiskt tar dig.',
+    details: null
+  },
+  'request_error': {
+    header: '⚠️ Begäran Fel',
+    message: 'Begäran fel',
+    meaningHeader: 'Vad detta betyder',
+    meaningContent: 'Vi stötte på ett fel när vi försökte verifiera slutdestinationen för denna länk. Detta kan bero på olika tekniska problem.',
+    actionHeader: 'Vad du ska göra',
+    actionContent: 'Försök igen, eller fortsätt med försiktighet om du litar på källan till denna länk.',
+    details: null
+  },
+  'unexpected_error': {
+    header: '⚠️ Verifierings Fel',
+    message: 'Oväntat fel',
+    meaningHeader: 'Vad detta betyder',
+    meaningContent: 'Vi stötte på ett oväntat fel när vi försökte verifiera slutdestinationen för denna länk.',
+    actionHeader: 'Vad du ska göra',
+    actionContent: 'Försök igen, eller fortsätt med försiktighet om du litar på källan till denna länk.',
+    details: null
+  }
+};
+
+// JavaScript UI Strings - for internationalization
+const JS_STRINGS = {
+  // Error messages
+  error_resolving_link: 'Fel vid lösning av länk',
+  connection_timed_out: 'Anslutning timeout',
+  link_not_found: 'Länk hittades inte',
+  invalid_link_info: 'Ogiltig länkinformation',
+  internal_error: 'Internt fel',
+  
+  // Warning messages
+  could_not_verify_timeout: 'Kunde inte verifiera slutdestinationen på grund av timeout',
+  could_not_verify: 'Kunde inte verifiera slutdestinationen',
+  could_not_verify_invalid: 'Kunde inte verifiera slutdestinationen på grund av ogiltig länkinformation',
+  could_not_verify_server: 'Kunde inte verifiera slutdestinationen på grund av serverfel',
+  
+  // Fallback warning text
+  warning_generic: '⚠️ Varning',
+  unknown_warning: 'En okänd varning inträffade',
+  what_this_means: 'Vad detta betyder',
+  issue_verifying_link: 'Vi stötte på ett problem när vi verifierade denna länk.',
+  what_you_should_do: 'Vad du ska göra',
+  proceed_with_caution: 'Fortsätt med försiktighet om du litar på källan till denna länk.',
+  
+  // Error state text
+  could_not_verify_destination: 'Kunde inte verifiera slutdestinationen',
+  
+  // Button and redirecting text
+  button_continue: 'Ja, jag förstår och vill fortsätta',
+  button_continue_final: 'Fortsätt till slutdestination',
+  redirecting_generic: 'Omdirigerar...',
+  redirecting_final: 'Omdirigerar till slutdestination...'
+};
+</script>
+
 </body>
 </html> 

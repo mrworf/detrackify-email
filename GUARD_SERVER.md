@@ -101,6 +101,153 @@ Spanish, French, Chinese and Arabic are included; if no matching template exists
 the English version is used. These translations were generated automatically so
 minor errors may exist.
 
+## Warning Types and Error Handling
+
+When URL resolution is enabled, the guard server can encounter various issues while trying to verify the final destination of links. The system provides user-friendly warnings for different types of problems:
+
+### SSL Certificate Issues
+- **Trigger**: Invalid, expired, or unverifiable SSL certificates
+- **Warning**: "⚠️ Security Certificate Warning"
+- **User Action**: Proceed with caution, consider contacting website owner
+
+### Connection Problems
+- **Trigger**: Network connectivity issues, DNS failures
+- **Warning**: "⚠️ Connection Warning"
+- **User Action**: Unable to check destination, try again later
+
+### Timeout Issues
+- **Trigger**: Server takes too long to respond
+- **Warning**: "⚠️ Connection Timeout"
+- **User Action**: Try again later, or proceed if trusted
+
+### Redirect Problems
+- **Trigger**: Too many redirects detected
+- **Warning**: "⚠️ Redirect Warning"
+- **User Action**: Proceed with extreme caution
+
+### Request Errors
+- **Trigger**: Various HTTP request failures
+- **Warning**: "⚠️ Request Error"
+- **User Action**: Try again, or proceed with caution
+
+### Unexpected Errors
+- **Trigger**: Unknown or unexpected errors
+- **Warning**: "⚠️ Verification Error"
+- **User Action**: Try again, or proceed with caution
+
+All warnings are displayed in a modal dialog that requires user acknowledgment before continuing. The system also provides optional "Learn more" links for additional information about specific warning types.
+
+## Localization
+
+The guard server supports multiple languages through template-based localization. Each language has its own template file with translated content and appropriate layout adjustments.
+
+### Supported Languages
+
+Currently supported languages:
+- **English** (`guard_warning.html`) - Default template
+- **German** (`guard_warning_de.html`)
+- **Spanish** (`guard_warning_es.html`)
+- **French** (`guard_warning_fr.html`)
+- **Chinese** (`guard_warning_zh.html`)
+- **Arabic** (`guard_warning_ar.html`)
+- **Swedish** (`guard_warning_sv.html`)
+- **Danish** (`guard_warning_da.html`)
+
+### Language Selection
+
+The server automatically selects the appropriate template based on the browser's `Accept-Language` header. You can also force a specific language using the `--force-language` command line option:
+
+```bash
+python3 detrackify_guard.py --force-language de
+```
+
+### Adding a New Language
+
+To add support for a new language:
+
+1. **Create a new template file** in the `templates/` directory:
+   ```
+   templates/guard_warning_xx.html
+   ```
+   Where `xx` is the ISO 639-1 language code (e.g., `it` for Italian, `pt` for Portuguese).
+
+2. **Copy the base template** and translate the content:
+   ```bash
+   cp templates/guard_warning.html templates/guard_warning_it.html
+   ```
+
+3. **Translate the following elements**:
+   - **Main content**: Phishing explanation, link descriptions, hints
+   - **Button text**: "Continue to final destination", "Yes, I understand and want to continue"
+   - **Modal content**: Warning headers, explanations, action guidance
+   - **Block messages**: Blocked website explanations
+   - **Progress messages**: "Resolving final destination, please wait..."
+
+4. **Update JavaScript strings** in the template:
+   ```javascript
+   const JS_STRINGS = {
+     // Error messages
+     error_resolving_link: 'Errore nella risoluzione del link',
+     connection_timed_out: 'Connessione scaduta',
+     // ... translate all strings
+   };
+   ```
+
+5. **Update warning definitions**:
+   ```javascript
+   const WARNING_DEFINITIONS = {
+     'ssl_certificate': {
+       header: '⚠️ Avviso Certificato di Sicurezza',
+       message: 'Questo sito web ha problemi con il certificato di sicurezza',
+       // ... translate all warning content
+     },
+     // ... translate all warning types
+   };
+   ```
+
+6. **Consider layout adjustments**:
+   - Some languages may require different text lengths
+   - Right-to-left languages (like Arabic) may need CSS adjustments
+   - Font sizes or spacing might need adjustment for different character sets
+
+### Template Structure
+
+Each template contains:
+- **HTML content**: Main warning page with translated text
+- **CSS classes**: Styling (shared via `common.css`)
+- **JavaScript strings**: User-facing text used by `common.js`
+- **Warning definitions**: Modal content for different warning types
+
+### Testing Localization
+
+To test a new language template:
+
+1. **Use the force language option**:
+   ```bash
+   python3 detrackify_guard.py --force-language it
+   ```
+
+2. **Test with different scenarios**:
+   - Normal links (no warnings)
+   - SSL certificate issues
+   - Connection timeouts
+   - Blocked URLs
+
+3. **Verify all text is translated**:
+   - Main page content
+   - Warning modals
+   - Button text
+   - Error messages
+
+### Best Practices
+
+- **Keep translations consistent** with existing language versions
+- **Test with real scenarios** to ensure warning messages make sense
+- **Consider cultural differences** in how warnings are presented
+- **Maintain the same functionality** across all language versions
+- **Use appropriate fonts** for languages with special characters
+- **Keep it simple** to not scare or baffle regular users
+
 When link resolution is enabled the server will attempt to determine the final
 destination of the provided link. Use `--resolve head` for HEAD requests (default)
 or `--resolve get` for GET requests which also extracts the page title.

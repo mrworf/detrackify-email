@@ -32,18 +32,38 @@
       
       <!-- URL matches domain (green) -->
       <div id="url-match" class="hidden">
-        <div class="destination-box">
-          <p class="noselect title-message hidden" id="title-match"></p>
-          <p class="noselect result-message" id="result-match"></p>
+        <div class="url-transition">
+          <div class="url-original">
+            <span class="url-label">Lien original :</span>
+            <span class="url-value noselect">{{ url }}</span>
+          </div>
+          <div class="url-arrow">→</div>
+          <div class="url-resolved">
+            <span class="url-label">Destination finale :</span>
+            <div class="destination-box">
+              <p class="noselect title-message hidden" id="title-match"></p>
+              <p class="noselect result-message" id="result-match"></p>
+            </div>
+          </div>
         </div>
         <p class="hint">La destination finale correspond au domaine de l'expéditeur - cela semble sûr.</p>
       </div>
       
       <!-- URL doesn't match domain (red) -->
       <div id="url-mismatch" class="hidden">
-        <div class="destination-box">
-          <p class="noselect title-message hidden" id="title-mismatch"></p>
-          <p class="noselect result-message" id="result-mismatch"></p>
+        <div class="url-transition">
+          <div class="url-original">
+            <span class="url-label">Lien original :</span>
+            <span class="url-value noselect">{{ url }}</span>
+          </div>
+          <div class="url-arrow">→</div>
+          <div class="url-resolved">
+            <span class="url-label">Destination finale :</span>
+            <div class="destination-box">
+              <p class="noselect title-message hidden" id="title-mismatch"></p>
+              <p class="noselect result-message" id="result-mismatch"></p>
+            </div>
+          </div>
         </div>
         <p class="hint">La destination finale diffère du domaine de l'expéditeur - procédez avec prudence.</p>
       </div>
@@ -55,14 +75,132 @@
       {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
       <button id="cont" class="button-large" disabled>
         <div class="button-progress" id="button-progress"></div>
-        <span id="button-text">{% if resolve %}Continuer vers la destination finale{% else %}Oui, je comprends et je veux continuer{% endif %}</span>
+        <span id="button-text">Oui, je comprends et je veux continuer</span>
       </button>
       <div id="redirecting-state" class="hidden">
         <div class="button-spinner"></div>
-        <span>{% if resolve %}Redirection vers la destination finale...{% else %}Redirection...{% endif %}</span>
+        <span id="redirecting-text">Redirection...</span>
       </div>
     </form>
   </div>
 </div>
+
+<!-- Warning Modal Dialog -->
+<div id="warning-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="warning-header"></h3>
+    </div>
+    <div class="modal-body">
+      <p id="warning-message"></p>
+      <div class="warning-section">
+        <p><strong id="warning-meaning-header"></strong>: <span id="warning-meaning-content"></span></p>
+      </div>
+      <div class="warning-section">
+        <p><strong id="warning-action-header"></strong>: <span id="warning-action-content"></span></p>
+      </div>
+      <p id="warning-details" class="hidden">
+        <a id="warning-link" href="#" target="_blank" rel="noopener noreferrer">En savoir plus</a>
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button id="warning-acknowledge" class="button-large">Je comprends et je veux continuer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Warning Definitions -->
+<script>
+const WARNING_DEFINITIONS = {
+  'ssl_certificate': {
+    header: '⚠️ Avertissement de certificat de sécurité',
+    message: 'Ce site web a des problèmes de certificat de sécurité',
+    meaningHeader: 'Ce que cela signifie',
+    meaningContent: 'Le certificat de sécurité du site web est invalide, expiré ou ne peut pas être vérifié. Cela peut signifier que le site web n\'est pas sécurisé ou que quelqu\'un essaie d\'intercepter votre connexion.',
+    actionHeader: 'Ce que vous devez faire',
+    actionContent: 'Ne continuez que si vous faites confiance à ce site web et comprenez les risques. Considérez contacter le propriétaire du site web si cela est inattendu.',
+    details: null
+  },
+  'connection_error': {
+    header: '⚠️ Avertissement de connexion',
+    message: 'Erreur de connexion',
+    meaningHeader: 'Ce que cela signifie',
+    meaningContent: 'Nous n\'avons pas pu établir une connexion sécurisée pour vérifier la destination finale de ce lien. Cela peut être dû à des problèmes de réseau ou au site web temporairement indisponible.',
+    actionHeader: 'Ce que vous devez faire',
+    actionContent: 'Réessayez plus tard. Si le problème persiste, le site web peut être en panne ou inaccessible.',
+    details: null
+  },
+  'connection_timeout': {
+    header: '⚠️ Délai d\'attente de connexion',
+    message: 'Délai d\'attente de connexion',
+    meaningHeader: 'Ce que cela signifie',
+    meaningContent: 'Le site web a pris trop de temps à répondre lorsque nous avons essayé de vérifier la destination finale. Cela peut indiquer que le site web est lent, surchargé ou connaît des problèmes.',
+    actionHeader: 'Ce que vous devez faire',
+    actionContent: 'Réessayez plus tard, ou procédez avec prudence si vous faites confiance au site web.',
+    details: null
+  },
+  'too_many_redirects': {
+    header: '⚠️ Avertissement de redirection',
+    message: 'Trop de redirections',
+    meaningHeader: 'Ce que cela signifie',
+    meaningContent: 'Le site web a trop de redirections, ce qui peut indiquer un problème de configuration ou une tentative de masquer la destination finale.',
+    actionHeader: 'Ce que vous devez faire',
+    actionContent: 'Procédez avec une extrême prudence. Cela peut être un site web légitime avec des problèmes de configuration, ou il peut essayer de masquer où il vous emmène réellement.',
+    details: null
+  },
+  'request_error': {
+    header: '⚠️ Erreur de requête',
+    message: 'Erreur de requête',
+    meaningHeader: 'Ce que cela signifie',
+    meaningContent: 'Nous avons rencontré une erreur en essayant de vérifier la destination finale de ce lien. Cela peut être dû à divers problèmes techniques.',
+    actionHeader: 'Ce que vous devez faire',
+    actionContent: 'Réessayez, ou procédez avec prudence si vous faites confiance à la source de ce lien.',
+    details: null
+  },
+  'unexpected_error': {
+    header: '⚠️ Erreur de vérification',
+    message: 'Erreur inattendue',
+    meaningHeader: 'Ce que cela signifie',
+    meaningContent: 'Nous avons rencontré une erreur inattendue en essayant de vérifier la destination finale de ce lien.',
+    actionHeader: 'Ce que vous devez faire',
+    actionContent: 'Réessayez, ou procédez avec prudence si vous faites confiance à la source de ce lien.',
+    details: null
+  }
+};
+
+// JavaScript UI Strings - for internationalization
+const JS_STRINGS = {
+  // Error messages
+  error_resolving_link: 'Erreur lors de la résolution du lien',
+  connection_timed_out: 'Délai d\'attente de connexion dépassé',
+  link_not_found: 'Lien non trouvé',
+  invalid_link_info: 'Informations de lien invalides',
+  internal_error: 'Erreur interne',
+  
+  // Warning messages
+  could_not_verify_timeout: 'Impossible de vérifier la destination finale en raison d\'un délai d\'attente',
+  could_not_verify: 'Impossible de vérifier la destination finale',
+  could_not_verify_invalid: 'Impossible de vérifier la destination finale en raison d\'informations de lien invalides',
+  could_not_verify_server: 'Impossible de vérifier la destination finale en raison d\'une erreur de serveur',
+  
+  // Fallback warning text
+  warning_generic: '⚠️ Avertissement',
+  unknown_warning: 'Un avertissement inconnu s\'est produit',
+  what_this_means: 'Ce que cela signifie',
+  issue_verifying_link: 'Nous avons rencontré un problème lors de la vérification de ce lien.',
+  what_you_should_do: 'Ce que vous devez faire',
+  proceed_with_caution: 'Procédez avec prudence si vous faites confiance à la source de ce lien.',
+  
+  // Error state text
+  could_not_verify_destination: 'Impossible de vérifier la destination finale',
+  
+  // Button and redirecting text
+  button_continue: 'Oui, je comprends et je veux continuer',
+  button_continue_final: 'Continuer vers la destination finale',
+  redirecting_generic: 'Redirection...',
+  redirecting_final: 'Redirection vers la destination finale...'
+};
+</script>
+
 </body>
 </html>
