@@ -159,6 +159,48 @@ python detrackify_email.py --blocklistfile /path/to/blocklist.yml
 python detrackify_guard.py --blocklist-file /path/to/blocklist.yml
 ```
 
+## Blocked Warnings Configuration
+
+The blocked warnings feature allows you to completely block access to links that trigger specific types of warnings during URL resolution. Instead of showing a warning modal that users can acknowledge, these warnings result in a complete block with no option to proceed.
+
+### Available Warning Types
+
+The following warning types can be blocked:
+
+- `ssl_certificate`: SSL certificate verification failed
+- `connection_error`: Connection errors (DNS, network, etc.)
+- `connection_timeout`: Connection timeout
+- `too_many_redirects`: Too many redirects
+- `request_error`: Other request-related errors
+- `unexpected_error`: Unexpected errors during resolution
+
+### Configuration
+
+**YAML Configuration:**
+```yaml
+# In your main config file
+block_warnings:
+  - "ssl_certificate"      # Block links with SSL certificate issues
+  - "connection_error"     # Block links that can't be reached
+  - "too_many_redirects"   # Block links with suspicious redirect chains
+```
+
+**Command Line:**
+```bash
+python detrackify_guard.py --block-warnings ssl_certificate --block-warnings connection_error
+```
+
+### How It Works
+
+When URL resolution detects a warning that's in the blocked warnings list:
+1. The normal warning modal is not shown
+2. Instead, the URL transition display shows "Access blocked:" instead of "Final destination:"
+3. The blocked warning is displayed in the same format as normal warnings, with meaning, action, and optional "Learn more" link
+4. No continue button is provided - access is completely denied
+5. The specific warning reason and explanation are displayed in a user-friendly format
+
+This provides an additional layer of security by preventing users from proceeding to potentially dangerous sites, while maintaining a familiar and informative user interface that explains why the link was blocked.
+
 ## Domain Aliases
 
 Domain aliases allow you to specify that certain domains belong to the same organization. This is useful when companies use different domains for their email services. For example, Instacart uses `instacartemail.com` for emails but `instacart.com` for their main site.

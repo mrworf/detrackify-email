@@ -65,6 +65,7 @@ class GuardServer:
         self.force_language = config.force_language
         self.domain_aliases = DomainAliases(config.domain_aliases_file)
         self.blocklist = Blocklist(config.blocklist_file)
+        self.block_warnings = config.block_warnings
         self.cache = (
             ResolveCache(config.cache_max, config.cache_days, config.cache_file)
             if self.resolve_enabled
@@ -188,6 +189,7 @@ class GuardServer:
             'sender_domain': sender if valid else '',
             'block_reason': block_reason,
             'domain_aliases': self.domain_aliases.aliases if self.domain_aliases else {},
+            'block_warnings': self.block_warnings,
         }
         logging.debug(f'opts_js: sending opts = {opts}')
         resp = make_response(render_template('opts.js', opts=opts))
@@ -215,6 +217,11 @@ class GuardServer:
             url = entry['url']
             title = entry.get('title', '')
             resolution_warning = entry.get('warning')  # Retrieve warning from cache
+            # Check if the cached warning should be blocked
+            if resolution_warning and self.block_warnings:
+                warning_type = resolution_warning.split(':', 1)[0] if ':' in resolution_warning else resolution_warning
+                if warning_type in self.block_warnings:
+                    block_reason = f'warning_blocked:{warning_type}'
         else:
             info = GuardUtils.decode_base64_payload(data)
             if not info:
@@ -324,12 +331,22 @@ class GuardServer:
         if self.blocklist.is_url_blacklisted(url):
             block_reason = 'blacklisted'
         
+        # Check if the warning should be blocked
+        if resolution_warning:
+            warning_type = resolution_warning.split(':', 1)[0] if ':' in resolution_warning else resolution_warning
+            if warning_type in self.block_warnings:
+                block_reason = f'warning_blocked:{warning_type}'
+        
         result_sha = GuardUtils.generate_hash(url, self.salt)
         response_data = {'url': url, 'hash': result_sha, 'title': title}
         if block_reason:
             response_data['block'] = block_reason
         if resolution_warning:
             response_data['warning'] = resolution_warning
+        
+        # Store block reason in cache if caching is enabled
+        if self.cache and entry is None:  # Only store if this was a fresh resolution
+            self.cache.set(key, url, title, resolution_warning, block_reason)
         return jsonify(response_data), 200
 
     def go(self):
@@ -434,6 +451,7 @@ class GuardServer:
             'block_reason': block_reason,
             'domain_aliases': self.domain_aliases.aliases if self.domain_aliases else {},
             'resolve': self.resolve_enabled,
+            'block_warnings': self.block_warnings,
         }
         return render_template(template, **context)
 
@@ -470,6 +488,8 @@ def main():
                         help='Path to domain aliases YAML file (default: domain_aliases.yml)')
     parser.add_argument('--blocklist-file', 
                         help='Path to blocklist YAML file (default: blocklist.yml)')
+    parser.add_argument('--block-warnings', action='append', default=None,
+                        help='Block specific warnings (e.g., ssl_certificate, connection_error)')
     args = parser.parse_args()
 
     # Set logging level based on debug flag

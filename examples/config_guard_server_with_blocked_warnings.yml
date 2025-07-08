@@ -1,0 +1,50 @@
+# Example configuration for Detrackify Guard Server with blocked warnings
+# This configuration blocks specific warning types from being shown to users
+
+# Required: Guard salt for URL signing
+guardsalt: "your-secret-salt-here"
+
+# Server configuration
+listen_ip: "127.0.0.1"
+listen_port: 9090
+
+# Template and resource directories
+template_dir: "templates"
+resources_dir: "resources"
+
+# Privacy mode (disable logging of visited links)
+privacy: false
+
+# URL resolution configuration
+resolve: "head"  # Use HEAD requests to resolve final destinations
+resolve_cache_file: "resolve_cache.json"
+resolve_cache_days: 30
+resolve_cache_max: 4096
+
+# URL processing
+strip_param_prefix: ["utm_", "fbclid", "gclid"]  # Strip tracking parameters
+user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+# Localization
+force_language: null  # Auto-detect from Accept-Language header
+
+# Domain aliases and blocklists
+domain_aliases_file: "domain_aliases.yml"
+blocklist_file: "blocklist.yml"
+
+# Block specific warning types
+# When a warning of these types is detected, access will be completely blocked
+# instead of showing a warning modal. The blocked warning is displayed in the
+# URL transition format with explanation and no continue button.
+block_warnings:
+  - "ssl_certificate"      # Block links with SSL certificate issues
+  - "connection_error"     # Block links that can't be reached
+  - "too_many_redirects"   # Block links with suspicious redirect chains
+
+# Available warning types that can be blocked:
+# - ssl_certificate: SSL certificate verification failed
+# - connection_error: Connection errors (DNS, network, etc.)
+# - connection_timeout: Connection timeout
+# - too_many_redirects: Too many redirects
+# - request_error: Other request-related errors
+# - unexpected_error: Unexpected errors during resolution 

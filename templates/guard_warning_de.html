@@ -67,6 +67,23 @@
         </div>
         <p class="hint">Das endgültige Ziel unterscheidet sich von der Domain des Absenders - fahren Sie mit Vorsicht fort.</p>
       </div>
+      
+      <!-- Blocked warning state -->
+      <div id="url-blocked-warning" class="hidden">
+        <div class="blocked-warning-box">
+          <p class="noselect blocked-warning-title" id="blocked-warning-title"></p>
+          <div class="warning-section">
+            <p><strong id="blocked-warning-meaning-header"></strong>: <span id="blocked-warning-meaning-content"></span></p>
+          </div>
+          <div class="warning-section">
+            <p><strong id="blocked-warning-action-header"></strong>: <span id="blocked-warning-action-content"></span></p>
+          </div>
+          <p id="blocked-warning-details" class="hidden">
+            <a id="blocked-warning-link" href="#" target="_blank" rel="noopener noreferrer">Mehr erfahren</a>
+          </p>
+        </div>
+        <p class="hint">Der Administrator hat den Zugriff auf diesen Link aufgrund von Sicherheitsbedenken blockiert.</p>
+      </div>
       <div id="error" class="error-message"></div>
     </div>
     {% endif %}
@@ -198,7 +215,10 @@ const JS_STRINGS = {
   button_continue: 'Ja, ich verstehe und möchte fortfahren',
   button_continue_final: 'Zum endgültigen Ziel fortfahren',
   redirecting_generic: 'Weiterleitung...',
-  redirecting_final: 'Weiterleitung zum endgültigen Ziel...'
+  redirecting_final: 'Weiterleitung zum endgültigen Ziel...',
+  
+  // Blocked warning text
+  access_blocked: 'Der Zugriff auf diesen Link wurde blockiert'
 };
 </script>
 

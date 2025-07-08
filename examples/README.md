@@ -34,6 +34,9 @@ Minimal configuration for the guard server with only essential settings.
 ### `config_guard_server_with_aliases.yml`
 Example configuration showing how to use domain aliases and blocklists with the guard server.
 
+### `config_guard_server_with_blocked_warnings.yml`
+Example configuration showing how to block specific warning types during URL resolution.
+
 ## Shared Configuration Files
 
 ### `domain_aliases.yml`

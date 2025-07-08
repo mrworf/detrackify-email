@@ -67,6 +67,21 @@
         </div>
         <p class="hint">Slutdestinationen skiljer sig från avsändarens domän - fortsätt med försiktighet.</p>
       </div>
+      
+      <!-- Blocked warning state -->
+      <div id="url-blocked-warning" class="hidden">
+        <div class="blocked-warning-box">
+          <p class="noselect blocked-warning-title" id="blocked-warning-title"></p>
+          <p class="noselect blocked-warning-message" id="blocked-warning-message"></p>
+          <div class="warning-section">
+            <p><strong id="blocked-warning-meaning-header"></strong>: <span id="blocked-warning-meaning-content"></span></p>
+          </div>
+          <p id="blocked-warning-details" class="hidden">
+            <a id="blocked-warning-link" href="#" target="_blank" rel="noopener noreferrer">Läs mer</a>
+          </p>
+        </div>
+        <p class="hint">Administratören har blockerat åtkomst till denna länk på grund av säkerhetsproblem.</p>
+      </div>
       <div id="error" class="error-message"></div>
     </div>
     {% endif %}
@@ -198,7 +213,10 @@ const JS_STRINGS = {
   button_continue: 'Ja, jag förstår och vill fortsätta',
   button_continue_final: 'Fortsätt till slutdestination',
   redirecting_generic: 'Omdirigerar...',
-  redirecting_final: 'Omdirigerar till slutdestination...'
+  redirecting_final: 'Omdirigerar till slutdestination...',
+  
+  // Blocked warning text
+  access_blocked: 'Åtkomst till denna länk har blockerats'
 };
 </script>
 

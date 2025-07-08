@@ -275,15 +275,22 @@ document.addEventListener('DOMContentLoaded', function () {
         var form = document.getElementById('continueForm');
         if (form) form.style.display = 'none';
         
-        // Show the blocked state
-        var blockedState = document.getElementById('blocked-state');
-        if (blockedState) blockedState.classList.remove('hidden');
-        // Display the block reason if present
-        var reasonSpan = document.getElementById('block-reason');
-        var reasonLine = document.getElementById('block-reason-line');
-        if (blockReason && reasonSpan && reasonLine) {
-            reasonSpan.textContent = blockReason;
-            reasonLine.style.display = '';
+        // Check if this is a warning block
+        if (blockReason && blockReason.startsWith('warning_blocked:')) {
+            // For warning blocks, we'll handle this in the resolve flow
+            // This function is mainly for initial page load blocks
+            return;
+        } else {
+            // Show the regular blocked state
+            var blockedState = document.getElementById('blocked-state');
+            if (blockedState) blockedState.classList.remove('hidden');
+            // Display the block reason if present
+            var reasonSpan = document.getElementById('block-reason');
+            var reasonLine = document.getElementById('block-reason-line');
+            if (blockReason && reasonSpan && reasonLine) {
+                reasonSpan.textContent = blockReason;
+                reasonLine.style.display = '';
+            }
         }
     }
 
@@ -376,6 +383,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (resultMismatch) resultMismatch.textContent = JS_STRINGS.could_not_verify_destination;
                 }
                 
+                // Set button and redirecting text for error case (same as non-resolve)
+                var buttonText = document.getElementById('button-text');
+                var redirectingText = document.getElementById('redirecting-text');
+                if (buttonText) buttonText.textContent = JS_STRINGS.button_continue;
+                if (redirectingText) redirectingText.textContent = JS_STRINGS.redirecting_generic;
+                
+                // Show the button again after error handling
+                var button = document.getElementById('cont');
+                if (button) {
+                    button.style.display = '';
+                }
+                
                 // Apply URL truncation to newly added URL elements
                 setTimeout(applyUrlTooltips, 100);
                 
@@ -424,6 +443,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
                 
+                // Set button and redirecting text for resolved case
+                var buttonText = document.getElementById('button-text');
+                var redirectingText = document.getElementById('redirecting-text');
+                if (buttonText) buttonText.textContent = JS_STRINGS.button_continue_final;
+                if (redirectingText) redirectingText.textContent = JS_STRINGS.redirecting_final;
+                
+                // Show the button again after resolution is complete
+                var button = document.getElementById('cont');
+                if (button) {
+                    button.style.display = '';
+                }
+                
                 // Apply URL truncation to newly added URL elements
                 setTimeout(applyUrlTooltips, 100);
                 
@@ -457,9 +488,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (!opts.resolve) {
-        // No URL resolution - start progress bar immediately with timeout
+        // No URL resolution - set button and redirecting text for non-resolve case
+        var buttonText = document.getElementById('button-text');
+        var redirectingText = document.getElementById('redirecting-text');
+        if (buttonText) buttonText.textContent = JS_STRINGS.button_continue;
+        if (redirectingText) redirectingText.textContent = JS_STRINGS.redirecting_generic;
+        
+        // Start progress bar immediately with timeout
         startProgressBar(opts.timeout_ms || 2000);
         return;
+    }
+
+    // Hide the button during URL resolution
+    var button = document.getElementById('cont');
+    if (button) {
+        button.style.display = 'none';
     }
 
     var progress = document.getElementById('progress');
@@ -499,19 +542,154 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(function (data) {
             resolvedData = data; // Store for use in warning flow
-            // Check if the resolved URL is blocked
+
+            
+            // Check if a warning should be blocked
+            if (data.warning && opts.block_warnings) {
+                var warningType = 'unexpected_error'; // default
+                if (data.warning.includes(':')) {
+                    warningType = data.warning.split(':', 2)[0];
+                }
+                
+                if (opts.block_warnings.includes(warningType)) {
+                    // Calculate remaining time to meet minimum display requirement
+                    var elapsed = Date.now() - resolveStartTime;
+                    var remainingTime = Math.max(0, minDisplayTime - elapsed);
+                    
+                    setTimeout(function() {
+                        if (progress) {
+                            progress.style.display = 'none';
+                            
+                            // Replace spinner with arrow
+                            if (spinner) {
+                                spinner.classList.remove('spinner');
+                                spinner.classList.add('arrow-down');
+                                spinner.id = ''; // Remove the spinner ID since it's now an arrow
+                            }
+                            
+                            // Show blocked warning in URL transition format
+                            var urlBlockedWarning = document.getElementById('url-blocked-warning');
+                            if (urlBlockedWarning) {
+                                urlBlockedWarning.style.display = 'block';
+                                
+                                // Get warning definition
+                                var warningDef = WARNING_DEFINITIONS[warningType];
+                                if (!warningDef) {
+                                    warningDef = {
+                                        header: JS_STRINGS.warning_generic,
+                                        message: warningType,
+                                        meaningHeader: JS_STRINGS.what_this_means,
+                                        meaningContent: JS_STRINGS.issue_verifying_link,
+                                        details: null
+                                    };
+                                }
+                                
+                                // Set blocked warning content
+                                var title = document.getElementById('blocked-warning-title');
+                                var message = document.getElementById('blocked-warning-message');
+                                var meaningHeader = document.getElementById('blocked-warning-meaning-header');
+                                var meaningContent = document.getElementById('blocked-warning-meaning-content');
+                                var details = document.getElementById('blocked-warning-details');
+                                var link = document.getElementById('blocked-warning-link');
+                                
+                                if (title) title.textContent = JS_STRINGS.access_blocked;
+                                if (message) message.textContent = warningDef.message;
+                                if (meaningHeader) meaningHeader.textContent = warningDef.meaningHeader;
+                                if (meaningContent) meaningContent.textContent = warningDef.meaningContent;
+                                if (warningDef.details && link && details) {
+                                    link.href = warningDef.details;
+                                    details.classList.remove('hidden');
+                                } else if (details) {
+                                    details.classList.add('hidden');
+                                }
+                            }
+                            
+                            // Hide the form since it's blocked
+                            var form = document.getElementById('continueForm');
+                            if (form) form.style.display = 'none';
+                            
+                            // Apply URL truncation to newly added URL elements
+                            setTimeout(applyUrlTooltips, 100);
+                        }
+                    }, remainingTime);
+                    
+                    return; // Don't continue with normal flow
+                }
+            }
+            
+            // Check if the resolved URL is blocked (from cache or fresh resolution)
             if (data.block) {
-                // Hide the normal resolve UI
-                if (progress) progress.style.display = 'none';
-                if (spinner) spinner.style.display = 'none';
+                // Calculate remaining time to meet minimum display requirement
+                var elapsed = Date.now() - resolveStartTime;
+                var remainingTime = Math.max(0, minDisplayTime - elapsed);
                 
-                // Show the blocked URL message
-                var urlBlocked = document.getElementById('url-blocked');
-                if (urlBlocked) urlBlocked.classList.remove('hidden');
-                
-                // Hide the form since it's blocked
-                var form = document.getElementById('continueForm');
-                if (form) form.style.display = 'none';
+                setTimeout(function() {
+                    if (progress) {
+                        progress.style.display = 'none';
+                        
+                        // Replace spinner with arrow
+                        if (spinner) {
+                            spinner.classList.remove('spinner');
+                            spinner.classList.add('arrow-down');
+                            spinner.id = ''; // Remove the spinner ID since it's now an arrow
+                        }
+                        
+                        // Check if this is a warning block
+                        if (data.block && data.block.startsWith('warning_blocked:')) {
+                            var warningType = data.block.split(':', 2)[1];
+                            
+                            // Show blocked warning in URL transition format
+                            var urlBlockedWarning = document.getElementById('url-blocked-warning');
+                            if (urlBlockedWarning) {
+                                urlBlockedWarning.style.display = 'block';
+                                
+                                // Get warning definition
+                                var warningDef = WARNING_DEFINITIONS[warningType];
+                                if (!warningDef) {
+                                    warningDef = {
+                                        header: JS_STRINGS.warning_generic,
+                                        message: warningType,
+                                        meaningHeader: JS_STRINGS.what_this_means,
+                                        meaningContent: JS_STRINGS.issue_verifying_link,
+                                        details: null
+                                    };
+                                }
+                                
+                                // Set blocked warning content
+                                var title = document.getElementById('blocked-warning-title');
+                                var message = document.getElementById('blocked-warning-message');
+                                var meaningHeader = document.getElementById('blocked-warning-meaning-header');
+                                var meaningContent = document.getElementById('blocked-warning-meaning-content');
+                                var details = document.getElementById('blocked-warning-details');
+                                var link = document.getElementById('blocked-warning-link');
+                                
+                                if (title) title.textContent = JS_STRINGS.access_blocked;
+                                if (message) message.textContent = warningDef.message;
+                                if (meaningHeader) meaningHeader.textContent = warningDef.meaningHeader;
+                                if (meaningContent) meaningContent.textContent = warningDef.meaningContent;
+                                
+                                // Handle details link
+                                if (warningDef.details && link && details) {
+                                    link.href = warningDef.details;
+                                    details.classList.remove('hidden');
+                                } else if (details) {
+                                    details.classList.add('hidden');
+                                }
+                            }
+                        } else {
+                            // Show regular blocked state
+                            var urlBlocked = document.getElementById('url-blocked');
+                            if (urlBlocked) urlBlocked.classList.remove('hidden');
+                        }
+                        
+                        // Hide the form since it's blocked
+                        var form = document.getElementById('continueForm');
+                        if (form) form.style.display = 'none';
+                        
+                        // Apply URL truncation to newly added URL elements
+                        setTimeout(applyUrlTooltips, 100);
+                    }
+                }, remainingTime);
                 
                 return; // Don't continue with normal flow
             }

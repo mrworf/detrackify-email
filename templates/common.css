@@ -177,6 +177,46 @@ body {font-family: sans-serif;}
     width: 100%;
 }
 
+/* Blocked warning box styling */
+.blocked-warning-box {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-left: 4px solid #f39c12;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.blocked-warning-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #856404;
+    margin: 0 0 10px 0;
+}
+
+.blocked-warning-message {
+    font-size: 16px;
+    color: #856404;
+    margin: 0 0 15px 0;
+    font-weight: 500;
+}
+
+.warning-section {
+    margin: 8px 0;
+}
+
+.warning-section p {
+    margin: 5px 0;
+    color: #856404;
+    line-height: 1.4;
+}
+
+.warning-section strong {
+    color: #856404;
+    font-weight: 600;
+}
+
 /* Phishing icon */
 .phishing-icon {
     width: 100px;

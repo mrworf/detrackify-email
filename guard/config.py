@@ -40,6 +40,7 @@ class GuardConfig:
     force_language: Optional[str] = None
     domain_aliases_file: str = "domain_aliases.yml"
     blocklist_file: str = "blocklist.yml"
+    block_warnings: List[str] = field(default_factory=list)
     
     # Development options (command line only)
     debug: bool = False
@@ -71,6 +72,7 @@ class GuardConfig:
                 force_language=config_data.get('force_language'),
                 domain_aliases_file=config_data.get('domain_aliases_file', 'domain_aliases.yml'),
                 blocklist_file=config_data.get('blocklist_file', 'blocklist.yml'),
+                block_warnings=config_data.get('block_warnings', []),
             )
         except FileNotFoundError:
             logging.error("Configuration file not found: %s", config_path)
@@ -132,6 +134,8 @@ class GuardConfig:
             config.domain_aliases_file = args.domain_aliases_file
         if args.blocklist_file is not None:
             config.blocklist_file = args.blocklist_file
+        if args.block_warnings is not None:
+            config.block_warnings = args.block_warnings
 
         # Validate required fields
         if not config.salt:
@@ -185,4 +189,5 @@ class GuardConfig:
             'force_language': self.force_language,
             'domain_aliases_file': self.domain_aliases_file,
             'blocklist_file': self.blocklist_file,
+            'block_warnings': self.block_warnings,
         } 
