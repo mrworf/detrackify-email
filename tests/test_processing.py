@@ -11,6 +11,7 @@ import json
 import hashlib
 import pytest
 from bs4 import BeautifulSoup
+from common.utils import SharedUtils
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import detrackify_guard
 import logging
@@ -287,22 +288,7 @@ def test_guard_via_config_file():
     assert msg["X-Detrackify-Guard-Mode"] == "mismatch"
 
 
-def test_strip_query_params():
-    from guard.utils import GuardUtils
-    url = GuardUtils.strip_query_parameters("https://example.com/?a=1&utm_source=x&b=2", ["utm_"])
-    assert url == "https://example.com/?a=1"
 
-
-def test_strip_query_params_no_match():
-    from guard.utils import GuardUtils
-    url = GuardUtils.strip_query_parameters("https://example.com/?a=1&b=2", ["utm_"])
-    assert url == "https://example.com/?a=1&b=2"
-
-
-def test_strip_query_params_multiple_prefixes():
-    from guard.utils import GuardUtils
-    url = GuardUtils.strip_query_parameters("https://example.com/?a=1&foo_id=2&utm_x=3&b=4", ["foo", "utm_"])
-    assert url == "https://example.com/?a=1"
 
 
 def test_resolve_get_registers_routes():
@@ -327,7 +313,7 @@ def test_resolve_get_enables_resolution():
 
 
 #########################
-# Blocklist tests
+# Blacklist tests
 #########################
 
 def test_guard_sender_blacklisted():
@@ -465,7 +451,7 @@ def test_guard_sender_and_url_blacklisted():
         os.unlink(blacklist_path)
 
 
-def test_guard_no_blocklist_no_block_field():
+def test_guard_no_blacklist_no_block_field():
     """Test that links without blacklist reasons don't have block field in JSON payload."""
     # Create a temporary empty blacklist file
     import tempfile

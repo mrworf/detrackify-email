@@ -11,108 +11,26 @@ document.addEventListener('DOMContentLoaded', function () {
         return; // Don't continue with normal flow
     }
 
-    // Domain matching utilities - moved from Python logic
-    function normalizeDomain(domain) {
-        if (!domain) return "";
-        return domain.toLowerCase().trim();
-    }
-
-    function isSubdomain(domain1, domain2) {
-        if (!domain1 || !domain2) return false;
-        domain1 = normalizeDomain(domain1);
-        domain2 = normalizeDomain(domain2);
-        return domain1 === domain2 || domain1.endsWith('.' + domain2);
-    }
-
-    function shareParentDomain(domain1, domain2) {
-        if (!domain1 || !domain2) return false;
+    // Domain highlighting function (simplified - no longer does domain comparison)
+    function highlightDomain(url, senderDomain) {
+        if (!url || !senderDomain) return url;
         
-        domain1 = normalizeDomain(domain1);
-        domain2 = normalizeDomain(domain2);
-        
-        // If they're the same, they share the same parent
-        if (domain1 === domain2) return true;
-        
-        // Split into parts and check if they have at least 2 parts
-        var parts1 = domain1.split('.');
-        var parts2 = domain2.split('.');
-        
-        if (parts1.length < 2 || parts2.length < 2) {
-            return false;
-        }
-        
-        // Check if they share the same parent domain (last 2 parts)
-        var parent1 = parts1.slice(-2).join('.');
-        var parent2 = parts2.slice(-2).join('.');
-        
-        return parent1 === parent2;
-    }
-
-    function areDomainsAliases(domain1, domain2, aliases) {
-        if (!domain1 || !domain2) return false;
-        
-        domain1 = normalizeDomain(domain1);
-        domain2 = normalizeDomain(domain2);
-        
-        // Direct match
-        if (domain1 === domain2) return true;
-        
-        // Subdomain check
-        if (isSubdomain(domain1, domain2) || isSubdomain(domain2, domain1)) return true;
-        
-        // Check if they share the same parent domain (e.g., both are subdomains of the same domain)
-        if (shareParentDomain(domain1, domain2)) {
-            return true;
-        }
-        
-        // Check aliases if provided
-        if (aliases && typeof aliases === 'object') {
-            for (var owner in aliases) {
-                var aliasList = aliases[owner];
-                if (typeof aliasList === 'string') {
-                    aliasList = [aliasList];
-                } else if (!Array.isArray(aliasList)) {
-                    continue;
-                }
-                
-                owner = normalizeDomain(owner);
-                aliasList = aliasList.map(function(alias) { return normalizeDomain(alias); });
-                
-                var domain1InGroup = (domain1 === owner || aliasList.indexOf(domain1) !== -1 ||
-                    aliasList.some(function(d) { return isSubdomain(domain1, d); }));
-                var domain2InGroup = (domain2 === owner || aliasList.indexOf(domain2) !== -1 ||
-                    aliasList.some(function(d) { return isSubdomain(domain2, d); }));
-                
-                if (domain1InGroup && domain2InGroup) {
-                    return true;
-                }
-            }
-        }
-        
-        return false;
-    }
-
-    function extractDomainFromUrl(url) {
         try {
             var match = url.match(/https?:\/\/([^\/]+)/i);
             if (match) {
                 var domain = match[1].split(':')[0]; // Remove port if present
-                return normalizeDomain(domain);
+                var normalizedDomain = domain.toLowerCase().trim();
+                var normalizedSender = senderDomain.toLowerCase().trim();
+                
+                // Highlight the domain if it doesn't match the sender domain
+                if (normalizedDomain !== normalizedSender) {
+                    return url.replace(domain, '<span class="highlight">' + domain + '</span>');
+                }
             }
         } catch (e) {
             // Ignore errors
         }
-        return null;
-    }
-
-    // Enhanced domain matching function
-    function domainsMatch(url, senderDomain, aliases) {
-        if (!url || !senderDomain) return false;
-        
-        var urlDomain = extractDomainFromUrl(url);
-        if (!urlDomain) return false;
-        
-        return areDomainsAliases(urlDomain, senderDomain, aliases);
+        return url;
     }
 
     // Function to add tooltip functionality to URL elements
@@ -257,12 +175,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Enhanced highlighting function that uses the new domain matching logic
-    function highlight(url, senderDomain, aliases) {
+    function highlight(url, senderDomain, domainsMatch) {
         url = esc(url);
-        var urlDomain = extractDomainFromUrl(url);
-        if (urlDomain && senderDomain) {
-            var matches = domainsMatch(url, senderDomain, aliases);
-            var cls = matches ? 'good' : 'bad';
+        if (url && senderDomain) {
+            var cls = domainsMatch ? 'good' : 'bad';
             var m = url.match(/https?:\/\/([^/]+)/i);
             if (m) {
                 return url.replace(m[1], '<span class="highlight ' + cls + '">' + m[1] + '</span>');
@@ -452,20 +368,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     spinner.id = ''; // Remove the spinner ID since it's now an arrow
                 }
                 
-                // Use the new domain matching logic
-                var urlMatchesDomain = domainsMatch(resolvedData.url, opts.sender_domain, opts.domain_aliases);
+                // Use the backend-provided domain match result
+                var urlMatchesDomain = resolvedData.domains_match || false;
                 
                 // Show appropriate div based on match
                 if (urlMatchesDomain) {
                     if (urlMatch) urlMatch.style.display = 'block';
-                    if (resultMatch) resultMatch.innerHTML = highlight(resolvedData.url, opts.sender_domain, opts.domain_aliases);
+                    if (resultMatch) resultMatch.innerHTML = highlight(resolvedData.url, opts.sender_domain, true);
                     if (resolvedData.title && titleMatch) {
                         titleMatch.textContent = resolvedData.title;
                         titleMatch.style.display = 'block';
                     }
                 } else {
                     if (urlMismatch) urlMismatch.style.display = 'block';
-                    if (resultMismatch) resultMismatch.innerHTML = highlight(resolvedData.url, opts.sender_domain, opts.domain_aliases);
+                    if (resultMismatch) resultMismatch.innerHTML = highlight(resolvedData.url, opts.sender_domain, false);
                     if (resolvedData.title && titleMismatch) {
                         titleMismatch.textContent = resolvedData.title;
                         titleMismatch.style.display = 'block';

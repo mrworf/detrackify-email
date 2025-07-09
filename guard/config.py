@@ -9,6 +9,7 @@ from typing import Optional, List
 
 import yaml
 from guard.utils import GuardUtils
+from common.utils import SharedUtils
 
 
 @dataclass
@@ -208,12 +209,12 @@ class GuardConfig:
         if self.cache_max < 1:
             raise ValueError("Cache max must be positive")
         
-        if self.force_language and not self._is_valid_language_code(self.force_language):
+        if self.force_language and not self.validate_language_code(self.force_language):
             raise ValueError("Invalid language code format")
 
-    def _is_valid_language_code(self, lang_code: str) -> bool:
-        """Check if language code format is valid."""
-        return GuardUtils.validate_language_code(lang_code)
+    def validate_language_code(self, lang_code: str) -> bool:
+        """Validate language code."""
+        return SharedUtils.validate_language_code(lang_code)
 
     def to_dict(self) -> dict:
         """Convert configuration to dictionary for serialization."""

@@ -7,7 +7,8 @@ import re
 import logging
 import yaml
 from typing import Optional, Dict, Any, List
-from .helpers import EmailHelpers
+from common.utils import SharedUtils
+from common.alias import DomainAliases
 
 
 class Configuration:
@@ -26,7 +27,7 @@ class Configuration:
     CFG_GUARD_CAPTURE_TO = 'options.guard.capture_to'
     CFG_GUARD_WHITELINK = 'options.guard.whitelist_links'
     CFG_GUARD_WHITELIST_SENDER = 'options.guard.whitelist_senders'
-    CFG_GUARD_DOMAIN_ALIASES = 'options.guard.domain_aliases'
+
     CFG_DOMAIN_ALIASES_FILE = 'domain_aliases_file'
     CFG_WHITELIST_FILE = 'whitelist_file'
     CFG_BLACKLIST_FILE = 'blacklist_file'
@@ -38,6 +39,9 @@ class Configuration:
         self.last_blacklist = 0
         self.last_rewrite = 0
         self.last_whitelist = 0
+        # Always initialize domain_aliases, even if no file is provided
+        from common.alias import DomainAliases
+        self.domain_aliases = DomainAliases()
     
     def _get_default_config(self) -> Dict[str, Any]:
         """Get default configuration values."""
@@ -58,7 +62,7 @@ class Configuration:
                     'capture_to': False,
                     'whitelist_links': [],
                     'whitelist_senders': [],
-                    'domain_aliases': {}
+    
                 }
             },
             'domain_aliases_file': 'domain_aliases.yml',
@@ -146,6 +150,8 @@ class Configuration:
                 self.config[key].extend(value)
             else:
                 self.config[key] = value
+        
+
     
     def _update_counters(self) -> None:
         """Update internal counters for tracking changes."""
@@ -188,10 +194,10 @@ class Configuration:
         blacklist_entries = self.config.get('blacklist', [])
         for entry in blacklist_entries:
             if isinstance(entry, dict) and 'url' in entry:
-                if EmailHelpers.test_url_against_patterns(url, [entry['url']], 'blacklist'):
+                if SharedUtils.test_url_against_patterns(url, [entry['url']], 'blacklist'):
                     return True
             elif isinstance(entry, str):
-                if EmailHelpers.test_url_against_patterns(url, [entry], 'blacklist'):
+                if SharedUtils.test_url_against_patterns(url, [entry], 'blacklist'):
                     return True
         return False
     
@@ -200,10 +206,10 @@ class Configuration:
         whitelist_entries = self.config.get('whitelist', [])
         for entry in whitelist_entries:
             if isinstance(entry, dict) and 'url' in entry:
-                if EmailHelpers.test_url_against_patterns(url, [entry['url']], 'whitelist'):
+                if SharedUtils.test_url_against_patterns(url, [entry['url']], 'whitelist'):
                     return True
             elif isinstance(entry, str):
-                if EmailHelpers.test_url_against_patterns(url, [entry], 'whitelist'):
+                if SharedUtils.test_url_against_patterns(url, [entry], 'whitelist'):
                     return True
         return False
     
@@ -230,7 +236,7 @@ class Configuration:
     
     def is_guard_link_whitelisted(self, url: str) -> Optional[str]:
         """Check if link should bypass guarding."""
-        return EmailHelpers.test_url_against_patterns(
+        return SharedUtils.test_url_against_patterns(
             url,
             self.get(Configuration.CFG_GUARD_WHITELINK, []),
             'guard link whitelist'
@@ -239,7 +245,7 @@ class Configuration:
     def is_guard_sender_whitelisted(self, sender: str) -> bool:
         """Check if sender should bypass guarding."""
         return bool(
-            EmailHelpers.test_url_against_patterns(
+            SharedUtils.test_url_against_patterns(
                 sender,
                 self.get(Configuration.CFG_GUARD_WHITELIST_SENDER, []),
                 'guard sender whitelist'
@@ -248,47 +254,9 @@ class Configuration:
     
     def are_domains_aliases(self, domain1: str, domain2: str) -> bool:
         """Check if two domains are aliases of each other."""
-        if not domain1 or not domain2:
-            return False
-        
-        domain1 = EmailHelpers.normalize_domain(domain1)
-        domain2 = EmailHelpers.normalize_domain(domain2)
-        
-        # Direct match
-        if domain1 == domain2:
-            return True
-        
-        # Check subdomain relationship
-        if EmailHelpers.is_subdomain(domain1, domain2) or EmailHelpers.is_subdomain(domain2, domain1):
-            return True
-        
-        # Check if they share the same parent domain (e.g., both are subdomains of the same domain)
-        if EmailHelpers.share_parent_domain(domain1, domain2):
-            logging.debug(f'Domain parent match: {domain1} and {domain2} share same parent domain')
-            return True
-        
-        # Check configured aliases
-        aliases = self.get(Configuration.CFG_GUARD_DOMAIN_ALIASES, {})
-        for owner, alias_list in aliases.items():
-            owner = EmailHelpers.normalize_domain(owner)
-            if isinstance(alias_list, str):
-                alias_list = [alias_list]
-            elif not isinstance(alias_list, list):
-                continue
-            
-            alias_list = [EmailHelpers.normalize_domain(alias) for alias in alias_list]
-            alias_group = {owner} | set(alias_list)
-            
-            domain1_in_group = (domain1 == owner or domain1 in alias_list or 
-                               any(EmailHelpers.is_subdomain(domain1, d) for d in alias_group))
-            domain2_in_group = (domain2 == owner or domain2 in alias_list or 
-                               any(EmailHelpers.is_subdomain(domain2, d) for d in alias_group))
-            
-            if domain1_in_group and domain2_in_group:
-                logging.debug(f'Domain alias match: {domain1} and {domain2} in {owner} -> {alias_list}')
-                return True
-        
-        return False
+        if not self.domain_aliases:
+            raise RuntimeError("DomainAliases instance not initialized. Call load_domain_aliases_from_file or ensure aliases are loaded from config.")
+        return self.domain_aliases.are_aliases(domain1, domain2)
     
     def rewrite_url(self, url: str) -> str:
         """Rewrite the URL if needed."""
@@ -345,33 +313,10 @@ class Configuration:
         if not aliases_file:
             return
         
-        try:
-            with open(aliases_file, 'r', encoding='utf-8') as f:
-                aliases_data = yaml.safe_load(f)
-                if isinstance(aliases_data, dict):
-                    existing_aliases = self.get(Configuration.CFG_GUARD_DOMAIN_ALIASES, {})
-                    processed_aliases = {}
-                    
-                    for owner, alias_list in aliases_data.items():
-                        if isinstance(alias_list, str):
-                            processed_aliases[owner] = [alias_list]
-                        elif isinstance(alias_list, list):
-                            processed_aliases[owner] = alias_list
-                        else:
-                            logging.warning(f'Invalid alias format for {owner}: {alias_list}')
-                            continue
-                    
-                    existing_aliases.update(processed_aliases)
-                    self.config['options']['guard']['domain_aliases'] = existing_aliases
-                    logging.info(f'Loaded {len(processed_aliases)} domain aliases from {aliases_file}')
-                else:
-                    logging.warning(f'Invalid domain aliases file format: {aliases_file}')
-        except FileNotFoundError:
-            logging.warning(f'Domain aliases file not found: {aliases_file}')
-        except yaml.YAMLError as e:
-            logging.error(f'Error parsing domain aliases file {aliases_file}: {e}')
-        except Exception as e:
-            logging.error(f'Error loading domain aliases file {aliases_file}: {e}')
+        # Use the common DomainAliases class
+        self.domain_aliases = DomainAliases(aliases_file)
+        
+
     
     def _load_list_from_file(self, file_path: str, list_type: str) -> list:
         """Generic function to load whitelist or blacklist from file."""

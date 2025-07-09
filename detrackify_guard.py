@@ -41,9 +41,10 @@ from markupsafe import escape
 
 from guard.config import GuardConfig
 from guard.resolve_cache import ResolveCache
-from guard.alias import DomainAliases
 from guard.blacklist import Blacklist
 from guard.utils import GuardUtils
+from common.utils import SharedUtils
+from common.alias import DomainAliases
 
 
 class GuardServer:
@@ -104,7 +105,7 @@ class GuardServer:
         # Force specific language if debug option is set
         if self.force_language:
             # Validate language code format to prevent path traversal
-            if not GuardUtils.validate_language_code(self.force_language):
+            if not SharedUtils.validate_language_code(self.force_language):
                 logging.warning("Invalid language code: %s", self.force_language)
                 return 'guard_warning.html'
             
@@ -120,11 +121,11 @@ class GuardServer:
             logging.warning("Forced language template not found: %s", candidate)
             return 'guard_warning.html'
         
-        langs = GuardUtils.parse_accept_language(accept_language)
+        langs = SharedUtils.parse_accept_language(accept_language)
         for lang in langs:
             code = lang.split('-')[0]
             # Validate language code format
-            if not GuardUtils.validate_language_code(code):
+            if not SharedUtils.validate_language_code(code):
                 continue
             candidate = f'guard_warning_{code}.html'
             if os.path.isfile(os.path.join(self.app.template_folder, candidate)):
@@ -171,7 +172,7 @@ class GuardServer:
         data = m.group(2) if m else ''
         sender = ''
         block_reason = ''
-        valid = sha and data and GuardUtils.verify_hash(data, self.salt, sha)
+        valid = sha and data and SharedUtils.verify_hash(data, self.salt, sha)
         if valid:
             try:
                 decoded = base64.urlsafe_b64decode(data).decode()
@@ -188,7 +189,6 @@ class GuardServer:
             'data': data if valid else '',
             'sender_domain': sender if valid else '',
             'block_reason': block_reason,
-            'domain_aliases': self.domain_aliases.aliases if self.domain_aliases else {},
             'deny_on_warnings': self.deny_on_warnings,
         }
         logging.debug(f'opts_js: sending opts = {opts}')
@@ -207,10 +207,10 @@ class GuardServer:
             abort(400)
         sha = str(payload.get('sha', ''))
         data = str(payload.get('data', ''))
-        if not sha or not data or not GuardUtils.verify_hash(data, self.salt, sha):
+        if not sha or not data or not SharedUtils.verify_hash(data, self.salt, sha):
             abort(403)
-        b64_sha = GuardUtils.generate_hash(data, '')
-        key = GuardUtils.generate_hash(data + b64_sha, '')
+        b64_sha = SharedUtils.generate_hash(data, '')
+        key = SharedUtils.generate_hash(data + b64_sha, '')
         entry = self.cache.get(key) if self.cache else None
         resolution_warning = None  # Initialize here for all code paths
         if entry:
@@ -223,10 +223,10 @@ class GuardServer:
                 if warning_type in self.deny_on_warnings:
                     block_reason = f'warning_blocked:{warning_type}'
         else:
-            info = GuardUtils.decode_base64_payload(data)
+            info = SharedUtils.decode_base64_payload(data)
             if not info:
                 abort(400)
-            target = GuardUtils.strip_query_parameters(info.get('url', ''), self.strip_prefixes)
+            target = SharedUtils.strip_query_parameters(info.get('url', ''), self.strip_prefixes)
             url = target
             title = ''
             try:
@@ -239,7 +239,7 @@ class GuardServer:
                 
                 if self.resolve_get:
                     resp = session.get(target, allow_redirects=True, timeout=self.timeout)
-                    url = GuardUtils.strip_query_parameters(resp.url, self.strip_prefixes)
+                    url = SharedUtils.strip_query_parameters(resp.url, self.strip_prefixes)
                     try:
                         soup = BeautifulSoup(resp.text, 'html.parser')
                         if soup.title and soup.title.string:
@@ -248,7 +248,7 @@ class GuardServer:
                         pass
                 else:
                     resp = session.head(target, allow_redirects=True, timeout=self.timeout)
-                    url = GuardUtils.strip_query_parameters(resp.url, self.strip_prefixes)
+                    url = SharedUtils.strip_query_parameters(resp.url, self.strip_prefixes)
                     
                 # Clear any cookies that might have been set during the request
                 session.cookies.clear()
@@ -269,7 +269,7 @@ class GuardServer:
                     
                     if self.resolve_get:
                         resp = session.get(target, allow_redirects=True, timeout=self.timeout)
-                        url = GuardUtils.strip_query_parameters(resp.url, self.strip_prefixes)
+                        url = SharedUtils.strip_query_parameters(resp.url, self.strip_prefixes)
                         try:
                             soup = BeautifulSoup(resp.text, 'html.parser')
                             if soup.title and soup.title.string:
@@ -278,7 +278,7 @@ class GuardServer:
                             pass
                     else:
                         resp = session.head(target, allow_redirects=True, timeout=self.timeout)
-                        url = GuardUtils.strip_query_parameters(resp.url, self.strip_prefixes)
+                        url = SharedUtils.strip_query_parameters(resp.url, self.strip_prefixes)
                     
                     session.cookies.clear()
                     session.close()
@@ -337,8 +337,22 @@ class GuardServer:
             if warning_type in self.deny_on_warnings:
                 block_reason = f'warning_blocked:{warning_type}'
         
-        result_sha = GuardUtils.generate_hash(url, self.salt)
-        response_data = {'url': url, 'hash': result_sha, 'title': title}
+        # Check if the resolved URL domain matches the sender domain
+        url_domain = SharedUtils.extract_domain_from_url(url)
+        sender_domain = info.get('domain', '')
+        domains_match = False
+        
+        if url_domain and sender_domain:
+            domains_match = self.domain_aliases.are_aliases(url_domain, sender_domain)
+            logging.debug(f'Domain match check: {url_domain} vs {sender_domain} = {domains_match}')
+        
+        result_sha = SharedUtils.generate_hash(url, self.salt)
+        response_data = {
+            'url': url, 
+            'hash': result_sha, 
+            'title': title,
+            'domains_match': domains_match
+        }
         if block_reason:
             response_data['block'] = block_reason
         if resolution_warning:
@@ -353,13 +367,13 @@ class GuardServer:
         """Redirect using a resolved URL."""
         if not self.resolve_enabled:
             abort(404)
-        url = GuardUtils.strip_query_parameters(request.form.get('url', ''), self.strip_prefixes)
+        url = SharedUtils.strip_query_parameters(request.form.get('url', ''), self.strip_prefixes)
         sha = request.form.get('sha', '')
         try:
             start = float(request.form.get('ts', '0'))
         except ValueError:
             start = 0.0
-        if not url or GuardUtils.generate_hash(url, self.salt) != sha:
+        if not url or SharedUtils.generate_hash(url, self.salt) != sha:
             abort(404)
         elapsed = time.time() - start
         if not self.privacy:
@@ -373,12 +387,12 @@ class GuardServer:
 
     def guard(self, sha, data):
         # Validate SHA format (should be 64 hex characters for SHA-256)
-        if not GuardUtils.validate_sha256(sha):
+        if not SharedUtils.validate_sha256(sha):
             logging.warning("Invalid SHA format: %s", sha)
             abort(404)
         
         # Validate data format (should be base64)
-        if not GuardUtils.validate_base64(data):
+        if not SharedUtils.validate_base64(data):
             logging.warning("Invalid data format: %s", data)
             abort(404)
         
@@ -387,11 +401,11 @@ class GuardServer:
         if not sha or not data:
             logging.warning("Missing SHA or data")
             abort(404)
-        if not GuardUtils.verify_hash(data, self.salt, sha):
+        if not SharedUtils.verify_hash(data, self.salt, sha):
             logging.warning("Hash mismatch for %s", sha)
             abort(404)
         
-        info = GuardUtils.decode_base64_payload(data)
+        info = SharedUtils.decode_base64_payload(data)
         if not info:
             logging.exception("Invalid payload")
             abort(404)
@@ -402,7 +416,7 @@ class GuardServer:
             except ValueError:
                 start = 0.0
             elapsed = time.time() - start
-            target_url = GuardUtils.strip_query_parameters(info.get('url'), self.strip_prefixes)
+            target_url = SharedUtils.strip_query_parameters(info.get('url'), self.strip_prefixes)
             if not self.privacy:
                 if elapsed < self.timeout:
                     logging.warning("Link activated too quickly: %.2fs < %ds", elapsed, self.timeout)
@@ -449,7 +463,6 @@ class GuardServer:
             'ts': start,
             'timeout_ms': self.timeout * 1000,
             'block_reason': block_reason,
-            'domain_aliases': self.domain_aliases.aliases if self.domain_aliases else {},
             'resolve': self.resolve_enabled,
             'deny_on_warnings': self.deny_on_warnings,
         }

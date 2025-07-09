@@ -5,10 +5,11 @@ Detector class for identifying tracking pixels and analyzing URLs.
 import re
 import logging
 import requests
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Tuple
 from PIL import Image
 from io import BytesIO
-from .helpers import EmailHelpers
+from common.utils import SharedUtils
+
 from .configuration import Configuration
 
 
@@ -21,7 +22,7 @@ class Detector:
     
     def strip_tracking_parameters(self, url: str) -> Optional[str]:
         """Strip tracking parameters from URL."""
-        return EmailHelpers.strip_tracking_parameters(url)
+        return SharedUtils.strip_tracking_parameters(url)
     
     def detect_needed_rewrite(self, url: str, replace_1x1: bool = False) -> Optional[Dict[str, Any]]:
         """Check if the URL contains a query string and needs rewriting."""
@@ -118,16 +119,16 @@ class Detector:
         """Detect if an image tag represents a tracking pixel."""
         try:
             style = img_tag.get('style', '')
-            width = img_tag.get('width', EmailHelpers.extract_style_size(style, 'width'))
-            height = img_tag.get('height', EmailHelpers.extract_style_size(style, 'height'))
+            width = img_tag.get('width', SharedUtils.extract_style_size(style, 'width'))
+            height = img_tag.get('height', SharedUtils.extract_style_size(style, 'height'))
             src = img_tag.get('src', '')
             alt = img_tag.get('alt', None)
             
             logging.debug(f"is_tracking_image - src: {src}, width: {width}, height: {height}, alt: {alt}")
             
             # Parse width and height
-            width = EmailHelpers.parse_size_value(width)
-            height = EmailHelpers.parse_size_value(height)
+            width = SharedUtils.parse_size_value(width)
+            height = SharedUtils.parse_size_value(height)
             
             logging.debug(f'Size: {width}x{height}, URL: {src} (Alt: {alt})')
             
@@ -146,7 +147,7 @@ class Detector:
                     size_check = False
             
             # Check if the image is hidden based on style attribute
-            hidden_element = EmailHelpers.is_invisible_element(style)
+            hidden_element = SharedUtils.is_invisible_element(style)
             logging.debug(f"is_tracking_image - hidden_element: {hidden_element}")
             
             # This regex checks for typical tracking URL patterns, can be adjusted as needed

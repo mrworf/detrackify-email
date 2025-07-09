@@ -20,6 +20,7 @@ from bs4 import BeautifulSoup
 from .helpers import EmailHelpers
 from .configuration import Configuration
 from .detector import Detector
+from common.utils import SharedUtils
 
 
 class Detrackify:
@@ -111,7 +112,7 @@ class Detrackify:
                 # Replace the src of the tracking pixel
                 logging.info(f'[{", ".join(tracker)}] {url}')
                 logging.debug(f"Image {i+1} REPLACING with blank tracker: {url} -> {replacement[:50]}...")
-                domain = EmailHelpers.extract_domain_from_url(url).lower()
+                domain = SharedUtils.extract_domain_from_url(url).lower()
                 if domain in self.blocked_domains:
                     self.blocked_domains[domain].append({url: tracker})
                 else:
@@ -168,7 +169,7 @@ class Detrackify:
                         block_reason = 'blacklisted'
                         logging.debug(f"Link {i+1} URL is blacklisted: {href}")
                     
-                    link_domain = EmailHelpers.extract_domain_from_url(href).lower()
+                    link_domain = SharedUtils.extract_domain_from_url(href).lower()
                     match = self.config.are_domains_aliases(link_domain, from_domain)
                     logging.debug(f"Link {i+1} domain match: {link_domain} vs {from_domain} = {match}")
                     
@@ -177,7 +178,7 @@ class Detrackify:
                         logging.debug(f"Link {i+1} guard reason: sender_blacklisted={sender_is_blacklisted}, mode={mode}, domain_match={match}, block_reason={block_reason}")
                         display_html = link.decode_contents()
                         logging.debug(f"Link {i+1} original display HTML: {display_html}")
-                        display_text = EmailHelpers.clean_display_text(display_html)
+                        display_text = SharedUtils.clean_display_text(display_html)
                         logging.debug(f"Link {i+1} cleaned display text: {display_text}")
                         payload = {
                             'display': display_text,
@@ -190,7 +191,7 @@ class Detrackify:
                             payload['to'] = to_address.strip()
                         logging.debug(f"Link {i+1} payload: {payload}")
                         salt = self.config.get(Configuration.CFG_GUARD_SALT)
-                        new_href = EmailHelpers.create_guarded_url(payload, guard_server, salt)
+                        new_href = SharedUtils.create_guarded_url(payload, guard_server, salt)
                         logging.debug(f"Link {i+1} guarded: {href} -> {new_href[:50]}...")
                         logging.debug(f"Link {i+1} full guarded URL: {new_href}")
                         link['href'] = new_href
@@ -291,7 +292,7 @@ class Detrackify:
         if mode != 'off':
             from_header = msg.get('From')
             if from_header:
-                from_address = EmailHelpers.extract_email_from_header(from_header)
+                from_address = SharedUtils.extract_email_from_header(from_header)
                 if not from_address:
                     logging.warning('Unable to parse From header: %s', from_header)
             else:
@@ -300,7 +301,7 @@ class Detrackify:
             if capture_to:
                 to_header = msg.get('To')
                 if to_header:
-                    to_address = EmailHelpers.extract_email_from_header(to_header)
+                    to_address = SharedUtils.extract_email_from_header(to_header)
                     if not to_address:
                         logging.warning('Unable to parse To header: %s', to_header)
                 else:
@@ -316,7 +317,7 @@ class Detrackify:
                 
                 if content_transfer_encoding == 'base64':
                     # Decode Base64 content
-                    html_content = EmailHelpers.decode_base64(part.get_payload(), content_charset)
+                    html_content = SharedUtils.decode_base64(part.get_payload(), content_charset)
                 else:
                     # Decode normally if not Base64 encoded
                     html_content = part.get_payload(decode=True).decode(content_charset)
@@ -330,7 +331,7 @@ class Detrackify:
                 
                 # Optionally, re-encode the modified HTML back to Base64 if needed
                 if content_transfer_encoding == 'base64':
-                    encoded_modified_html = EmailHelpers.encode_base64(modified_html)
+                    encoded_modified_html = SharedUtils.encode_base64(modified_html)
                 elif content_transfer_encoding == 'quoted-printable':
                     encoded_modified_html = quopri.encodestring(modified_html.encode('utf-8')).decode('utf-8')
                 else:
