@@ -89,6 +89,8 @@ For complete Docker deployment instructions, configuration options, and producti
 
 `--domain-aliases-file` path to domain aliases YAML file (default: domain_aliases.yml).
 
+`--cache-file` path to cache YAML file for persistent caching of blacklist/whitelist entries.
+
 ### Blocklist Options
 
 `--whitelist-file` path to whitelist YAML file (default: whitelist.yml)
@@ -114,16 +116,13 @@ options:
     salt: mysecret123
     link: mismatch
     capture_to: false
-    whitelist_links:
-      - '^https://trusted\.example\.com'
-    whitelist_senders:
-      - '^admin@example\.org$'
-    # sender patterns are checked against the full address
-    domain_aliases_file: domain_aliases.yml
-  # domain_aliases_file specifies the path to a shared domain aliases configuration file
-  # this file is used by both detrackify_email.py and detrackify_guard.py
-  # see domain_aliases.yml for the format and examples
-```
+    whitelist_file: guard_whitelist.yml  # Path to guard whitelist file
+
+# Additional configuration files
+domain_aliases_file: domain_aliases.yml  # Path to domain aliases file
+whitelist_file: whitelist.yml           # Path to whitelist file
+blacklist_file: blacklist.yml           # Path to blacklist file
+cache_file: cache.yml                   # Path to cache file for persistent caching
 
 See the [guard server guide](GUARD_SERVER.md) for more details on running the guard server, enabling privacy mode and using a reverse proxy.
 
@@ -152,14 +151,18 @@ whitelist:
 ### How Guard Whitelisting Works
 
 **Link Whitelisting:**
-- URLs that match `whitelist_links` patterns are not rewritten with guard server links
+- URLs that match `url` patterns in the guard whitelist are not rewritten with guard server links
 - They still go through normal email processing (tracking pixel detection, etc.)
 - Use this for trusted domains where you don't need the warning page
 
 **Sender Whitelisting:**
-- All links in emails from senders matching `whitelist_senders` patterns bypass link guarding
+- All links in emails from senders matching `sender` patterns in the guard whitelist bypass link guarding
 - Use this for trusted senders (like your bank, employer, etc.)
 - The entire email bypasses link guarding for these senders
+
+**Unified Whitelist:**
+- The guard whitelist uses the same format as other whitelists, with both `url` and `sender` entries in a single file
+- This allows reuse of existing whitelist handling code and provides a consistent configuration format
 
 ### Configuration
 
@@ -171,7 +174,9 @@ python detrackify_email.py --guard-whitelist-file /path/to/guard_whitelist.yml
 **YAML Configuration:**
 ```yaml
 # In your main config file
-guard_whitelist_file: guard_whitelist.yml  # Path to guard whitelist file
+options:
+  guard:
+    whitelist_file: guard_whitelist.yml  # Path to guard whitelist file
 ```
 
 ## Blocklist Configuration
@@ -262,7 +267,7 @@ python detrackify_guard.py --blacklist-file /path/to/blacklist.yml
 
 **Default Files:**
 - `detrackify_email.py` looks for `blacklist.yml` by default
-- `detrackify_guard.py` looks for `blocklist.yml` by default
+- `detrackify_guard.py` looks for `blacklist.yml` by default
 
 ## Denied Warnings Configuration
 
@@ -306,8 +311,244 @@ When URL resolution detects a warning that's in the denied warnings list:
 
 This provides an additional layer of security by preventing users from proceeding to potentially dangerous sites, while maintaining a familiar and informative user interface that explains why the link was denied.
 
+## Cache System
+
+The cache system provides persistent storage for blacklist and whitelist entries to improve performance across multiple runs. Instead of only caching in-memory, the cache is saved to a YAML file and can be reused in subsequent executions.
+
+### How Caching Works
+
+1. **Cache Priority**: The system first checks the main blacklist/whitelist files, then falls back to the cache
+2. **Persistent Storage**: Cache entries are saved to a YAML file and loaded on startup
+3. **Automatic Saving**: Cache is automatically saved at the end of processing
+4. **Performance**: Reduces repeated lookups and improves processing speed
+
+### Cache File Format
+
+The cache file uses the same format as blocklist files:
+
+```yaml
+# Cache entries - automatically generated and managed
+blacklist:
+  - url: 'https://tracking.example.com/pixel.gif'
+  - url: 'https://malicious.com/.*'
+
+whitelist:
+  - url: 'https://trusted.example.com/logo.png'
+  - url: 'https://cdn.example.org/.*'
+```
+
+### Configuration
+
+**Command Line:**
+```bash
+python detrackify_email.py --cache-file /path/to/cache.yml
+```
+
+**YAML Configuration:**
+```yaml
+# In your main config file
+cache_file: cache.yml  # Path to cache file
+```
+
+### Cache Management
+
+The cache is automatically managed by the system:
+- **Loading**: Cache is loaded on startup if the file exists
+- **Adding**: New entries are automatically added to cache during processing (not to main lists)
+- **Saving**: Cache is saved at the end of processing
+- **Clearing**: Use the cache management methods to clear entries if needed
+
+**Important**: All new blacklist and whitelist entries discovered during processing are added to the cache, not to the main configuration files. This ensures that:
+- Main configuration files remain unchanged
+- Cache provides persistent storage for learned entries
+- Performance improves over time as cache grows
+
+### Benefits
+
+- **Performance**: Faster processing on subsequent runs
+- **Persistence**: Cache survives program restarts
+- **Flexibility**: Can be shared across multiple instances
+- **Transparency**: Cache file is human-readable YAML format
+
 ## Domain Aliases
 
 Domain aliases allow you to specify that certain domains belong to the same organization. This is useful when companies use different domains for their email services. For example, Instacart uses `instacartemail.com` for emails but `instacart.com` for their main site.
 
-Both `
+Both `detrackify_email.py` and `detrackify_guard.py` use shared configuration files to ensure consistency across the system.
+
+### Domain Aliases File Format
+
+The domain aliases file uses YAML format with a single `aliases` section:
+
+```yaml
+# Domain aliases - domains that belong to the same organization
+aliases:
+  instacart.com:
+    - instacartemail.com
+    - email.instacart.com
+  amazon.com:
+    - amazon-communications.com
+    - amazon-news.com
+    - amazon-email.com
+  microsoft.com:
+    - microsoft-email.com
+    - msft.com
+```
+
+### How Domain Aliases Work
+
+**In detrackify_email.py:**
+- When link guarding is enabled, domain aliases are used to determine if a link matches the sender domain
+- Links to aliased domains are treated as if they match the sender domain
+- This prevents unnecessary guarding of legitimate organizational links
+
+**In detrackify_guard.py:**
+- Domain aliases are used during URL resolution to determine the final destination domain
+- The resolved domain is compared against the sender domain and its aliases
+- This ensures consistent domain matching across the entire system
+
+### Configuration
+
+**Command Line:**
+```bash
+python detrackify_email.py --domain-aliases-file /path/to/domain_aliases.yml
+python detrackify_guard.py --domain-aliases-file /path/to/domain_aliases.yml
+```
+
+**YAML Configuration:**
+```yaml
+# In your main config file
+domain_aliases_file: domain_aliases.yml  # Path to domain aliases file
+```
+
+## Testing Tools
+
+### detrackify_url.py
+
+The `detrackify_url.py` tool allows you to generate guarded URLs for testing the guard server. This is useful for:
+
+- Testing guard server configurations
+- Creating test cases for different scenarios
+- Debugging guard server behavior
+- Simulating blocked URLs and warnings
+
+#### Basic Usage
+
+```bash
+# Generate a basic guarded URL
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt your_secure_salt \
+  --url https://example.com \
+  --from user@example.com
+
+# Output: http://localhost:9090/guard/<hash>/<base64_payload>
+```
+
+#### Advanced Usage
+
+```bash
+# With recipient address (for logging)
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt your_secure_salt \
+  --url https://example.com \
+  --from user@example.com \
+  --to recipient@company.com
+
+# With custom display text
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt your_secure_salt \
+  --url https://example.com \
+  --from user@example.com \
+  --display "Click here for special offer"
+
+# Simulate a blocked URL
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt your_secure_salt \
+  --url https://malicious.com \
+  --from spam@evil.com \
+  --to victim@company.com \
+  --block blacklisted
+
+# Verbose output for debugging
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt your_secure_salt \
+  --url https://example.com \
+  --from user@example.com \
+  --verbose
+```
+
+#### Command Line Options
+
+- `--server`: Guard server URL (e.g., http://localhost:9090)
+- `--salt`: Guard salt for hash validation (must be at least 8 characters)
+- `--url`: Target URL to guard
+- `--from`: Sender email address
+- `--to`: Optional recipient email address
+- `--block`: Optional block reason (e.g., 'blacklisted')
+- `--display`: Optional display text (defaults to "Link to {url}")
+- `--verbose`, `-v`: Show detailed information including payload and hash
+
+#### Testing Scenarios
+
+**Normal Link:**
+```bash
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt test123 \
+  --url https://trusted.example.com \
+  --from admin@example.com
+```
+
+**Domain Mismatch:**
+```bash
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt test123 \
+  --url https://suspicious.com \
+  --from admin@example.com
+```
+
+**Blocked Sender:**
+```bash
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt test123 \
+  --url https://example.com \
+  --from spam@malicious.com \
+  --block blacklisted
+```
+
+**Warning Simulation:**
+```bash
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt test123 \
+  --url https://expired-ssl.com \
+  --from user@example.com \
+  --block warning_blocked:ssl_certificate
+```
+
+#### Integration with Guard Server
+
+The generated URLs work seamlessly with the guard server:
+
+1. **Copy the generated URL** and paste it in a browser
+2. **The guard server will display** the appropriate warning page
+3. **Test different scenarios** by varying the parameters
+4. **Use verbose mode** to understand the payload structure
+
+This tool is particularly useful for:
+- **Development and testing** of guard server configurations
+- **Creating test cases** for different warning types
+- **Debugging** guard server behavior
+- **Demonstrating** the system to stakeholders
+- **Validating** blocklist and whitelist configurations
+
+## License
+
+This project is licensed under the GNU General Public License v3.0. See the [COPYING](COPYING) file for the full license text.

@@ -17,7 +17,7 @@ options:
 
 `options.guard.server` is the public URL to the guard server including the scheme. `options.guard.salt` must be at least eight characters and should be kept secret. `options.guard.link` controls which links are rewritten: `mismatch` only rewrites links that do not match the sender domain, `always` rewrites all links and `off` disables the feature.
 
-When a link is rewritten, a JSON payload containing the original URL, its display text and the sender domain is base64 encoded.  A SHA1 hash is then calculated from that encoded payload plus the configured salt and both values are appended to the guard server address.  This allows the server to verify that the payload has not been tampered with when a user clicks the link.  The processed email will also include the headers `X-Detrackify-Guarded-Links` and `X-Detrackify-Guard-Mode` when guardlink is active.
+When a link is rewritten, a JSON payload containing the original URL, its display text and the sender domain is base64 encoded.  A SHA256 hash is then calculated from that encoded payload plus the configured salt and both values are appended to the guard server address.  This allows the server to verify that the payload has not been tampered with when a user clicks the link.  The processed email will also include the headers `X-Detrackify-Guarded-Links` and `X-Detrackify-Guard-Mode` when guardlink is active.
 If `options.guard.capture_to` is enabled, the recipient address is included in the JSON so the server can log which user clicked the link&mdash;or at least which recipient the link was originally meant for (forwards and quoted mail may not reflect the actual clicker).
 
 ## Running the guard server
@@ -150,7 +150,7 @@ Optional parameters:
 * `--resources-dir` Directory containing additional resources (images only)
 * `--timeout` Seconds to wait before the continue button activates (default `5`)
 * `--privacy` Disable logging of visited links
-* `--resolve` Resolve the final URL before showing the continue button (choices: `head`, `get`)
+* `--resolve` Resolve the final URL before showing the continue button (choices: `head`, `get`, default: `None` - disabled)
 * `--resolve-cache-file` File used to store resolved URLs
 * `--resolve-cache-days` Days to keep cached items (default `30`)
 * `--resolve-cache-max` Maximum number of cached items (default `4096`)
@@ -317,7 +317,7 @@ To test a new language template:
 - **Keep it simple** to not scare or baffle regular users
 
 When link resolution is enabled the server will attempt to determine the final
-destination of the provided link. Use `--resolve head` for HEAD requests (default)
+destination of the provided link. Use `--resolve head` for HEAD requests or `--resolve get` for GET requests
 or `--resolve get` for GET requests which also extracts the page title.
 The page will display a progress message while this happens and the
 continue button activates only once the real URL is known. The
@@ -337,7 +337,7 @@ so `/guard/common.js` can be cached efficiently.
 If the resolution fails the `/resolve` endpoint returns an error message along
 with an HTTP status code. In that case the browser falls back to the original
 URL once the timer expires.
-The cache key is `SHA1(b64 + SHA1(b64))` where `b64` is the link payload.
+The cache key is `SHA256(data + SHA256(data))` where `data` is the base64-encoded link payload.
 Entries older than the configured number of days are pruned every 24 hours and
 the cache never grows beyond the specified maximum size.
 
@@ -352,6 +352,65 @@ All endpoints except `/resources/` are served below the `/guard/` prefix:
 * `/guard/opts.js` — Dynamic options consumed by `common.js` via the Referer header.
 * `/guard/common.css` — Common stylesheet used by the warning pages.
 * `/resources/<path>` — Optional static resources such as images.
+
+## Testing the Guard Server
+
+### Using detrackify_url.py
+
+The `detrackify_url.py` tool allows you to generate test URLs for the guard server:
+
+```bash
+# Basic test URL
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt your_secure_salt \
+  --url https://example.com \
+  --from user@example.com
+
+# Test with recipient logging
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt your_secure_salt \
+  --url https://example.com \
+  --from user@example.com \
+  --to recipient@company.com
+
+# Test blocked URLs
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt your_secure_salt \
+  --url https://malicious.com \
+  --from spam@evil.com \
+  --block blacklisted
+
+# Test warning scenarios
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt your_secure_salt \
+  --url https://expired-ssl.com \
+  --from user@example.com \
+  --block warning_blocked:ssl_certificate
+```
+
+### Manual Testing
+
+You can also test the guard server manually by:
+
+1. **Starting the server** with your configuration
+2. **Generating a test URL** using `detrackify_url.py`
+3. **Opening the URL** in a browser
+4. **Verifying the warning page** displays correctly
+5. **Testing the continue button** functionality
+
+### Testing Different Scenarios
+
+- **Normal links**: Trusted domains and senders
+- **Domain mismatches**: Links from different domains
+- **Blocked URLs**: Blacklisted domains and senders
+- **Warning types**: SSL issues, timeouts, redirects
+- **Custom display**: Different link text
+
+See the main [README.md](README.md) for complete documentation of the `detrackify_url.py` tool.
 
 ## Using a reverse proxy
 
@@ -499,7 +558,7 @@ All configuration options are available as environment variables:
 |----------|-------------|---------|---------|
 | `TIMEOUT` | Seconds before continue button activates | `5` | `TIMEOUT=10` |
 | `PRIVACY` | Disable logging of visited links | `false` | `PRIVACY=true` |
-| `RESOLVE` | Resolve final destination (choices: `head`, `get`) | `None` | `RESOLVE=head` |
+| `RESOLVE` | Resolve final destination (choices: `head`, `get`) | `None` (disabled) | `RESOLVE=head` |
 | `RESOLVE_CACHE_FILE` | Path to JSON cache file | `None` | `RESOLVE_CACHE_FILE=/app/cache/cache.json` |
 | `RESOLVE_CACHE_DAYS` | Days to keep cached items | `30` | `RESOLVE_CACHE_DAYS=60` |
 | `RESOLVE_CACHE_MAX` | Maximum number of cached items | `4096` | `RESOLVE_CACHE_MAX=8192` |

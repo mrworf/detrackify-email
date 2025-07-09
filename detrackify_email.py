@@ -47,6 +47,7 @@ def main():
     parser.add_argument('--guardlink', choices=['off', 'mismatch', 'always'], help='Guard link mode')
     parser.add_argument('--guardcaptureto', action='store_true', help='Capture the To address in guarded links')
     parser.add_argument('--guard-whitelist-file', help='Path to guard whitelist YAML file (default: guard_whitelist.yml)')
+    parser.add_argument('--cache-file', help='Path to cache YAML file for persistent caching')
 
     # Parse command line arguments
     args = parser.parse_args()
@@ -131,6 +132,10 @@ def main():
 
         if config.get(Configuration.CFG_STRIP_ENABLE):
             config.save_learned(config.get(Configuration.CFG_STRIP_FILE))
+        
+        # Save cache if enabled
+        if config.cache:
+            config.save_cache()
             
     except Exception as e:
         # Catch-all for any exceptions

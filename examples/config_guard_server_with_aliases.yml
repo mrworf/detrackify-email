@@ -5,10 +5,7 @@ options:
     salt: mysecret123
     link: mismatch
     capture_to: false
-    whitelist_links:
-      - '^https://trusted\\.example\\.com'
-    whitelist_senders:
-      - '^admin@example\\.org$'
+    whitelist_file: guard_whitelist.yml
     # Domain aliases are now loaded from a shared file
     # This ensures consistency between detrackify_email.py and detrackify_guard.py
     domain_aliases_file: domain_aliases.yml

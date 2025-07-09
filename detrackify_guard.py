@@ -167,9 +167,9 @@ class GuardServer:
     def opts_js(self):
         """Serve dynamic JavaScript with per-request options."""
         referer = request.headers.get('Referer') or ''
-        m = re.search(r'/guard/([^/]+)/([^/]+)', referer)
-        sha = m.group(1) if m else ''
-        data = m.group(2) if m else ''
+        components = SharedUtils.parse_guard_url(referer)
+        sha = components['sha'] if components else ''
+        data = components['data'] if components else ''
         sender = ''
         block_reason = ''
         valid = sha and data and SharedUtils.verify_hash(data, self.salt, sha)
@@ -213,6 +213,12 @@ class GuardServer:
         key = SharedUtils.generate_hash(data + b64_sha, '')
         entry = self.cache.get(key) if self.cache else None
         resolution_warning = None  # Initialize here for all code paths
+        
+        # Decode the payload early so info is available in all code paths
+        info = SharedUtils.decode_base64_payload(data)
+        if not info:
+            abort(400)
+            
         if entry:
             url = entry['url']
             title = entry.get('title', '')
@@ -223,10 +229,11 @@ class GuardServer:
                 if warning_type in self.deny_on_warnings:
                     block_reason = f'warning_blocked:{warning_type}'
         else:
-            info = SharedUtils.decode_base64_payload(data)
-            if not info:
+            target_url = info.get('url', '')
+            if not SharedUtils.is_safe_url(target_url):
+                logging.warning("Unsafe URL in payload: %s", target_url)
                 abort(400)
-            target = SharedUtils.strip_query_parameters(info.get('url', ''), self.strip_prefixes)
+            target = SharedUtils.strip_query_parameters(target_url, self.strip_prefixes)
             url = target
             title = ''
             try:
@@ -386,28 +393,10 @@ class GuardServer:
         return resp
 
     def guard(self, sha, data):
-        # Validate SHA format (should be 64 hex characters for SHA-256)
-        if not SharedUtils.validate_sha256(sha):
-            logging.warning("Invalid SHA format: %s", sha)
-            abort(404)
-        
-        # Validate data format (should be base64)
-        if not SharedUtils.validate_base64(data):
-            logging.warning("Invalid data format: %s", data)
-            abort(404)
-        
-        sha = str(sha or '')
-        data = str(data or '')
-        if not sha or not data:
-            logging.warning("Missing SHA or data")
-            abort(404)
-        if not SharedUtils.verify_hash(data, self.salt, sha):
-            logging.warning("Hash mismatch for %s", sha)
-            abort(404)
-        
-        info = SharedUtils.decode_base64_payload(data)
+        # Use the centralized guard link verification
+        info = SharedUtils.verify_guard_link(f"/guard/{sha}/{data}", self.salt)
         if not info:
-            logging.exception("Invalid payload")
+            logging.warning("Invalid guard link: %s", sha)
             abort(404)
 
         if request.method == 'POST':
@@ -442,7 +431,7 @@ class GuardServer:
             return resp
 
         start = time.time()
-        url = GuardUtils.strip_query_parameters(info.get('url', ''), self.strip_prefixes)
+        url = SharedUtils.strip_query_parameters(info.get('url', ''), self.strip_prefixes)
         valid = bool(url)
         if not valid:
             abort(404)

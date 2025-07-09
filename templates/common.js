@@ -257,20 +257,20 @@ document.addEventListener('DOMContentLoaded', function () {
             var warningDef = WARNING_DEFINITIONS[warningType];
             if (!warningDef) {
                             // Fallback to generic warning if type not found
-            warningDef = {
-                header: JS_STRINGS.warning_generic,
-                message: customMessage || JS_STRINGS.unknown_warning,
-                meaningHeader: JS_STRINGS.what_this_means,
-                meaningContent: JS_STRINGS.issue_verifying_link,
-                actionHeader: JS_STRINGS.what_you_should_do,
-                actionContent: JS_STRINGS.proceed_with_caution,
-                details: null
-            };
+                warningDef = {
+                    header: JS_STRINGS.warning_generic,
+                    message: customMessage || JS_STRINGS.unknown_warning,
+                    meaningHeader: JS_STRINGS.what_this_means,
+                    meaningContent: JS_STRINGS.issue_verifying_link,
+                    actionHeader: JS_STRINGS.what_you_should_do,
+                    actionContent: JS_STRINGS.proceed_with_caution,
+                    details: null
+                };
             }
             
             // Set modal content
             header.textContent = warningDef.header;
-            message.textContent = customMessage || warningDef.message;
+            message.textContent = warningDef.message || customMessage;
             meaningHeader.textContent = warningDef.meaningHeader;
             meaningContent.textContent = warningDef.meaningContent;
             actionHeader.textContent = warningDef.actionHeader;
@@ -338,6 +338,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var button = document.getElementById('cont');
                 if (button) {
                     button.style.display = '';
+                    button.disabled = true;
                 }
                 
                 // Apply URL truncation to newly added URL elements
@@ -388,16 +389,21 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
                 
-                // Set button and redirecting text for resolved case
+                // Set button and redirecting text based on domain match
                 var buttonText = document.getElementById('button-text');
                 var redirectingText = document.getElementById('redirecting-text');
-                if (buttonText) buttonText.textContent = JS_STRINGS.button_continue_final;
-                if (redirectingText) redirectingText.textContent = JS_STRINGS.redirecting_final;
+                if (buttonText) {
+                    buttonText.textContent = urlMatchesDomain ? JS_STRINGS.button_continue_final : JS_STRINGS.button_continue;
+                }
+                if (redirectingText) {
+                    redirectingText.textContent = urlMatchesDomain ? JS_STRINGS.redirecting_final : JS_STRINGS.redirecting_generic;
+                }
                 
                 // Show the button again after resolution is complete
                 var button = document.getElementById('cont');
                 if (button) {
                     button.style.display = '';
+                    button.disabled = true; // Will be enabled by progress bar
                 }
                 
                 // Apply URL truncation to newly added URL elements
@@ -445,7 +451,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Hide the button during URL resolution
-    var button = document.getElementById('cont');
     if (button) {
         button.style.display = 'none';
     }
@@ -661,6 +666,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     return; // Don't continue with normal flow until user acknowledges
                 }
                 
+                // Successful resolution without warnings - proceed with normal flow
                 // Calculate remaining time to meet minimum display requirement
                 var elapsed = Date.now() - resolveStartTime;
                 var remainingTime = Math.max(0, minDisplayTime - elapsed);
@@ -676,24 +682,41 @@ document.addEventListener('DOMContentLoaded', function () {
                             spinner.id = ''; // Remove the spinner ID since it's now an arrow
                         }
                         
-                        // Use the new domain matching logic
-                        var urlMatchesDomain = domainsMatch(data.url, opts.sender_domain, opts.domain_aliases);
+                        // Use the backend-provided domain match result
+                        var urlMatchesDomain = data.domains_match;
                         
                         // Show appropriate div based on match
                         if (urlMatchesDomain) {
                             if (urlMatch) urlMatch.style.display = 'block';
-                            if (resultMatch) resultMatch.innerHTML = highlight(data.url, opts.sender_domain, opts.domain_aliases);
+                            if (resultMatch) resultMatch.innerHTML = highlight(data.url, opts.sender_domain, urlMatchesDomain);
                             if (data.title && titleMatch) {
                                 titleMatch.textContent = data.title;
                                 titleMatch.style.display = 'block';
                             }
                         } else {
                             if (urlMismatch) urlMismatch.style.display = 'block';
-                            if (resultMismatch) resultMismatch.innerHTML = highlight(data.url, opts.sender_domain, opts.domain_aliases);
+                            if (resultMismatch) resultMismatch.innerHTML = highlight(data.url, opts.sender_domain, urlMatchesDomain);
                             if (data.title && titleMismatch) {
                                 titleMismatch.textContent = data.title;
                                 titleMismatch.style.display = 'block';
                             }
+                        }
+                        
+                        // Set button and redirecting text based on domain match
+                        var buttonText = document.getElementById('button-text');
+                        var redirectingText = document.getElementById('redirecting-text');
+                        if (buttonText) {
+                            buttonText.textContent = urlMatchesDomain ? JS_STRINGS.button_continue_final : JS_STRINGS.button_continue;
+                        }
+                        if (redirectingText) {
+                            redirectingText.textContent = urlMatchesDomain ? JS_STRINGS.redirecting_final : JS_STRINGS.redirecting_generic;
+                        }
+                        
+                        // Show the button again after resolution is complete
+                        var button = document.getElementById('cont');
+                        if (button) {
+                            button.style.display = '';
+                            button.disabled = true; // Will be enabled by progress bar
                         }
                         
                         // Apply URL truncation to newly added URL elements
@@ -735,6 +758,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             // Show warning modal for errors too
             showWarningModal(warningType, warningMsg);
+            // Note: continueAfterError() will be called when user acknowledges the warning
             return; // Don't continue with normal flow until user acknowledges
         })
         .finally(function () {

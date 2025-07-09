@@ -60,7 +60,7 @@ The Docker build automatically excludes development tools during the build proce
 #### Optional
 - `TIMEOUT`: Seconds before continue button activates (default: 5)
 - `PRIVACY`: Enable privacy mode - disable logging of visited links (true/false, default: false)
-- `RESOLVE`: Link resolution mode (head/get, default: head)
+- `RESOLVE`: Link resolution mode (head/get, default: None - disabled)
 - `RESOLVE_CACHE_FILE`: Path to cache file (default: /app/cache/resolve_cache.json)
 - `RESOLVE_CACHE_DAYS`: Days to keep cache entries (default: 30)
 - `RESOLVE_CACHE_MAX`: Maximum cache entries (default: 4096)
@@ -451,6 +451,44 @@ docker run --rm detrackify-guard:local python -m pytest
 # Interactive shell for debugging
 docker run -it --rm detrackify-guard:local /bin/bash
 ```
+
+### Testing with detrackify_url.py
+The `detrackify_url.py` tool can be used to test the guard server:
+
+```bash
+# Generate a test URL for the running guard server
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt your_secure_salt \
+  --url https://example.com \
+  --from user@example.com \
+  --verbose
+
+# Test different scenarios
+# Normal link
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt your_secure_salt \
+  --url https://trusted.example.com \
+  --from admin@example.com
+
+# Domain mismatch
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt your_secure_salt \
+  --url https://suspicious.com \
+  --from admin@example.com
+
+# Blocked URL
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt your_secure_salt \
+  --url https://malicious.com \
+  --from spam@evil.com \
+  --block blacklisted
+```
+
+Copy the generated URLs and paste them in your browser to test the guard server's warning pages and behavior.
 
 ## Integration with Email Processing
 

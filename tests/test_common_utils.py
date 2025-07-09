@@ -535,5 +535,137 @@ class TestSharedUtilsHashing(unittest.TestCase):
         self.assertFalse(SharedUtils.verify_hash(data, "wrong salt", hash_result))
         self.assertFalse(SharedUtils.verify_hash(data, salt, "wrong hash"))
 
+class TestSharedUtilsNewFunctions(unittest.TestCase):
+    """Test the new URL processing and base64/hash operation functions."""
+
+    def test_is_safe_url(self):
+        """Test URL safety validation."""
+        # Valid URLs
+        self.assertTrue(SharedUtils.is_safe_url('https://example.com'))
+        self.assertTrue(SharedUtils.is_safe_url('http://example.com/path'))
+        self.assertTrue(SharedUtils.is_safe_url('https://sub.example.com:8080/path?q=1'))
+        
+        # Invalid URLs
+        self.assertFalse(SharedUtils.is_safe_url(''))
+        self.assertFalse(SharedUtils.is_safe_url(None))
+        self.assertFalse(SharedUtils.is_safe_url('ftp://example.com'))
+        self.assertFalse(SharedUtils.is_safe_url('javascript:alert(1)'))
+        self.assertFalse(SharedUtils.is_safe_url('not-a-url'))
+        
+        # Custom allowed schemes
+        self.assertTrue(SharedUtils.is_safe_url('ftp://example.com', ['ftp']))
+        self.assertFalse(SharedUtils.is_safe_url('https://example.com', ['ftp']))
+
+
+
+    def test_parse_guard_url(self):
+        """Test guard URL parsing."""
+        # Valid guard URL
+        result = SharedUtils.parse_guard_url('https://guard.example.com/guard/abc123/data456')
+        self.assertEqual(result, {'sha': 'abc123', 'data': 'data456'})
+        
+        # Invalid URLs
+        self.assertIsNone(SharedUtils.parse_guard_url('https://example.com'))
+        self.assertIsNone(SharedUtils.parse_guard_url(''))
+        self.assertIsNone(SharedUtils.parse_guard_url(None))
+
+    def test_create_guard_payload(self):
+        """Test guard payload creation."""
+        payload = SharedUtils.create_guard_payload('Click here', 'example.com', 'https://example.com/link')
+        expected = {
+            'display': 'Click here',
+            'domain': 'example.com',
+            'url': 'https://example.com/link'
+        }
+        self.assertEqual(payload, expected)
+        
+        # With optional fields
+        payload = SharedUtils.create_guard_payload(
+            'Click here', 'example.com', 'https://example.com/link',
+            to_address='user@example.com', block_reason='blacklisted'
+        )
+        expected.update({
+            'to': 'user@example.com',
+            'block': 'blacklisted'
+        })
+        self.assertEqual(payload, expected)
+
+    def test_create_guard_link(self):
+        """Test complete guard link creation."""
+        link = SharedUtils.create_guard_link(
+            'https://guard.example.com', 'testsalt',
+            'Click here', 'example.com', 'https://example.com/link'
+        )
+        
+        # Verify the link structure
+        self.assertTrue(link.startswith('https://guard.example.com/guard/'))
+        self.assertIn('/', link)
+        
+        # Parse and verify the components
+        components = SharedUtils.parse_guard_url(link)
+        self.assertIsNotNone(components)
+        
+        # Verify the payload
+        payload = SharedUtils.decode_base64_payload(components['data'])
+        self.assertEqual(payload['display'], 'Click here')
+        self.assertEqual(payload['domain'], 'example.com')
+        self.assertEqual(payload['url'], 'https://example.com/link')
+
+    def test_verify_guard_link(self):
+        """Test guard link verification."""
+        # Create a valid link
+        link = SharedUtils.create_guard_link(
+            'https://guard.example.com', 'testsalt',
+            'Click here', 'example.com', 'https://example.com/link'
+        )
+        
+        # Verify it
+        result = SharedUtils.verify_guard_link(link, 'testsalt')
+        self.assertIsNotNone(result)
+        self.assertEqual(result['display'], 'Click here')
+        self.assertEqual(result['domain'], 'example.com')
+        self.assertEqual(result['url'], 'https://example.com/link')
+        
+        # Test with wrong salt
+        result = SharedUtils.verify_guard_link(link, 'wrongsalt')
+        self.assertIsNone(result)
+        
+        # Test with invalid URL
+        result = SharedUtils.verify_guard_link('https://example.com', 'testsalt')
+        self.assertIsNone(result)
+
+
+
+
+    def test_integration_guard_link_creation_and_verification(self):
+        """Test integration between guard link creation and verification."""
+        # Create a link with all fields
+        link = SharedUtils.create_guard_link(
+            'https://guard.example.com', 'testsalt',
+            'Click here', 'example.com', 'https://example.com/link',
+            to_address='user@example.com', block_reason='blacklisted'
+        )
+        
+        # Verify the link
+        result = SharedUtils.verify_guard_link(link, 'testsalt')
+        self.assertIsNotNone(result)
+        self.assertEqual(result['display'], 'Click here')
+        self.assertEqual(result['domain'], 'example.com')
+        self.assertEqual(result['url'], 'https://example.com/link')
+        self.assertEqual(result['to'], 'user@example.com')
+        self.assertEqual(result['block'], 'blacklisted')
+        
+        # Verify the link structure matches the old create_guarded_url function
+        old_link = SharedUtils.create_guarded_url({
+            'display': 'Click here',
+            'domain': 'example.com',
+            'url': 'https://example.com/link',
+            'to': 'user@example.com',
+            'block': 'blacklisted'
+        }, 'https://guard.example.com', 'testsalt')
+        
+        # Both should produce the same result
+        self.assertEqual(link, old_link)
+
 if __name__ == '__main__':
     unittest.main() 

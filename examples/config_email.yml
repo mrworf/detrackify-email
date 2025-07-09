@@ -12,10 +12,9 @@ options:
     salt: test123456789
     link: mismatch
     capture_to: false
-    whitelist_links: []
-    whitelist_senders: []
-    domain_aliases: {}
+    whitelist_file: guard_whitelist.yml
 
 domain_aliases_file: domain_aliases.yml
 whitelist_file: whitelist.yml
 blacklist_file: blacklist.yml
+cache_file: cache.yml

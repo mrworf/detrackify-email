@@ -9,6 +9,8 @@ import yaml
 from typing import Optional, Dict, Any, List
 from common.utils import SharedUtils
 from common.alias import DomainAliases
+from common.blocklist import Blocklist
+from common.cache import Cache
 
 
 class Configuration:
@@ -25,13 +27,12 @@ class Configuration:
     CFG_GUARD_SALT = 'options.guard.salt'
     CFG_GUARD_LINK = 'options.guard.link'
     CFG_GUARD_CAPTURE_TO = 'options.guard.capture_to'
-    CFG_GUARD_WHITELINK = 'options.guard.whitelist_links'
-    CFG_GUARD_WHITELIST_SENDER = 'options.guard.whitelist_senders'
+    CFG_GUARD_WHITELIST_FILE = 'options.guard.whitelist_file'
 
     CFG_DOMAIN_ALIASES_FILE = 'domain_aliases_file'
     CFG_WHITELIST_FILE = 'whitelist_file'
     CFG_BLACKLIST_FILE = 'blacklist_file'
-    CFG_GUARD_WHITELIST_FILE = 'guard_whitelist_file'
+    CFG_CACHE_FILE = 'cache_file'
     
     def __init__(self):
         """Initialize configuration with defaults."""
@@ -42,6 +43,12 @@ class Configuration:
         # Always initialize domain_aliases, even if no file is provided
         from common.alias import DomainAliases
         self.domain_aliases = DomainAliases()
+        # Initialize blocklists
+        self.blacklist = None
+        self.whitelist = None
+        self.guard_whitelist = None
+        # Initialize cache
+        self.cache = None
     
     def _get_default_config(self) -> Dict[str, Any]:
         """Get default configuration values."""
@@ -60,14 +67,13 @@ class Configuration:
                     'salt': None,
                     'link': 'off',
                     'capture_to': False,
-                    'whitelist_links': [],
-                    'whitelist_senders': [],
-    
+                    'whitelist_file': None
                 }
             },
             'domain_aliases_file': 'domain_aliases.yml',
             'whitelist_file': None,
             'blacklist_file': None,
+            'cache_file': None,
             'whitelist': [],
             'rewrite': []
         }
@@ -95,6 +101,7 @@ class Configuration:
         self.load_domain_aliases_from_file()
         self.load_whitelist_from_file()
         self.load_blacklist_from_file()
+        self.load_cache_from_file()
         
         return True
     
@@ -133,6 +140,9 @@ class Configuration:
         if args.guard_whitelist_file:
             self.set(Configuration.CFG_GUARD_WHITELIST_FILE, args.guard_whitelist_file)
             self.load_guard_whitelist_from_file()
+        if args.cache_file:
+            self.set(Configuration.CFG_CACHE_FILE, args.cache_file)
+            self.load_cache_from_file()
     
     def _merge_settings(self, settings: Dict[str, Any]) -> None:
         """Merge settings into configuration."""
@@ -191,66 +201,45 @@ class Configuration:
     
     def is_blacklisted(self, url: str) -> bool:
         """Check if the URL is blacklisted."""
-        blacklist_entries = self.config.get('blacklist', [])
-        for entry in blacklist_entries:
-            if isinstance(entry, dict) and 'url' in entry:
-                if SharedUtils.test_url_against_patterns(url, [entry['url']], 'blacklist'):
-                    return True
-            elif isinstance(entry, str):
-                if SharedUtils.test_url_against_patterns(url, [entry], 'blacklist'):
-                    return True
+        # First check the main blacklist
+        if self.blacklist and self.blacklist.is_url_blacklisted(url):
+            return True
+        # Then check the cache
+        if self.cache and self.cache.is_url_blacklisted(url):
+            return True
         return False
     
     def is_whitelisted(self, url: str) -> bool:
         """Check if the URL is whitelisted."""
-        whitelist_entries = self.config.get('whitelist', [])
-        for entry in whitelist_entries:
-            if isinstance(entry, dict) and 'url' in entry:
-                if SharedUtils.test_url_against_patterns(url, [entry['url']], 'whitelist'):
-                    return True
-            elif isinstance(entry, str):
-                if SharedUtils.test_url_against_patterns(url, [entry], 'whitelist'):
-                    return True
+        # First check the main whitelist
+        if self.whitelist and self.whitelist.is_url_whitelisted(url):
+            return True
+        # Then check the cache
+        if self.cache and self.cache.is_url_whitelisted(url):
+            return True
         return False
     
     def is_sender_blacklisted(self, sender: str) -> bool:
         """Check if a sender email is blacklisted."""
-        if not sender:
-            return False
-        blacklist_entries = self.config.get('blacklist', [])
-        logging.debug(f"is_sender_blacklisted: sender={sender}, blacklist_entries={blacklist_entries}")
-        for entry in blacklist_entries:
-            if isinstance(entry, dict) and 'sender' in entry:
-                pattern = entry['sender']
-                result = re.match(pattern, sender)
-                debug_line = f"DEBUG: Testing sender blacklist: pattern={pattern!r}, sender={sender!r}, match={result}\n"
-                try:
-                    with open('sender_blacklist_debug.log', 'a') as dbg:
-                        dbg.write(debug_line)
-                except Exception:
-                    pass
-                logging.debug(debug_line.strip())
-                if result:
-                    return True
+        if self.blacklist:
+            return self.blacklist.is_sender_blacklisted(sender)
         return False
     
     def is_guard_link_whitelisted(self, url: str) -> Optional[str]:
-        """Check if link should bypass guarding."""
-        return SharedUtils.test_url_against_patterns(
-            url,
-            self.get(Configuration.CFG_GUARD_WHITELINK, []),
-            'guard link whitelist'
-        )
+        """Check if URL should bypass link guarding."""
+        if self.guard_whitelist:
+            # Check URL entries
+            url_entries = self.guard_whitelist.get_url_entries()
+            for entry in url_entries:
+                if SharedUtils.test_url_against_patterns(url, [entry], 'guard link whitelist'):
+                    return entry
+        return None
     
     def is_guard_sender_whitelisted(self, sender: str) -> bool:
         """Check if sender should bypass guarding."""
-        return bool(
-            SharedUtils.test_url_against_patterns(
-                sender,
-                self.get(Configuration.CFG_GUARD_WHITELIST_SENDER, []),
-                'guard sender whitelist'
-            )
-        )
+        if self.guard_whitelist:
+            return self.guard_whitelist.is_sender_whitelisted(sender)
+        return False
     
     def are_domains_aliases(self, domain1: str, domain2: str) -> bool:
         """Check if two domains are aliases of each other."""
@@ -275,20 +264,16 @@ class Configuration:
                 logging.error(f'Invalid rewrite rule: {rule}')
         return url
     
-    def add_blacklist(self, url: str) -> bool:
-        """Add a URL to the blacklist."""
-        if not self.is_blacklisted(url):
-            logging.info(f'Adding {url} to blacklist')
-            self.config['blacklist'].append({'url': url})
-            return True
+    def add_to_cache_blacklist(self, url: str) -> bool:
+        """Add a URL to the cache blacklist."""
+        if self.cache:
+            return self.cache.add_blacklist_entry(url)
         return False
     
-    def add_whitelist(self, url: str) -> bool:
-        """Add a URL to the whitelist."""
-        if not self.is_whitelisted(url):
-            logging.info(f'Adding {url} to whitelist')
-            self.config['whitelist'].append({'url': url})
-            return True
+    def add_to_cache_whitelist(self, url: str) -> bool:
+        """Add a URL to the cache whitelist."""
+        if self.cache:
+            return self.cache.add_whitelist_entry(url)
         return False
     
     def add_rewrite(self, from_url: str, to_url: str) -> bool:
@@ -318,44 +303,20 @@ class Configuration:
         
 
     
-    def _load_list_from_file(self, file_path: str, list_type: str) -> list:
-        """Generic function to load whitelist or blacklist from file."""
-        if not file_path:
-            return []
-        
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                data = yaml.safe_load(f)
-                if isinstance(data, dict):
-                    entries = data.get(list_type, [])
-                    if isinstance(entries, list):
-                        logging.info(f'Loaded {len(entries)} {list_type} entries from {file_path}')
-                        return entries
-                    else:
-                        logging.warning(f'Invalid {list_type} format in {file_path}')
-                else:
-                    logging.warning(f'Invalid {list_type} file format: {file_path}')
-        except FileNotFoundError:
-            logging.warning(f'{list_type.capitalize()} file not found: {file_path}')
-        except yaml.YAMLError as e:
-            logging.error(f'Error parsing {list_type} file {file_path}: {e}')
-        except Exception as e:
-            logging.error(f'Error loading {list_type} file {file_path}: {e}')
-        
-        return []
+
     
     def load_whitelist_from_file(self) -> None:
         """Load whitelist from the configured file."""
         whitelist_file = self.get(Configuration.CFG_WHITELIST_FILE)
-        entries = self._load_list_from_file(whitelist_file, 'whitelist')
-        self.config['whitelist'] = entries
+        self.whitelist = Blocklist(whitelist_file, 'whitelist')
+        self.config['whitelist'] = self.whitelist.get_entries()
     
     def load_blacklist_from_file(self) -> None:
         """Load blacklist from the configured file."""
         blacklist_file = self.get(Configuration.CFG_BLACKLIST_FILE)
         logging.debug(f"DEBUG: load_blacklist_from_file called with blacklist_file={blacklist_file!r}")
-        entries = self._load_list_from_file(blacklist_file, 'blacklist')
-        self.config['blacklist'] = entries
+        self.blacklist = Blocklist(blacklist_file, 'blacklist')
+        self.config['blacklist'] = self.blacklist.get_entries()
         logging.debug(f"DEBUG: After loading blacklist: blacklist={self.config['blacklist']}")
         logging.debug(f"DEBUG: config after blacklist load: {self.config}")
     
@@ -365,26 +326,23 @@ class Configuration:
         if not guard_whitelist_file:
             return
         
-        entries = self._load_list_from_file(guard_whitelist_file, 'whitelist')
+        self.guard_whitelist = Blocklist(guard_whitelist_file, 'whitelist')
+        self.config['options']['guard']['whitelist'] = self.guard_whitelist.get_entries()
         
-        # Separate URL and sender entries
-        link_whitelist = []
-        sender_whitelist = []
-        
-        for entry in entries:
-            if isinstance(entry, dict):
-                if 'url' in entry:
-                    link_whitelist.append(entry['url'])
-                elif 'sender' in entry:
-                    sender_whitelist.append(entry['sender'])
-            elif isinstance(entry, str):
-                # For backward compatibility, treat string entries as URLs
-                link_whitelist.append(entry)
-        
-        self.config['options']['guard']['whitelist_links'] = link_whitelist
-        self.config['options']['guard']['whitelist_senders'] = sender_whitelist
-        
-        logging.info(f'Loaded {len(link_whitelist)} guard link whitelist and {len(sender_whitelist)} sender whitelist entries from {guard_whitelist_file}')
+        logging.info(f'Loaded {len(self.guard_whitelist)} guard whitelist entries from {guard_whitelist_file}')
+    
+    def load_cache_from_file(self) -> None:
+        """Load cache from the configured file."""
+        cache_file = self.get(Configuration.CFG_CACHE_FILE)
+        if cache_file:
+            self.cache = Cache(cache_file)
+            logging.info(f'Cache loaded from {cache_file}')
+    
+    def save_cache(self) -> bool:
+        """Save cache to file."""
+        if self.cache:
+            return self.cache.save_cache()
+        return False
     
     def load_learned(self, path: str) -> bool:
         """Load learned rules from file."""

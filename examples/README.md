@@ -25,7 +25,7 @@ Complete configuration file for the guard server (`detrackify_guard.py`) with al
 - `listen_ip`/`listen_port`: Server binding
 - `timeout`: Seconds before continue button activates
 - `privacy`: Disable logging of visited links
-- `resolve`: Link resolution mode (head/get)
+- `resolve`: Link resolution mode (head/get, default: None - disabled)
 - `strip_param_prefix`: URL parameters to strip
 
 ### `config_guard_server_simple.yml`
@@ -86,6 +86,45 @@ python detrackify_guard.py --config examples/config_guard_server.yml
 2. Configuration file specified with `--config`
 3. Default configuration file locations
 4. Built-in defaults (lowest priority)
+
+## Testing with detrackify_url.py
+
+The `detrackify_url.py` tool can be used to test your guard server configurations:
+
+```bash
+# Test basic functionality
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt test123 \
+  --url https://example.com \
+  --from user@example.com
+
+# Test with your configuration files
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt your_secure_salt \
+  --url https://trusted.example.com \
+  --from admin@example.com \
+  --to recipient@company.com
+
+# Test blocked URLs
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt your_secure_salt \
+  --url https://malicious.com \
+  --from spam@evil.com \
+  --block blacklisted
+```
+
+### Testing Different Scenarios
+
+1. **Normal Links**: Test trusted domains and senders
+2. **Domain Mismatches**: Test links from different domains
+3. **Blocked URLs**: Test blacklist functionality
+4. **Warning Types**: Test different warning scenarios
+5. **Custom Display**: Test custom link text
+
+See the main [README.md](../README.md) for complete documentation of the `detrackify_url.py` tool.
 
 ## Security Notes
 

@@ -412,4 +412,65 @@ class SharedUtils:
                 result = match.group(1)
         else:
             logging.warning(f'URL does not confirm: {url}')
-        return result 
+        return result
+
+    @staticmethod
+    def is_safe_url(url: str, allowed_schemes: List[str] = None) -> bool:
+        """Check if URL uses safe schemes (http, https by default)."""
+        if not url:
+            return False
+        allowed_schemes = allowed_schemes or ['http', 'https']
+        try:
+            parsed = urllib.parse.urlparse(url)
+            return parsed.scheme in allowed_schemes and parsed.netloc
+        except Exception:
+            return False
+
+    @staticmethod
+    def parse_guard_url(url: str) -> Optional[Dict[str, str]]:
+        """Parse guard server URL to extract components."""
+        if not url:
+            return None
+        # Pattern: /guard/{sha}/{data}
+        match = re.search(r'/guard/([^/]+)/([^/]+)', url)
+        if match:
+            return {
+                'sha': match.group(1),
+                'data': match.group(2)
+            }
+        return None
+
+    @staticmethod
+    def create_guard_payload(display: str, domain: str, url: str, to_address: str = None, block_reason: str = None) -> Dict[str, Any]:
+        """Create standardized guard payload."""
+        payload = {
+            'display': display,
+            'domain': domain,
+            'url': url,
+        }
+        if to_address:
+            payload['to'] = to_address
+        if block_reason:
+            payload['block'] = block_reason
+        return payload
+
+    @staticmethod
+    def create_guard_link(server: str, salt: str, display: str, domain: str, url: str, to_address: str = None, block_reason: str = None) -> str:
+        """Create complete guard link with hash and payload."""
+        payload = SharedUtils.create_guard_payload(display, domain, url, to_address, block_reason)
+        return SharedUtils.create_guarded_url(payload, server, salt)
+
+    @staticmethod
+    def verify_guard_link(url: str, salt: str) -> Optional[Dict[str, Any]]:
+        """Verify and decode guard link."""
+        components = SharedUtils.parse_guard_url(url)
+        if not components:
+            return None
+        
+        sha = components['sha']
+        data = components['data']
+        
+        if not SharedUtils.verify_hash(data, salt, sha):
+            return None
+        
+        return SharedUtils.decode_base64_payload(data) 

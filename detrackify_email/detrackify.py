@@ -180,18 +180,22 @@ class Detrackify:
                         logging.debug(f"Link {i+1} original display HTML: {display_html}")
                         display_text = SharedUtils.clean_display_text(display_html)
                         logging.debug(f"Link {i+1} cleaned display text: {display_text}")
-                        payload = {
-                            'display': display_text,
-                            'domain': from_domain.strip() if from_domain else '',
-                            'url': href.strip() if href else '',
-                        }
-                        if block_reason:
-                            payload['block'] = block_reason
-                        if self.config.get(Configuration.CFG_GUARD_CAPTURE_TO) and to_address:
-                            payload['to'] = to_address.strip()
-                        logging.debug(f"Link {i+1} payload: {payload}")
+                        display_text_clean = display_text.strip() if display_text else ''
+                        from_domain_clean = from_domain.strip() if from_domain else ''
+                        href_clean = href.strip() if href else ''
+                        to_address_clean = to_address.strip() if to_address and self.config.get(Configuration.CFG_GUARD_CAPTURE_TO) else None
+                        
+                        logging.debug(f"Link {i+1} creating guard link with: display='{display_text_clean}', domain='{from_domain_clean}', url='{href_clean}', to='{to_address_clean}', block_reason='{block_reason}'")
                         salt = self.config.get(Configuration.CFG_GUARD_SALT)
-                        new_href = SharedUtils.create_guarded_url(payload, guard_server, salt)
+                        new_href = SharedUtils.create_guard_link(
+                            guard_server, 
+                            salt, 
+                            display_text_clean, 
+                            from_domain_clean, 
+                            href_clean, 
+                            to_address_clean, 
+                            block_reason
+                        )
                         logging.debug(f"Link {i+1} guarded: {href} -> {new_href[:50]}...")
                         logging.debug(f"Link {i+1} full guarded URL: {new_href}")
                         link['href'] = new_href
@@ -226,13 +230,13 @@ class Detrackify:
         result = self.detector.detect_needed_rewrite(url)
         if not result or 'No Image' in result['reason']:
             logging.debug(f'Result: {result}')
-            self.config.add_blacklist(f'{self.detector.strip_tracking_parameters(url)}.*')
+            self.config.add_to_cache_blacklist(f'{self.detector.strip_tracking_parameters(url)}.*')
             stripped_url = self.blank_tracker
             reason.append('No image')
         else:
             reason = result['reason']
             if 'Tracker' in result['reason']:
-                self.config.add_blacklist(f'{self.detector.strip_tracking_parameters(url)}.*')
+                self.config.add_to_cache_blacklist(f'{self.detector.strip_tracking_parameters(url)}.*')
                 stripped_url = self.blank_tracker
             elif stripped_url != url:
                 stripped_url = result['url']
@@ -241,7 +245,7 @@ class Detrackify:
                 logging.debug(f'Stripped {url} to {stripped_url}')
                 
                 self.config.add_rewrite(self.detector.strip_tracking_parameters(url) + '.*', stripped_url)
-                self.config.add_whitelist(f'{stripped_url}')
+                self.config.add_to_cache_whitelist(f'{stripped_url}')
         return stripped_url, reason
     
     def process_file(self, email_path: str, output_path: str, listonly: bool = False) -> None:
