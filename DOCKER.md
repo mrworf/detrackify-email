@@ -33,9 +33,17 @@ docker run -d \
   ghcr.io/mrworf/detrackify-guard:latest
 ```
 
-## Container Registry
+## Container Optimization
 
-The official Docker image is available from GitHub Container Registry:
+### Requirements Management
+
+The Docker build automatically excludes development tools during the build process:
+
+- Uses the standard `requirements.txt` file
+- Automatically excludes `pytest` and `pylint` using pip constraints
+
+
+## Container Registry
 
 - **Registry**: `ghcr.io/mrworf/detrackify-guard`
 - **Latest**: `ghcr.io/mrworf/detrackify-guard:latest`

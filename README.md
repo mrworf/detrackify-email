@@ -17,9 +17,11 @@ Processes standard emails and tries to determine what images within are used to 
 
 See the [examples/](examples/README.md) folder for sample configuration files for both the email processor and guard server, including blocklist, whitelist, and domain alias formats. This folder also contains legacy and advanced configuration examples.
 
-## Docker
+## Requirements
 
-The Detrackify guard server is available as a Docker image from GitHub Container Registry:
+The project uses a single `requirements.txt` file that includes all dependencies. For Docker builds, development tools like `pytest` and `pylint` are automatically excluded during the build process to keep the container size minimal.
+
+## Docker
 
 **Registry:** `ghcr.io/mrworf/detrackify-guard`
 **Latest Tag:** `ghcr.io/mrworf/detrackify-guard:latest`

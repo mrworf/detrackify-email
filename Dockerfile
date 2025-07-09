@@ -11,8 +11,11 @@ RUN apt-get update && apt-get install -y \
 # Copy requirements first for better caching
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies (excluding development tools)
+RUN echo "pytest!=*" > constraints.txt && \
+    echo "pylint!=*" >> constraints.txt && \
+    pip install --no-cache-dir -r requirements.txt --constraint constraints.txt && \
+    rm constraints.txt
 
 # Copy application files
 COPY detrackify_guard.py .
