@@ -26,6 +26,10 @@ COPY common/ ./common/
 COPY extras/docker-entrypoint.sh .
 COPY templates/ ./templates/
 COPY resources/ ./resources/
+COPY minify_js.py .
+
+# Minify JavaScript files during build and remove rjsmin
+RUN python minify_js.py && pip uninstall -y rjsmin
 
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash detrackify && \

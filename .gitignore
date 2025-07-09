@@ -4,3 +4,6 @@ test.log
 test.eml
 __pycache__/
 tests/__pycache__/
+
+# Minified JavaScript files (generated automatically)
+*.min.js

@@ -161,8 +161,14 @@ class GuardServer:
         return jsonify({'status': 'healthy', 'timestamp': time.time()}), 200
 
     def common_js(self):
-        """Serve the shared JavaScript."""
-        return send_from_directory(self.app.template_folder, 'common.js', max_age=86400)
+        """Serve the shared JavaScript (minified if available)."""
+        # Try to serve minified version first
+        minified_path = os.path.join(self.app.template_folder, 'common.min.js')
+        if os.path.exists(minified_path):
+            return send_from_directory(self.app.template_folder, 'common.min.js', max_age=86400)
+        else:
+            # Fallback to original version
+            return send_from_directory(self.app.template_folder, 'common.js', max_age=86400)
 
     def opts_js(self):
         """Serve dynamic JavaScript with per-request options."""

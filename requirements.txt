@@ -6,3 +6,4 @@ pytest
 pylint
 Flask
 gunicorn
+rjsmin
