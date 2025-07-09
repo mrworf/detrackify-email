@@ -24,6 +24,30 @@ document.addEventListener('DOMContentLoaded', function () {
         return domain1 === domain2 || domain1.endsWith('.' + domain2);
     }
 
+    function shareParentDomain(domain1, domain2) {
+        if (!domain1 || !domain2) return false;
+        
+        domain1 = normalizeDomain(domain1);
+        domain2 = normalizeDomain(domain2);
+        
+        // If they're the same, they share the same parent
+        if (domain1 === domain2) return true;
+        
+        // Split into parts and check if they have at least 2 parts
+        var parts1 = domain1.split('.');
+        var parts2 = domain2.split('.');
+        
+        if (parts1.length < 2 || parts2.length < 2) {
+            return false;
+        }
+        
+        // Check if they share the same parent domain (last 2 parts)
+        var parent1 = parts1.slice(-2).join('.');
+        var parent2 = parts2.slice(-2).join('.');
+        
+        return parent1 === parent2;
+    }
+
     function areDomainsAliases(domain1, domain2, aliases) {
         if (!domain1 || !domain2) return false;
         
@@ -35,6 +59,11 @@ document.addEventListener('DOMContentLoaded', function () {
         
         // Subdomain check
         if (isSubdomain(domain1, domain2) || isSubdomain(domain2, domain1)) return true;
+        
+        // Check if they share the same parent domain (e.g., both are subdomains of the same domain)
+        if (shareParentDomain(domain1, domain2)) {
+            return true;
+        }
         
         // Check aliases if provided
         if (aliases && typeof aliases === 'object') {

@@ -26,7 +26,69 @@ If `options.guard.capture_to` is enabled, the recipient address is included in t
 
 For production deployments, we recommend using Docker. See [DOCKER.md](DOCKER.md) for complete Docker deployment instructions.
 
-### Using Python directly
+### Using Gunicorn (Production)
+
+For production deployments outside of Docker, use Gunicorn for better performance and reliability:
+
+#### Quick Start
+
+```bash
+# Set required environment variable
+export GUARD_SALT="your-secure-salt-here"
+
+# Start with default settings
+./start_production.sh
+
+# Or start manually with custom settings
+export GUNICORN_WORKERS=4
+export GUNICORN_TIMEOUT=30
+gunicorn --config gunicorn.conf.py wsgi:app
+```
+
+#### Windows
+
+```cmd
+# Set required environment variable
+set GUARD_SALT=your-secure-salt-here
+
+# Start with default settings
+start_production.bat
+
+# Or start manually
+set GUNICORN_WORKERS=4
+set GUNICORN_TIMEOUT=30
+gunicorn --config gunicorn.conf.py wsgi:app
+```
+
+#### Gunicorn Configuration
+
+The `gunicorn.conf.py` file provides production-optimized settings. You can customize it through environment variables:
+
+| Environment Variable | Default | Description |
+|---------------------|---------|-------------|
+| `GUNICORN_WORKERS` | `(CPU cores × 2) + 1` | Number of worker processes |
+| `GUNICORN_WORKER_CLASS` | `sync` | Worker class (sync, gevent, eventlet) |
+| `GUNICORN_TIMEOUT` | `30` | Worker timeout in seconds |
+| `GUNICORN_KEEPALIVE` | `2` | Keep-alive timeout |
+| `GUNICORN_MAX_REQUESTS` | `1000` | Max requests per worker before restart |
+| `GUNICORN_BIND` | `0.0.0.0:9090` | Bind address and port |
+| `GUNICORN_LOG_LEVEL` | `info` | Log level (debug, info, warning, error) |
+
+#### Example Production Configuration
+
+```bash
+export GUARD_SALT="your-secure-salt-here"
+export GUNICORN_WORKERS=8
+export GUNICORN_WORKER_CLASS="gevent"
+export GUNICORN_TIMEOUT=60
+export GUNICORN_MAX_REQUESTS=2000
+export GUNICORN_LOG_LEVEL="warning"
+export GUNICORN_BIND="0.0.0.0:9090"
+
+gunicorn --config gunicorn.conf.py wsgi:app
+```
+
+### Using Python directly (Development)
 
 Start the server with at least the salt option:
 

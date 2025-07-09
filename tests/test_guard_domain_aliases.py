@@ -137,5 +137,169 @@ class TestGuardDomainAliases(unittest.TestCase):
             os.unlink(aliases_path)
 
 
+    def test_parent_domain_matching(self):
+        """Test that domains sharing the same parent domain are correctly identified as aliases."""
+        # Create guard config without aliases file to test pure parent domain logic
+        config = GuardConfig(
+            salt='test-salt',
+            domain_aliases_file=None
+        )
+        
+        server = GuardServer(config)
+        
+        # Test cases where domains should match (same parent domain)
+        positive_cases = [
+            # Talkspace case that was broken
+            ('team.talkspace.com', 'try.talkspace.com'),
+            ('mail.talkspace.com', 'support.talkspace.com'),
+            
+            # Google domains
+            ('mail.google.com', 'drive.google.com'),
+            ('docs.google.com', 'calendar.google.com'),
+            ('www.google.com', 'api.google.com'),
+            
+            # Microsoft domains
+            ('outlook.live.com', 'onedrive.live.com'),
+            ('mail.microsoft.com', 'support.microsoft.com'),
+            
+            # Example domains
+            ('www.example.com', 'api.example.com'),
+            ('mail.example.org', 'support.example.org'),
+            ('sub1.example.net', 'sub2.example.net'),
+            
+            # Single-level domains (should match themselves)
+            ('example.com', 'example.com'),
+            ('google.com', 'google.com'),
+            
+            # Subdomain relationships (should still work)
+            ('sub.example.com', 'example.com'),
+            ('example.com', 'sub.example.com'),
+            ('deep.sub.example.com', 'sub.example.com'),
+        ]
+        
+        for domain1, domain2 in positive_cases:
+            with self.subTest(domain1=domain1, domain2=domain2):
+                self.assertTrue(
+                    server.domain_aliases.are_aliases(domain1, domain2),
+                    f"Expected {domain1} and {domain2} to match"
+                )
+    
+    def test_parent_domain_matching_negative(self):
+        """Test that domains with different parent domains are correctly identified as non-aliases."""
+        # Create guard config without aliases file to test pure parent domain logic
+        config = GuardConfig(
+            salt='test-salt',
+            domain_aliases_file=None
+        )
+        
+        server = GuardServer(config)
+        
+        # Test cases where domains should NOT match (different parent domains)
+        negative_cases = [
+            # Different companies
+            ('team.talkspace.com', 'mail.google.com'),
+            ('example.com', 'other.com'),
+            ('google.com', 'microsoft.com'),
+            
+            # Different TLDs
+            ('example.com', 'example.org'),
+            ('google.com', 'google.net'),
+            ('talkspace.com', 'talkspace.org'),
+            
+            # Different second-level domains
+            ('team.talkspace.com', 'team.otherspace.com'),
+            ('mail.google.com', 'mail.gmail.com'),
+            ('www.example.com', 'www.example2.com'),
+            
+            # Edge cases
+            ('example.com', 'sub.example.com'),  # This should match due to subdomain logic
+            ('sub.example.com', 'example.com'),  # This should match due to subdomain logic
+            ('example.com', 'deep.sub.example.com'),  # This should match due to subdomain logic
+            
+            # Invalid domains
+            ('', 'example.com'),
+            ('example.com', ''),
+            ('', ''),
+            (None, 'example.com'),
+            ('example.com', None),
+        ]
+        
+        for domain1, domain2 in negative_cases:
+            with self.subTest(domain1=domain1, domain2=domain2):
+                # Skip the edge cases that should actually match due to subdomain logic
+                if (domain1 == 'example.com' and domain2 == 'sub.example.com') or \
+                   (domain1 == 'sub.example.com' and domain2 == 'example.com') or \
+                   (domain1 == 'example.com' and domain2 == 'deep.sub.example.com'):
+                    self.assertTrue(
+                        server.domain_aliases.are_aliases(domain1, domain2),
+                        f"Expected {domain1} and {domain2} to match due to subdomain relationship"
+                    )
+                else:
+                    self.assertFalse(
+                        server.domain_aliases.are_aliases(domain1, domain2),
+                        f"Expected {domain1} and {domain2} NOT to match"
+                    )
+    
+    def test_parent_domain_matching_edge_cases(self):
+        """Test edge cases for parent domain matching."""
+        config = GuardConfig(
+            salt='test-salt',
+            domain_aliases_file=None
+        )
+        
+        server = GuardServer(config)
+        
+        # Test domains with different numbers of levels (should match due to subdomain logic)
+        self.assertTrue(server.domain_aliases.are_aliases('example.com', 'sub.example.com'))
+        self.assertTrue(server.domain_aliases.are_aliases('sub.example.com', 'example.com'))
+        
+        # Test domains with very long subdomains
+        self.assertTrue(server.domain_aliases.are_aliases('very.deep.sub.example.com', 'another.deep.sub.example.com'))
+        
+        # Test case sensitivity
+        self.assertTrue(server.domain_aliases.are_aliases('TEAM.TALKSPACE.COM', 'try.talkspace.com'))
+        self.assertTrue(server.domain_aliases.are_aliases('team.talkspace.com', 'TRY.TALKSPACE.COM'))
+        
+        # Test domains with extra whitespace
+        self.assertTrue(server.domain_aliases.are_aliases(' team.talkspace.com ', 'try.talkspace.com'))
+        self.assertTrue(server.domain_aliases.are_aliases('team.talkspace.com', ' try.talkspace.com '))
+    
+    def test_parent_domain_matching_with_aliases(self):
+        """Test that parent domain matching works correctly with configured aliases."""
+        aliases_data = {
+            'talkspace.com': ['talkspace-email.com'],
+            'google.com': ['google-email.com']
+        }
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as aliases_file:
+            yaml.dump(aliases_data, aliases_file)
+            aliases_path = aliases_file.name
+        
+        try:
+            config = GuardConfig(
+                salt='test-salt',
+                domain_aliases_file=aliases_path
+            )
+            
+            server = GuardServer(config)
+            
+            # Test that parent domain matching still works
+            self.assertTrue(server.domain_aliases.are_aliases('team.talkspace.com', 'try.talkspace.com'))
+            self.assertTrue(server.domain_aliases.are_aliases('mail.google.com', 'drive.google.com'))
+            
+            # Test that configured aliases still work
+            self.assertTrue(server.domain_aliases.are_aliases('talkspace.com', 'talkspace-email.com'))
+            self.assertTrue(server.domain_aliases.are_aliases('google.com', 'google-email.com'))
+            
+            # Test that subdomains of aliases work
+            self.assertTrue(server.domain_aliases.are_aliases('team.talkspace.com', 'talkspace-email.com'))
+            self.assertTrue(server.domain_aliases.are_aliases('mail.google.com', 'google-email.com'))
+            
+            # Test that cross-company still fails
+            self.assertFalse(server.domain_aliases.are_aliases('talkspace.com', 'google.com'))
+        finally:
+            os.unlink(aliases_path)
+
+
 if __name__ == '__main__':
     unittest.main() 

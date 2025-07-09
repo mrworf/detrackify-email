@@ -16,6 +16,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application files
 COPY detrackify_guard.py .
+COPY wsgi.py .
+COPY gunicorn.conf.py .
 COPY guard/ ./guard/
 COPY extras/docker-entrypoint.sh .
 COPY templates/ ./templates/

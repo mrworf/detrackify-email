@@ -14,7 +14,21 @@ services:
       # Required
       - GUARD_SALT=changeme123  # Change this to a secure salt
       
-      # Optional configuration
+      # Server mode (true for Gunicorn, false for direct Flask)
+      - USE_GUNICORN=true
+      
+      # Gunicorn configuration (only used when USE_GUNICORN=true)
+      - GUNICORN_WORKERS=4  # Number of worker processes
+      - GUNICORN_WORKER_CLASS=sync  # Worker class: sync, gevent, eventlet
+      - GUNICORN_TIMEOUT=30  # Worker timeout in seconds
+      - GUNICORN_KEEPALIVE=2  # Keep-alive timeout
+      - GUNICORN_MAX_REQUESTS=1000  # Max requests per worker before restart
+      - GUNICORN_MAX_REQUESTS_JITTER=100  # Jitter for max requests
+      - GUNICORN_GRACEFUL_TIMEOUT=30  # Graceful shutdown timeout
+      - GUNICORN_LOG_LEVEL=info  # Log level: debug, info, warning, error
+      - GUNICORN_BIND=0.0.0.0:9090  # Bind address
+      
+      # Application configuration
       - TIMEOUT=5
       - PRIVACY=false
       - RESOLVE=head

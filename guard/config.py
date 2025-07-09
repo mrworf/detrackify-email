@@ -85,6 +85,51 @@ class GuardConfig:
             raise
 
     @classmethod
+    def from_env(cls) -> 'GuardConfig':
+        """Load configuration from environment variables."""
+        def get_env_bool(key: str, default: bool = False) -> bool:
+            """Get boolean value from environment variable."""
+            value = os.getenv(key, '').lower()
+            return value in ('true', '1', 'yes', 'on')
+
+        def get_env_list(key: str, default: List[str] = None) -> List[str]:
+            """Get list value from environment variable (comma-separated)."""
+            if default is None:
+                default = []
+            value = os.getenv(key, '')
+            if not value:
+                return default
+            return [item.strip() for item in value.split(',') if item.strip()]
+
+        def get_env_int(key: str, default: int) -> int:
+            """Get integer value from environment variable."""
+            try:
+                return int(os.getenv(key, default))
+            except (ValueError, TypeError):
+                return default
+
+        # Extract configuration values from environment
+        return cls(
+            salt=os.getenv('GUARD_SALT', ''),
+            timeout=get_env_int('TIMEOUT', 5),
+            template_dir=os.getenv('TEMPLATE_DIR', 'templates'),
+            resource_dir=os.getenv('RESOURCES_DIR', 'resources'),
+            privacy=get_env_bool('PRIVACY', False),
+            listen_ip=os.getenv('LISTEN_IP', '127.0.0.1'),
+            listen_port=get_env_int('LISTEN_PORT', 9090),
+            resolve=os.getenv('RESOLVE'),
+            cache_file=os.getenv('RESOLVE_CACHE_FILE'),
+            cache_days=get_env_int('RESOLVE_CACHE_DAYS', 30),
+            cache_max=get_env_int('RESOLVE_CACHE_MAX', 4096),
+            strip_param_prefixes=get_env_list('STRIP_PARAM_PREFIX'),
+            user_agent=os.getenv('USER_AGENT', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'),
+            force_language=os.getenv('FORCE_LANGUAGE'),
+            domain_aliases_file=os.getenv('DOMAIN_ALIASES_FILE', 'domain_aliases.yml'),
+            blacklist_file=os.getenv('BLACKLIST_FILE', 'blacklist.yml'),
+            deny_on_warnings=get_env_list('DENY_ON_WARNINGS'),
+        )
+
+    @classmethod
     def from_args(cls, args: argparse.Namespace, config_path: Optional[str] = None) -> 'GuardConfig':
         """Create configuration from command line arguments and optional YAML file."""
         # Start with default configuration

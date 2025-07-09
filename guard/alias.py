@@ -41,7 +41,13 @@ class DomainAliases:
         if domain1 == domain2:
             return True
         
+        # Check if one is a subdomain of the other
         if GuardUtils.is_subdomain(domain1, domain2) or GuardUtils.is_subdomain(domain2, domain1):
+            return True
+        
+        # Check if they share the same parent domain (e.g., both are subdomains of the same domain)
+        if GuardUtils.share_parent_domain(domain1, domain2):
+            logging.debug(f'Domain parent match: {domain1} and {domain2} share same parent domain')
             return True
         
         for owner, alias_list in self.aliases.items():

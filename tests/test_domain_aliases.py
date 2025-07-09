@@ -169,6 +169,127 @@ class TestDomainAliases(unittest.TestCase):
         self.assertFalse(self.config.are_domains_aliases('instacart.com', 'amazon.com'))
         self.assertFalse(self.config.are_domains_aliases('google.com', 'microsoft.com'))
 
+    def test_parent_domain_matching(self):
+        """Test that domains sharing the same parent domain are correctly identified as aliases."""
+        # Clear aliases to test pure parent domain logic
+        self.config.config['options']['guard']['domain_aliases'] = {}
+        
+        # Test cases where domains should match (same parent domain)
+        positive_cases = [
+            # Talkspace case that was broken
+            ('team.talkspace.com', 'try.talkspace.com'),
+            ('mail.talkspace.com', 'support.talkspace.com'),
+            
+            # Google domains
+            ('mail.google.com', 'drive.google.com'),
+            ('docs.google.com', 'calendar.google.com'),
+            ('www.google.com', 'api.google.com'),
+            
+            # Microsoft domains
+            ('outlook.live.com', 'onedrive.live.com'),
+            ('mail.microsoft.com', 'support.microsoft.com'),
+            
+            # Example domains
+            ('www.example.com', 'api.example.com'),
+            ('mail.example.org', 'support.example.org'),
+            ('sub1.example.net', 'sub2.example.net'),
+            
+            # Single-level domains (should match themselves)
+            ('example.com', 'example.com'),
+            ('google.com', 'google.com'),
+            
+            # Subdomain relationships (should still work)
+            ('sub.example.com', 'example.com'),
+            ('example.com', 'sub.example.com'),
+            ('deep.sub.example.com', 'sub.example.com'),
+        ]
+        
+        for domain1, domain2 in positive_cases:
+            with self.subTest(domain1=domain1, domain2=domain2):
+                self.assertTrue(
+                    self.config.are_domains_aliases(domain1, domain2),
+                    f"Expected {domain1} and {domain2} to match"
+                )
+    
+    def test_parent_domain_matching_negative(self):
+        """Test that domains with different parent domains are correctly identified as non-aliases."""
+        # Clear aliases to test pure parent domain logic
+        self.config.config['options']['guard']['domain_aliases'] = {}
+        
+        # Test cases where domains should NOT match (different parent domains)
+        negative_cases = [
+            # Different companies
+            ('team.talkspace.com', 'mail.google.com'),
+            ('example.com', 'other.com'),
+            ('google.com', 'microsoft.com'),
+            
+            # Different TLDs
+            ('example.com', 'example.org'),
+            ('google.com', 'google.net'),
+            ('talkspace.com', 'talkspace.org'),
+            
+            # Different second-level domains
+            ('team.talkspace.com', 'team.otherspace.com'),
+            ('mail.google.com', 'mail.gmail.com'),
+            ('www.example.com', 'www.example2.com'),
+            
+            # Invalid domains
+            ('', 'example.com'),
+            ('example.com', ''),
+            ('', ''),
+            (None, 'example.com'),
+            ('example.com', None),
+        ]
+        
+        for domain1, domain2 in negative_cases:
+            with self.subTest(domain1=domain1, domain2=domain2):
+                self.assertFalse(
+                    self.config.are_domains_aliases(domain1, domain2),
+                    f"Expected {domain1} and {domain2} NOT to match"
+                )
+    
+    def test_parent_domain_matching_edge_cases(self):
+        """Test edge cases for parent domain matching."""
+        # Clear aliases to test pure parent domain logic
+        self.config.config['options']['guard']['domain_aliases'] = {}
+        
+        # Test domains with different numbers of levels
+        self.assertFalse(self.config.are_domains_aliases('example.com', 'sub.example.com'))
+        self.assertFalse(self.config.are_domains_aliases('sub.example.com', 'example.com'))
+        
+        # Test domains with very long subdomains
+        self.assertTrue(self.config.are_domains_aliases('very.deep.sub.example.com', 'another.deep.sub.example.com'))
+        
+        # Test case sensitivity
+        self.assertTrue(self.config.are_domains_aliases('TEAM.TALKSPACE.COM', 'try.talkspace.com'))
+        self.assertTrue(self.config.are_domains_aliases('team.talkspace.com', 'TRY.TALKSPACE.COM'))
+        
+        # Test domains with extra whitespace
+        self.assertTrue(self.config.are_domains_aliases(' team.talkspace.com ', 'try.talkspace.com'))
+        self.assertTrue(self.config.are_domains_aliases('team.talkspace.com', ' try.talkspace.com '))
+    
+    def test_parent_domain_matching_with_aliases(self):
+        """Test that parent domain matching works correctly with configured aliases."""
+        self.config.config['options']['guard']['domain_aliases'] = {
+            'talkspace.com': ['talkspace-email.com'],
+            'google.com': ['google-email.com']
+        }
+        
+        # Test that parent domain matching still works
+        self.assertTrue(self.config.are_domains_aliases('team.talkspace.com', 'try.talkspace.com'))
+        self.assertTrue(self.config.are_domains_aliases('mail.google.com', 'drive.google.com'))
+        
+        # Test that configured aliases still work
+        self.assertTrue(self.config.are_domains_aliases('talkspace.com', 'talkspace-email.com'))
+        self.assertTrue(self.config.are_domains_aliases('google.com', 'google-email.com'))
+        
+        # Test that subdomains of aliases work
+        self.assertTrue(self.config.are_domains_aliases('team.talkspace.com', 'talkspace-email.com'))
+        self.assertTrue(self.config.are_domains_aliases('mail.google.com', 'google-email.com'))
+        
+        # Test that cross-company still fails
+        self.assertFalse(self.config.are_domains_aliases('talkspace.com', 'google.com'))
+
 
 class TestDomainAliasesYAMLConfig(unittest.TestCase):
     """Test domain aliases loading from YAML configuration files."""

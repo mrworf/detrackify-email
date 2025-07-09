@@ -61,6 +61,18 @@ The official Docker image is available from GitHub Container Registry:
 - `TEMPLATE_DIR`: Directory containing templates (default: /app/templates)
 - `RESOURCES_DIR`: Directory containing additional resources (default: /app/resources)
 
+#### Gunicorn Configuration (Production)
+- `USE_GUNICORN`: Use Gunicorn instead of Flask development server (true/false, default: true)
+- `GUNICORN_WORKERS`: Number of worker processes (default: 4)
+- `GUNICORN_WORKER_CLASS`: Worker class - sync, gevent, eventlet (default: sync)
+- `GUNICORN_TIMEOUT`: Worker timeout in seconds (default: 30)
+- `GUNICORN_KEEPALIVE`: Keep-alive timeout (default: 2)
+- `GUNICORN_MAX_REQUESTS`: Max requests per worker before restart (default: 1000)
+- `GUNICORN_MAX_REQUESTS_JITTER`: Jitter for max requests (default: 100)
+- `GUNICORN_GRACEFUL_TIMEOUT`: Graceful shutdown timeout (default: 30)
+- `GUNICORN_LOG_LEVEL`: Log level - debug, info, warning, error (default: info)
+- `GUNICORN_BIND`: Bind address and port (default: 0.0.0.0:9090)
+
 ### Example Configuration
 
 ```bash
@@ -104,6 +116,53 @@ services:
       - ./resources:/app/resources:ro
       - ./cache:/app/cache
     restart: unless-stopped
+```
+
+### Production Setup with Gunicorn
+
+For production deployments, the container uses Gunicorn by default with optimized settings:
+
+```yaml
+version: '3.8'
+
+services:
+  detrackify-guard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: detrackify-guard
+    ports:
+      - "9090:9090"
+    environment:
+      # Required
+      - GUARD_SALT=your-secure-salt-here
+      
+      # Server mode (Gunicorn for production)
+      - USE_GUNICORN=true
+      
+      # Gunicorn configuration
+      - GUNICORN_WORKERS=8
+      - GUNICORN_WORKER_CLASS=sync
+      - GUNICORN_TIMEOUT=60
+      - GUNICORN_MAX_REQUESTS=2000
+      - GUNICORN_LOG_LEVEL=warning
+      
+      # Application configuration
+      - TIMEOUT=5
+      - PRIVACY=true
+      - RESOLVE=head
+      - STRIP_PARAM_PREFIX=utm_source,utm_medium,utm_campaign,fbclid,gclid
+    volumes:
+      - ./templates:/app/templates:ro
+      - ./resources:/app/resources:ro
+      - ./cache:/app/cache
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:9090/guard/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 ```
 
 ### With Nginx Reverse Proxy
