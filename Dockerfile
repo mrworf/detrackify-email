@@ -22,6 +22,7 @@ COPY detrackify_guard.py .
 COPY wsgi.py .
 COPY gunicorn.conf.py .
 COPY guard/ ./guard/
+COPY common/ ./common/
 COPY extras/docker-entrypoint.sh .
 COPY templates/ ./templates/
 COPY resources/ ./resources/
