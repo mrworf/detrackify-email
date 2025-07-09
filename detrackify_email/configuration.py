@@ -262,6 +262,11 @@ class Configuration:
         if EmailHelpers.is_subdomain(domain1, domain2) or EmailHelpers.is_subdomain(domain2, domain1):
             return True
         
+        # Check if they share the same parent domain (e.g., both are subdomains of the same domain)
+        if EmailHelpers.share_parent_domain(domain1, domain2):
+            logging.debug(f'Domain parent match: {domain1} and {domain2} share same parent domain')
+            return True
+        
         # Check configured aliases
         aliases = self.get(Configuration.CFG_GUARD_DOMAIN_ALIASES, {})
         for owner, alias_list in aliases.items():

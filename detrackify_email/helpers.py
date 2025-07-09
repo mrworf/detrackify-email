@@ -69,8 +69,34 @@ class EmailHelpers:
     
     @staticmethod
     def normalize_domain(domain: str) -> str:
-        """Normalize domain to lowercase."""
-        return domain.lower() if domain else ''
+        """Normalize domain to lowercase and strip whitespace."""
+        return domain.lower().strip() if domain else ''
+    
+    @staticmethod
+    def share_parent_domain(domain1: str, domain2: str) -> bool:
+        """Check if two domains share the same parent domain (e.g., both are subdomains of the same domain)."""
+        if not domain1 or not domain2:
+            return False
+        
+        domain1 = EmailHelpers.normalize_domain(domain1)
+        domain2 = EmailHelpers.normalize_domain(domain2)
+        
+        # If they're the same, they share the same parent
+        if domain1 == domain2:
+            return True
+            
+        # Split into parts and check if they have at least 2 parts
+        parts1 = domain1.split('.')
+        parts2 = domain2.split('.')
+        
+        if len(parts1) < 2 or len(parts2) < 2:
+            return False
+            
+        # Check if they share the same parent domain (last 2 parts)
+        parent1 = '.'.join(parts1[-2:])
+        parent2 = '.'.join(parts2[-2:])
+        
+        return parent1 == parent2
     
     @staticmethod
     def parse_email_addresses(header_value: str) -> List[Tuple[str, str]]:

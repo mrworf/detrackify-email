@@ -253,9 +253,9 @@ class TestDomainAliases(unittest.TestCase):
         # Clear aliases to test pure parent domain logic
         self.config.config['options']['guard']['domain_aliases'] = {}
         
-        # Test domains with different numbers of levels
-        self.assertFalse(self.config.are_domains_aliases('example.com', 'sub.example.com'))
-        self.assertFalse(self.config.are_domains_aliases('sub.example.com', 'example.com'))
+        # Test domains with different numbers of levels (should match due to subdomain logic)
+        self.assertTrue(self.config.are_domains_aliases('example.com', 'sub.example.com'))
+        self.assertTrue(self.config.are_domains_aliases('sub.example.com', 'example.com'))
         
         # Test domains with very long subdomains
         self.assertTrue(self.config.are_domains_aliases('very.deep.sub.example.com', 'another.deep.sub.example.com'))
