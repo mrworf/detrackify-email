@@ -30,6 +30,9 @@ import hashlib
 from io import BytesIO
 import email.utils
 import requests
+import urllib.parse
+
+from url_utils import strip_query_params
 
 class Detector:
     def __init__(self, config):
@@ -46,6 +49,11 @@ class Detector:
         else:
             logging.warning(f'URL does not confirm: {url}')
         return result
+
+    def strip_query_params(self, url):
+        """Remove query parameters starting with configured prefixes (case-insensitive)."""
+        prefixes = self.config.get(Configuration.CFG_STRIP_PARAM_PREFIX, [])
+        return strip_query_params(url, prefixes)
 
     def detect_needed_rewrite(self, url, replace_1x1=False):
         # Check if the URL contains a query string
@@ -295,6 +303,11 @@ class Detrackify:
             if self.config.get(Configuration.CFG_STRIP_ENABLE) and not tracker:
                 replacement, reason = self.process_strip(img_tag)
                 tracker.extend(reason)
+            
+            # Try parameter stripping if enabled and no tracker found yet
+            if not tracker and self.config.get(Configuration.CFG_STRIP_PARAM_PREFIX):
+                replacement, param_reason = self.process_strip_params(img_tag)
+                tracker.extend(param_reason)
 
             # Determine if we should replace the tracking pixel
             if tracker:
@@ -399,15 +412,31 @@ class Detrackify:
                 self.config.add_whitelist(f'{stripped_url}')
         return stripped_url, reason
 
+    def process_strip_params(self, img_tag):
+        """Process URL parameter stripping using guard-style prefix matching."""
+        stripped_url = url = img_tag['src']
+        reason = []
+        
+        # Use the new parameter stripping method
+        prefixes = self.config.get(Configuration.CFG_STRIP_PARAM_PREFIX, [])
+        if prefixes:
+            new_url = self.detector.strip_query_params(url)
+            if new_url != url:
+                stripped_url = new_url
+                reason.append('Parameter stripping')
+                logging.debug(f'Stripped parameters from {url} to {stripped_url}')
+        
+        return stripped_url, reason
+
     def decode_base64(self, content, charset='utf-8'):
         # Decode Base64 content to string using the specified charset
         ret = base64.b64decode(content).decode(charset)
         return ret
 
-    def process_file(self, email_path, output_path, listonly=False):
+    def process_file(self, email_path, output_path, listonly=False, hardfail=False):
         with open(email_path, 'rb') as fd_in:
             with open(output_path, 'wb') as fd_out:
-                self.process(fd_in, fd_out, hardfail=True, listonly=listonly)
+                self.process(fd_in, fd_out, hardfail=hardfail, listonly=listonly)
 
     def process(self, input_fd, output_fd, hardfail=False, listonly=False):
         # Read the raw email content into memory
@@ -545,6 +574,7 @@ class Configuration:
     CFG_STRIP_COOKIES = 'options.strip.cookies'
     CFG_STRIP_REDIRECT = 'options.strip.redirect'
     CFG_STRIP_ENABLE = 'options.strip.enable'
+    CFG_STRIP_PARAM_PREFIX = 'options.strip.param_prefix'
     CFG_COPY = 'options.copy'
     CFG_GUARD_SERVER = 'options.guard.server'
     CFG_GUARD_SALT = 'options.guard.salt'
@@ -561,7 +591,8 @@ class Configuration:
                     'file': 'strip.yml',
                     'cookies': True,
                     'redirect': True,
-                    'enable': False
+                    'enable': False,
+                    'param_prefix': ['utm_', 'fbclid', 'gclid']
                 },
                 'verbose': False,
                 'copy': None,
@@ -793,6 +824,7 @@ def main():
     parser.add_argument('--guardcaptureto', action='store_true', help='Capture the To address in guarded links')
     parser.add_argument('--guardwhitelink', action='append', default=[], help='Regex of links that should not be guarded')
     parser.add_argument('--guardwhitelistsender', action='append', default=[], help='Regex of sender addresses exempt from guarding')
+    parser.add_argument('--strip-param-prefix', action='append', default=[], help='Strip query parameters starting with PREFIX and everything after')
 
     # Parse command line arguments
     args = parser.parse_args()
@@ -853,6 +885,8 @@ def main():
         config.config['options']['guard']['whitelist_links'].extend(args.guardwhitelink)
     if args.guardwhitelistsender:
         config.config['options']['guard']['whitelist_senders'].extend(args.guardwhitelistsender)
+    if hasattr(args, 'strip_param_prefix') and args.strip_param_prefix:
+        config.config['options']['strip']['param_prefix'].extend(args.strip_param_prefix)
 
     mode = config.get(Configuration.CFG_GUARD_LINK, 'off')
     if mode != 'off':
@@ -891,7 +925,7 @@ def main():
         if args.message_id:
             logging.info(f'Processing message ID: {args.message_id}')
         if args.input and args.output:
-            detrack.process_file(args.input, args.output, listonly=args.list)
+            detrack.process_file(args.input, args.output, listonly=args.list, hardfail=args.hardfail)
             #if not args.list:
             #    detrack.get_statistics()
         else:

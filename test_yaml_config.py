@@ -5,6 +5,7 @@ import sys
 import os
 import tempfile
 import yaml
+import pytest
 
 # Add the current directory to the path so we can import detrackify_guard
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -47,11 +48,7 @@ def test_yaml_config():
         assert loaded_config['debug'] is True
         
         print("✅ YAML configuration loading test passed!")
-        return True
         
-    except Exception as e:
-        print(f"❌ YAML configuration loading test failed: {e}")
-        return False
     finally:
         # Clean up temporary file
         os.unlink(config_path)
@@ -66,14 +63,11 @@ def test_invalid_yaml():
         config_path = f.name
     
     try:
-        # Test loading invalid configuration
-        try:
+        # Test loading invalid configuration - should raise yaml.YAMLError
+        with pytest.raises(yaml.YAMLError):
             load_config_from_yaml(config_path)
-            print("❌ Invalid YAML test failed - should have raised an exception")
-            return False
-        except yaml.YAMLError:
-            print("✅ Invalid YAML handling test passed!")
-            return True
+        
+        print("✅ Invalid YAML handling test passed!")
         
     finally:
         # Clean up temporary file
@@ -83,13 +77,11 @@ def test_invalid_yaml():
 def test_missing_file():
     """Test handling of missing configuration file."""
     
-    try:
+    # Test loading missing file - should raise FileNotFoundError
+    with pytest.raises(FileNotFoundError):
         load_config_from_yaml('/nonexistent/file.yml')
-        print("❌ Missing file test failed - should have raised an exception")
-        return False
-    except FileNotFoundError:
-        print("✅ Missing file handling test passed!")
-        return True
+    
+    print("✅ Missing file handling test passed!")
 
 
 if __name__ == '__main__':
@@ -105,8 +97,11 @@ if __name__ == '__main__':
     total = len(tests)
     
     for test in tests:
-        if test():
+        try:
+            test()
             passed += 1
+        except Exception as e:
+            print(f"❌ Test {test.__name__} failed: {e}")
     
     print(f"\nTest results: {passed}/{total} tests passed")
     

@@ -1,0 +1,12 @@
+From: invalid-email-address-no-at-sign
+To: 
+Subject: Test with malformed headers
+Date: not-a-valid-date
+Content-Type: invalid/type
+Content-Transfer-Encoding: invalid-encoding
+X-Malformed-Header: header-with-
+    broken-line-continuation
+X-Null-Header: 
+X-Very-Long-Header: This is an extremely long header that goes on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on
+
+This is the body content of an email with corrupted headers. 

@@ -1,0 +1,65 @@
+Return-Path: <mixedcase@marketing.com>
+Delivered-To: user@example.com
+Received: by 2002:a17:90b:1b0e:0:0:0:0 with SMTP id lq14csp123456abc;
+        Wed, 15 Mar 2023 14:15:00 -0700 (PDT)
+Message-ID: <mixed-case-tracking-001@marketing.com>
+Date: Wed, 15 Mar 2023 14:15:00 -0700
+From: Mixed Case Marketing <mixedcase@marketing.com>
+To: user@example.com
+Subject: Mixed Case Tracking Parameters Test
+Content-Type: text/html; charset=utf-8
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mixed Case Tracking Test</title>
+</head>
+<body>
+    <h1>Mixed Case Tracking Parameter Test</h1>
+    
+    <p>This email tests case-insensitive parameter stripping:</p>
+    
+    <!-- UTM parameters in various cases -->
+    <img src="https://example.com/track1.gif?param1=keep&utm_source=email&param2=discard" width="200" height="150" />
+    <img src="https://example.com/track2.gif?param1=keep&UTM_SOURCE=email&param2=discard" width="200" height="150" />
+    <img src="https://example.com/track3.gif?param1=keep&Utm_Source=email&param2=discard" width="200" height="150" />
+    <img src="https://example.com/track4.gif?param1=keep&UTM_MEDIUM=newsletter&param2=discard" width="200" height="150" />
+    
+    <!-- Facebook click ID in various cases -->
+    <img src="https://example.com/fb1.gif?param1=keep&fbclid=123456&param2=discard" width="200" height="150" />
+    <img src="https://example.com/fb2.gif?param1=keep&FBCLID=123456&param2=discard" width="200" height="150" />
+    <img src="https://example.com/fb3.gif?param1=keep&FbClId=123456&param2=discard" width="200" height="150" />
+    
+    <!-- Google click ID in various cases -->
+    <img src="https://example.com/gc1.gif?param1=keep&gclid=789012&param2=discard" width="200" height="150" />
+    <img src="https://example.com/gc2.gif?param1=keep&GCLID=789012&param2=discard" width="200" height="150" />
+    <img src="https://example.com/gc3.gif?param1=keep&GcLiD=789012&param2=discard" width="200" height="150" />
+    
+    <!-- Mixed tracking parameters -->
+    <img src="https://example.com/mixed1.gif?param1=keep&UTM_SOURCE=email&FBCLID=123&param2=discard" width="200" height="150" />
+    <img src="https://example.com/mixed2.gif?param1=keep&Utm_Medium=newsletter&Gclid=456&param2=discard" width="200" height="150" />
+    
+    <!-- Non-tracking parameters (should remain) -->
+    <img src="https://example.com/clean.gif?param1=value1&param2=value2&param3=value3" width="200" height="150" />
+    
+    <!-- Links with mixed case tracking parameters -->
+    <a href="https://example.com/offer1?param1=keep&UTM_SOURCE=email&param2=discard">
+        Uppercase UTM Link
+    </a>
+    
+    <a href="https://example.com/offer2?param1=keep&Utm_Medium=newsletter&param2=discard">
+        Mixed Case UTM Link
+    </a>
+    
+    <a href="https://example.com/offer3?param1=keep&FBCLID=123456&param2=discard">
+        Uppercase Facebook Link
+    </a>
+    
+    <!-- Regular link without tracking -->
+    <a href="https://example.com/contact?param1=value1&param2=value2">
+        Clean Link
+    </a>
+    
+    <p>End of mixed case tracking test.</p>
+</body>
+</html> 

@@ -1,0 +1,239 @@
+Return-path: <bounces+421045-bd82-testuser=example.com@email.testphishing.com>
+Envelope-to: testuser@example.com
+Delivery-date: Sun, 29 Jun 2025 22:25:20 +0200
+Received: from Debian-exim by example.com with detrackify (Exim 4.97)
+	(envelope-from <bounces+421045-bd82-testuser=example.com@email.testphishing.com>)
+	id 1uVyaV-000000050z2-3eDe
+	for testuser@example.com;
+	Sun, 29 Jun 2025 22:25:20 +0200
+Received: from o1.email.testphishing.com ([192.254.122.219])	by example.com
+ with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	(Exim 4.97)
+	(envelope-from <bounces+421045-bd82-testuser=example.com@email.testphishing.com>)	id
+ 1uVyaV-000000050yy-19IY	for testuser@example.com;	Sun, 29 Jun 2025 22:25:19 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=email.testphishing.com;
+	h=from:subject:mime-version:to:content-type:cc:content-type:from:
+	subject:to;
+	s=smtpapi; bh=dTwEmlvOjEEoYoOuMwnyHI+kpmb0gCJoZHTP4NVxaUA=;
+	b=RM7O0qvj+SumhSMNy6VaQ06vlHJHhIJhOmaA2cMqpEy7b0br0M8l/WPccKQb6rBl+zvX
+	3k0eUt44jHC1k/0V/t5r/9x/bnFiO7Y4MZVCkjNyHYAsJe2B6pyCs04SNdnGncA0k9gQGD
+	pZ3AP3MCggWgHd0JS27JiPuvopKB9NouQ=
+Received: by recvd-687ffb65f8-5zjrb with SMTP id
+ recvd-687ffb65f8-5zjrb-1-68619F33-56	2025-06-29 20:16:51.491781732 +0000 UTC
+ m=+2173396.716680710
+Received: from email.testphishing.com (unknown)
+	by geopod-ismtpd-10 (SG)
+	with ESMTP id SsO13MMUQA28eQIkMxJU5g
+	for <testuser@example.com>;
+	Sun, 29 Jun 2025 20:16:51.344 +0000 (UTC)
+From: Crypto Wallet Team <noreply@email.testphishing.com>
+Subject: Urgent Security Notice: Action Required Immediately
+Date: Sun, 29 Jun 2025 20:16:51 +0000 (UTC)
+Message-ID: <20250629201651.B84226E05ED85B4B@email.testphishing.com>
+MIME-Version: 1.0
+X-SG-EID:  u001.Uzx+q7Evx8rrJGLSOjy/8H6XtGLbuw/JWYoLXQKOk1pBwKnDnZkf56MWN
+ =?utf-8?q?E4mJXc67WQDuGn8p8A6zxh6EdWte3thtpxiZVdn?==?utf-8?q?OiDUKOeW2mbkp+?=
+ =?utf-8?q?yrsUQRD9jRAmIkiUgNIifOeZAi5zgEH3lTvU1kx0EaQRMup/w55ck8oP028CbxZbr?=
+ =?utf-8?q?Eh4vHXGRShmyUnIfKV1KpQIjwV57/CSztIfDHAtibyXZ8kTce5aGTCx9hc8OqtGSy?=
+ =?utf-8?q?ZYTP4B4HCmV1?=1C5X
+To: testuser@example.com
+X-Entity-ID: u001.iHw5X7Dvy6dCpdqjM48XxQ==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0012_D3DE2EBA.9A13882E"
+X-RSPAMD-Scanned: Indeed
+X-Spam-Score: 14.0 (+++++++++++++)
+X-Spam-Report: Action: add header
+ Symbol: FROM_HAS_DN(0.00)
+ Symbol: FROM_NEQ_ENVFROM(0.00)
+ Symbol: PH_SURBL_MULTI(7.50)
+ Symbol: TO_DN_NONE(0.00)
+ Symbol: PREVIOUSLY_DELIVERED(0.00)
+ Symbol: MIME_GOOD(-0.10)
+ Symbol: MID_RHS_MATCH_FROM(0.00)
+ Symbol: RWL_MAILSPIKE_POSSIBLE(0.00)
+ Symbol: REDIRECTOR_URL(0.00)
+ Symbol: R_SPF_ALLOW(0.00)
+ Symbol: ASN(0.00)
+ Symbol: MISSING_XM_UA(0.00)
+ Symbol: URIBL_GREY(0.00)
+ Symbol: BAD_REP_POLICIES(0.10)
+ Symbol: DKIM_TRACE(0.00)
+ Symbol: SUSPICIOUS_URL_IN_SUSPICIOUS_MESSAGE(1.00)
+ Symbol: TO_MATCH_ENVRCPT_ALL(0.00)
+ Symbol: TAGGED_FROM(0.00)
+ Symbol: RCVD_TLS_LAST(0.00)
+ Symbol: R_DKIM_ALLOW(0.00)
+ Symbol: RCVD_COUNT_THREE(0.00)
+ Symbol: DMARC_NA(0.00)
+ Symbol: ABUSE_SURBL(5.00)
+ Symbol: GREYLIST(0.00)
+ Symbol: ARC_NA(0.00)
+ Symbol: RCPT_COUNT_ONE(0.00)
+ Symbol: MIME_TRACE(0.00)
+ Symbol: FORGED_SENDER(0.30)
+ Symbol: BAYES_SPAM(0.18)
+ Message-ID: 20250629201651.B84226E05ED85B4B@email.testphishing.com
+X-Spam-Status: Yes
+X-Spam-Bar: +++++++++++++
+X-Detrackify: Processed by Detrackify
+
+------=_NextPart_000_0012_D3DE2EBA.9A13882E
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+**Subject:** Important: Crypto Wallet Data Security Incident
+
+**Body:**
+
+**Important: Crypto Wallet Data Security Incident**
+
+Dear Valued Crypto Wallet User,
+
+We are reaching out with an important update regarding a recent=20
+security incident affecting Crypto Wallet=E2=80=99s user data. On June 25, 2025,=20
+Crypto Wallet identified unauthorized access to one of our non-financial=20
+databases. This database included limited user data, and as part=20
+of our commitment to transparency and trust, we are proactively=20
+informing our users of this situation.
+
+**What Data Was Impacted?**
+The breach potentially exposed personal contact information such=20
+as email addresses and phone numbers. It did not include=20
+financial information or direct access to your Crypto Wallet wallet or=20
+private keys. However, as a precautionary measure, we strongly=20
+recommend verifying and re-securing your recovery phrase.
+
+**Immediate Steps You Should Take:**
+
+1. Click the button below to visit our secure verification=20
+portal.
+2. Carefully verify and secure your recovery phrase in our=20
+encrypted environment.
+3. Follow the guided instructions to enhance your account=20
+security immediately.
+
+We deeply regret any inconvenience or concern this incident may=20
+have caused. Crypto Wallet remains fully committed to the highest=20
+standards of data protection and transparency. Our security teams=20
+have taken immediate and extensive actions to prevent any=20
+recurrence of this situation.
+
+[Secure My Account Now](https://u46537706.ct.sendgrid.net/ls/
+click?upn=3Du001.cGP9Keqi2CT1cHXDi5py9hhWQEJGy1cB4HP4ADHzg-
+2FK5Dmx6yMZKJ3iXdOcQcvxTIe34Mfj0zTkDingfZcKN2xI75G92y8kGTYY5AcCZt
+6k-3D7rPn_LpuaFjwIs-2B0jZisn78UyPt6pk2V55MruSfB04A4EQ-2F2oGmR-
+2FrB-2BhWu2e-2BwPPAXdLz4fJScdvr5AJmur-2FtoMqUHHEwhbyBQ-
+2F5wAhtvUxOVYAi7gJx0V7Dc2Ka0nOsckGmXe62fIklHDFsSyca-
+2B7sn1v6PaI0qUMJxZEOBG1HfRPT9fvZSC4sq1LUXqI3twyHI-
+2BXagpAR31jDMbkCoUzLjRkFsdrs4SRK92xk1ysoGhDo-3D)
+
+If you have questions or need further assistance, please visit=20
+our [Support Center](https://support.cryptowallet.com).
+
+Crypto Wallet
+123 Main Street, 12345 Anytown, USA
+=C2=A9 2025 Crypto Wallet. All rights reserved.
+[Unsubscribe](https://secure.cryptowallet.com/unsubscribe)
+
+------=_NextPart_000_0012_D3DE2EBA.9A13882E
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+Content-Type: text/html; charset="utf-8"
+
+<!DOCTYPE html>
+
+<html lang=3D"en">
+<head>
+<meta charset=3D"utf-8"/>
+<meta content=3D"IE=3Dedge" http-equiv=3D"X-UA-Compatible"/>
+<meta content=3D"width=3Ddevice-width, initial-scale=3D1.0" name=3D"viewpor=
+t"/>
+<title>Critical Security Notice from Crypto Wallet</title>
+</head>
+<table cellpadding=3D"0" cellspacing=3D"0" style=3D"margin:0; padding:0; ba=
+ckground-color:#F6F9FC;" width=3D"100%">
+<tr>
+<td align=3D"center" style=3D"margin:0; padding:0;">
+<table cellpadding=3D"0" cellspacing=3D"0" style=3D"background-color:#FFFFF=
+F; margin:40px auto; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.=
+1); overflow:hidden;" width=3D"600">
+<!-- Header -->
+<tr>
+<td style=3D"background-color:#FFFFFF; padding:20px; text-align:center;">
+<img alt=3D"Crypto Wallet" height=3D"128" src=3D"https://malicious-recovery-site.example.com/logo-long.png" style=3D"display:block; max-width:120px; =
+height:auto; border:0; outline:none; text-decoration:none;" width=3D"383"/>
+</td>
+</tr>
+<!-- Main Content -->
+<tr>
+<td style=3D"padding:35px; color:#333333;">
+<h1 style=3D"font-size:22px; margin-bottom:15px; text-align:center;">Import=
+ant: Crypto Wallet Data Security Incident</h1>
+<p style=3D"font-size:16px; line-height:1.6; margin-bottom:20px;">
+                Dear Valued Crypto Wallet User,
+              </p>
+<p style=3D"font-size:16px; line-height:1.6; margin-bottom:20px;">
+                We are reaching out with an important update regarding a re=
+cent security incident affecting Crypto Wallet&rsquo;s user data. On June 25, 2025=
+, Crypto Wallet identified unauthorized access to one of our non-financial databas=
+es. This database included limited user data, and as part of our commitment=
+ to transparency and trust, we are proactively informing our users of this =
+situation.
+              </p>
+<p style=3D"font-size:16px; line-height:1.6; margin-bottom:20px;">
+<strong style=3D"font-weight:bold;">What Data Was Impacted?</strong><br/>
+                The breach potentially exposed personal contact information=
+ such as email addresses and phone numbers. It did not include financial in=
+formation or direct access to your Crypto Wallet wallet or private keys. However, =
+as a precautionary measure, we strongly recommend verifying and re-securing=
+ your recovery phrase.
+              </p>
+<p style=3D"font-size:16px; line-height:1.6; margin-bottom:20px;">
+<strong style=3D"font-weight:bold;">Immediate Steps You Should Take:</stron=
+g>
+</p>
+<ol style=3D"font-size:16px; line-height:1.6; margin-bottom:30px; padding-l=
+eft:20px;">
+<li style=3D"margin-bottom:10px;">Click the button below to visit our secur=
+e verification portal.</li>
+<li style=3D"margin-bottom:10px;">Carefully verify and secure your recovery=
+ phrase in our encrypted environment.</li>
+<li style=3D"margin-bottom:10px;">Follow the guided instructions to enhance=
+ your account security immediately.</li>
+</ol>
+<p style=3D"font-size:16px; line-height:1.6; margin-bottom:20px;">
+                We deeply regret any inconvenience or concern this incident=
+ may have caused. Crypto Wallet remains fully committed to the highest standards o=
+f data protection and transparency. Our security teams have taken immediate=
+ and extensive actions to prevent any recurrence of this situation.
+              </p>
+<div style=3D"text-align:center; margin-bottom:30px;">
+<a href=3D"https://malicious-recovery-site.example.com/recovery.html" style=3D"display:inline-block; background-color:#000000; color:#FFFFFF; =
+padding:14px 25px; border-radius:5px; text-decoration:none; font-weight:bol=
+d;">
+                  Secure My Account Now
+                </a>
+</div>
+<p style=3D"font-size:14px; color:#888888; text-align:center;">
+                If you have questions or need further assistance, please vi=
+sit our <a href=3D"https://support.cryptowallet.com" style=3D"color:#000000; text=
+-decoration:none;">Support Center</a>.
+              </p>
+</td>
+</tr>
+<!-- Footer -->
+<tr>
+<td style=3D"background-color:#EFEFEF; padding:20px; font-size:12px; color:=
+#777777; text-align:center;">
+              Crypto Wallet, 123 Main Street, 12345 Anytown, USA<br/>
+              &copy; 2025 Crypto Wallet. All rights reserved.<br/>
+<a href=3D"https://secure.cryptowallet.com/unsubscribe" style=3D"color:#777777; t=
+ext-decoration:none;">Unsubscribe</a>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+</html>
+------=_NextPart_000_0012_D3DE2EBA.9A13882E--

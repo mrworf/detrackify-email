@@ -40,6 +40,8 @@ from flask import (
 )
 from markupsafe import escape
 
+from url_utils import strip_query_params
+
 
 @dataclass
 class GuardConfig:
@@ -239,25 +241,8 @@ class GuardServer:
         return calc == sent_sha
 
     def strip_query_params(self, url: str) -> str:
-        """Remove query parameters starting with configured prefixes."""
-        if not self.strip_prefixes or not url:
-            return url
-        try:
-            parts = urllib.parse.urlsplit(url)
-        except Exception:  # pylint: disable=broad-except
-            return url
-        if not parts.query:
-            return url
-        params = parts.query.split("&")
-        keep = []
-        for param in params:
-            key = param.split("=")[0]
-            if any(key.startswith(p) for p in self.strip_prefixes):
-                break
-            keep.append(param)
-        new_query = "&".join(p for p in keep if p)
-        parts = parts._replace(query=new_query)
-        return urllib.parse.urlunsplit(parts)
+        """Remove query parameters starting with configured prefixes (case-insensitive)."""
+        return strip_query_params(url, self.strip_prefixes)
 
     def resource(self, filename):
         """Serve optional resource files."""

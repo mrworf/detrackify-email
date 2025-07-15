@@ -1,0 +1,25 @@
+From: test@example.com
+To: dest@example.com
+Subject: Malformed MIME structure
+Content-Type: multipart/mixed; boundary="boundary123"
+
+--boundary123
+Content-Type: text/plain
+
+This is a text part.
+
+--boundary123
+Content-Type: text/html
+Content-Transfer-Encoding: base64
+
+This is supposed to be base64 but it's not encoded!!!
+
+--boundary123
+Content-Type: image/jpeg
+Content-Transfer-Encoding: base64
+
+Invalid base64 data: This is not valid base64 data!!!
+
+--boundary123--
+But wait, there's more content after the boundary end marker!
+This should not be here according to MIME standards. 

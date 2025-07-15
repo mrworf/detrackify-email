@@ -1,0 +1,53 @@
+Return-Path: <marketing@example.com>
+Delivered-To: user@example.com
+Received: by 2002:a17:90b:1b0e:0:0:0:0 with SMTP id lq14csp123456abc;
+        Wed, 15 Mar 2023 10:30:00 -0700 (PDT)
+Message-ID: <tracking-test-001@example.com>
+Date: Wed, 15 Mar 2023 10:30:00 -0700
+From: Marketing Team <marketing@example.com>
+To: user@example.com
+Subject: Test Email with Tracking Parameters
+Content-Type: text/html; charset=utf-8
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Email</title>
+</head>
+<body>
+    <h1>Test Email with Tracking Parameters</h1>
+    
+    <p>This email contains various tracking parameters that should be stripped:</p>
+    
+    <!-- UTM tracking parameters -->
+    <img src="https://example.com/track.gif?utm_source=email&utm_medium=newsletter&utm_campaign=spring2023&param1=keep" width="1" height="1" />
+    
+    <!-- Facebook click ID -->
+    <img src="https://example.com/pixel.png?fbclid=IwAR123456789&param2=alskeep" width="1" height="1" />
+    
+    <!-- Google click ID -->
+    <img src="https://example.com/analytics.gif?gclid=EAIaIQobChMI123456789&param3=keepthis" width="1" height="1" />
+    
+    <!-- Mixed parameters -->
+    <img src="https://example.com/complex.gif?param1=keep&utm_source=email&param2=discard&utm_medium=newsletter&param3=discard" width="1" height="1" />
+    
+    <!-- No tracking parameters (should remain unchanged) -->
+    <img src="https://example.com/normal.png?param1=value1&param2=value2" width="100" height="100" />
+    
+    <!-- Links with tracking parameters -->
+    <a href="https://example.com/offer?utm_source=email&utm_medium=newsletter&utm_campaign=spring2023&param1=keep">
+        Check out our spring offer!
+    </a>
+    
+    <a href="https://example.com/product?param1=value1&fbclid=IwAR123456789&param2=discard">
+        View Product
+    </a>
+    
+    <!-- Regular link without tracking -->
+    <a href="https://example.com/contact?param1=value1&param2=value2">
+        Contact Us
+    </a>
+    
+    <p>This is a test email for parameter stripping functionality.</p>
+</body>
+</html> 

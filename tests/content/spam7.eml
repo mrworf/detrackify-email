@@ -1,0 +1,2951 @@
+Return-path: <bounces+49998592-7006-wine=example.com@send.testwinerycompany.com>
+Envelope-to: testuser@example.com
+Delivery-date: Tue, 01 Jul 2025 17:16:43 +0200
+Received: from Debian-exim by example.com with detrackify (Exim 4.97)
+	(envelope-from <bounces+49998592-7006-wine=example.com@send.testwinerycompany.com>)
+	id 1uWciw-00000005eeO-3JEy
+	for testuser@example.com;
+	Tue, 01 Jul 2025 17:16:43 +0200
+Received: from o1287.shared.klaviyomail.com ([167.89.80.86])	by example.com
+ with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	(Exim 4.97)
+	(envelope-from
+ <bounces+49998592-7006-wine=example.com@send.testwinerycompany.com>)	id
+ 1uWciv-00000005eeL-3t5H	for wine@example.com;	Tue, 01 Jul 2025 17:16:42 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=testwinerycompany.com;
+	h=content-type:from:mime-version:subject:reply-to:list-unsubscribe:
+	list-unsubscribe-post:to:cc:content-type:from:subject:to;
+	s=kl; bh=UoAoutdT11QXpcU+YymMIHJtfsnphAgrHb7T9YV7QGw=;
+	b=aKomiSbCpznuMuxWPc5IeiHZhwbht74N1oC3kFXQVCAlgh0YzUt/wJEKt6fOi4I3HJPB
+	a7kYmrxTV0MJcA1qote6Ba49DolgoAH+hOZU451kjAffzaqiShhOwZ2ZAciyNZL8uxVTZV
+	oHG3kygS+6wugZPi22+WOdLL1dAzw5gzXtKbeV2+L5bJc+nMdnGjCN65bxsA1sPloM2ThM
+	1PIlP1NJnXOS3gPjwikOzad0zMx504FVYDrhP+Jr+WA36CgPp3KWWYBajzm7FuvY8pTTD6
+	msWWbUeijFEvyrnu5gppLfMHdR1Ep9umFaqJK5g0z1uC5KCu2PD07VJYZp9rwylQ==
+Received: by recvd-7fd96f4944-vn5kr with SMTP id
+ recvd-7fd96f4944-vn5kr-1-6863F975-1B	2025-07-01 15:06:29.308459509 +0000 UTC
+ m=+2326934.073130770
+Received: from NDk5OTg1OTI (unknown)
+	by geopod-ismtpd-38 (SG) with HTTP
+	id hVdP__d-SBqcOgaGo1EouA
+	Tue, 01 Jul 2025 15:06:29.267 +0000 (UTC)
+Content-Type: multipart/alternative;
+ boundary="e24cca0299fcaabd10e802a113e5a550e57d2809083623ba7b1ca286febb"
+Date: Tue, 01 Jul 2025 15:06:29 +0000 (UTC)
+From: Test Winery Company <marketing@testwinerycompany.com>
+Mime-Version: 1.0
+Message-ID: <hVdP__d-SBqcOgaGo1EouA@geopod-ismtpd-38>
+Subject: Don't Miss Test Winery Events This Month! =?UTF-8?B?8J+Mnw==?=
+Reply-To: info@testwinerycompany.com
+List-Unsubscribe: 
+ <https://manage.kmail-lists.com/subscriptions/unsubscribe?a=Ws=?utf-8?q?Wm6?=
+ =?utf-8?q?C=26c=3D01JN76J15RAFXK80C3AFJ5XWZ0=26k=3D9e3d65bd2f6a7fe910bdb068?=
+ =?utf-8?q?93af105e=26m=3D01JXG9YPJ7GWHN3VMCCE1CVQBY=26r=3D01JZ38BZGHC7B3FG4?=
+ =?utf-8?q?ETK7BT7WD=3E?=
+List-Unsubscribe-Post: List-Unsubscribe=One-Click
+X-Kmail-Account: WsWm6C
+X-Kmail-Message: 01JXG9YPJ7GWHN3VMCCE1CVQBY
+X-Kmail-Ops: 01JN76J15RAFXK80C3AFJ5XWZ0
+X-Report-Abuse: Please report any spam or abuse to: abuse@klaviyo.com
+X-SG-EID:  u001.lQLGqVK6yEns8B/XWMR/g9XoARgr6b6J6lvAvWQyaXb1WIpmPTwgtGTVo
+ =?utf-8?q?29q7xVJwoX/nzhMpoBSxkigBt1mSEjp3uJAjW0f?==?utf-8?q?fv+LYXTzCvvTQ8?=
+ =?utf-8?q?A0+PtTq7LNEe6rq+SSuFqoBEbCv9b+FpPFzJ5/rYAr7BHmtzN3p5w0ZsSqGuIoX4I?=
+ =?utf-8?q?k37t8PoRvO5q0l3zVPpA6f7hflPx+PlwkToiYPAVOyDVad9fH3+XvOzXr3835m9GI?=
+ =?utf-8?q?omE/5+S6jHb6?=nHL62CBdhAkZ4+MUAZZGeWYHaQ==
+X-SG-ID:  u001.SdBcvi+Evd/bQef8eZF3BiU3Zi1S53GtqGa3TWBmqe75yn5aYrkvkfG+Z
+ =?utf-8?q?GKrHRvqazNZblWGqMOr9CYiG5B0LW2UM1t7Wz0F?==?utf-8?q?0rrjUXXp7ChHEG?=
+ =?utf-8?q?x4Jb0Y5kKpC4mJDGxCl+5+EC+RVNqh3cfnlxX1HTDcJyJ583JEfNlifarG3nOlG54?=
+ =?utf-8?q?cWab8/JDjEbSq56qw3MGcGFNxjT4fe6L6quIbaOzzEGzpm3fx2k3Hn0osk7p/J23k?=
+ =?utf-8?q?jKoVaK7047NLCUb+UOGDF33e1rUdFYspL2Q4b7y7QsAgnQG1phApnEvoc84yPXX/V?=
+ =?utf-8?q?wYqJEaKEJWx1o9mwbnUsUs2mUQ90mYyV2XAeSb0tMmKsSkPlKe5CQsAg7d1MrxMd0?=
+ =?utf-8?q?6sU19MIUuBbzJt?=
+To: wine@example.com
+X-Entity-ID: u001.CJ6U2xc1yJHdpuBDmJQPcQ==
+X-RSPAMD-Scanned: Indeed
+X-Spam-Bar: +
+X-Detrackify: Processed by Detrackify
+X-Detrackify-Blocked: ctrk.klclick.com:
+ https://ctrk.klclick.com/o/01JZ38CPDFZEV9MM56V2AVB4WN (Size check 1x1)
+
+--e24cca0299fcaabd10e802a113e5a550e57d2809083623ba7b1ca286febb
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Mime-Version: 1.0
+
+[logo placeholder]
+
+[HOME](https://testwinerycompany.com/)
+[VISIT](https://testwinerycompany.com/book-tasting/)
+[SHOP WINES](https://testwinerycompany.com/product-category/50/)
+
+July Upcoming Events
+
+Hi Friend,
+
+Join us in July for summer fun at Test Winery! From soaking up live music under=
+ the sunset at Friday Night Live to sipping through Cabernet Francs for Fra=
+nc Fest there's something for everyone.=C2=A0
+=C2=A0
+Bring your friends, mark your calendars, and get ready for a July filled wi=
+th great wine, tasty food, and incredible memories.
+=C2=A0
+Check out what=E2=80=99s coming up and grab your tickets early=E2=80=94they=
+ won=E2=80=99t last long!
+
+=C2=A0
+
+-The Test Winery Team
+
+We're proud to announce the awards we received from
+The Wine Report!=C2=A0
+
+[SHOP ALL WINES HERE](https://testwinerycompany.com/product-category/50/)
+
+Upcoming Events
+
+Friday Night Live featuring HonkyTonk Heroes
+Friday, July 11th | 6:00-9:00PM
+
+Start your weekend at Test Winery at our Friday Night Live concert series with =
+an evening of high-energy country and rock! Enjoy the boot-stomping, crowd-=
+pleasing tunes of HonkyTonk Heroes, sip on your favorite Test Winery wines, and=
+ take in the breathtaking Valley sunset. California Inspirations =
+Food Truck and Local Gelato will be on site serving up delicious f=
+ood for purchase!
+
+https://www.exploretock.com/testwinerycompany/event/535229/friday-n=
+ight-live
+
+[Friday Night Live Tickets](https://www.exploretock.com/testwinerycompany/event/535229/friday-night-live)
+
+FrancFest
+Saturday July 12th & 13th | 12:00-4:00pm
+
+Raise a glass to one of our favorite varietals during FrancFest at Test Winery! Join us for a weekend of wine, music, and stunning vineyard view=
+s as we pour our Cab Franc Guild Certified 2021 and 2022 Cabernet Francs, a=
+long with limited-production blends like The Weston and Shamus Patrick.
+Experience the essence of Cabernet Franc at our interactive aroma bar, soak=
+ in live music on the Vineyard Patio, and enjoy a relaxed afternoon in the =
+heart of Valley wine country.
+
+https://www.exploretock.com/testwinerycompany/event/554810/francfes=
+t
+
+[FrancFest Tickets](https://www.exploretock.com/testwinerycompany/e=
+vent/554810/francfest)
+
+Sunset Concert featuring Crawdad Republic
+Saturday July 12th
+6:00=E2=80=939:00PM
+
+Kick off summer with an unforgettable evening at Test Winery! Gather =
+your family and friends for a lively outdoor concert featuring hometown fav=
+orites, Crawdad Republic. With their signature blend of folk and bluegrass,=
+ rich harmonies, and feel-good melodies, Crawdad Republic is sure to get yo=
+u dancing! A beloved staple of the local music scene, some even call th=
+em 'the sound of our valley.' Don=E2=80=99t miss this family-friendly night =
+of music, fun, and summer vibes!
+
+https://www.exploretock.com/testwinerycompany/event/537027/sunset-c=
+oncert-featuring-crawdad-republic
+
+[Sunset Concert Tickets](https://www.exploretock.com/testwinerycompany/event/537027/sunset-concert-featuring-crawdad-republic)
+
+Sunset Concert featuring Joanna Cotten and Greg Barnhill
+A Nashville Singer-Songwriter Showcase
+Saturday, July 19th |=C2=A06:00-9:00PM
+
+Experience an unforgettable night of music and magic in the vines as two Na=
+shville icons take the Front Lawn Stage to perform the songs they=E2=80=99v=
+e written for country=E2=80=99s biggest stars and tell the stories behind t=
+hem. We=E2=80=99re thrilled to welcome country-soul powerhouse Joanna Cotte=
+n and hitmaker extraordinaire Greg Barnhill to Test Winery for an intimate song=
+writer showcase you won=E2=80=99t want to miss!
+Set against the rolling hills of Valley at sunset, this exclusive=
+ concert blends heartfelt lyrics, world-class vocals, and the kind of behin=
+d-the-scenes stories that only true songwriters can tell. Wine, local food =
+trucks, and soul-stirring melodies await!=C2=A0
+
+https://www.exploretock.com/testwinerycompany/event/548284/sunset-c=
+oncert-featuring-joanna-cotton-and-greg-barnhill
+
+[Front Lawn Tickets](https://www.exploretock.com/testwinerycompany/=
+event/548284/sunset-concert-featuring-joanna-cotton-and-greg-barnhill)
+
+[Private Arbor Cabana Reservation](https://www.exploretock.com/testwinerycompany/event/548290/sunset-concert-ft-joanna-greg-arbor-cabana-reser=
+vation)
+
+Vinyasa & Vino with Joya
+Sunday, July 20th
+9:00-11:00AM
+
+Enjoy a morning of rejuvenation and relaxation amidst stunning panoramic vi=
+ews of the Valley at Test Winery! Immerse yourself in the s=
+erenity of nature as you practice yoga on the Front Lawn led by a local Joy=
+a Yoga instructor. This experience is designed to refresh your body and cal=
+m your mind. After the yoga session, indulge in a delightful wine tasting o=
+f three Test Winery wines as you unwind and savor the flavors. We will have Col=
+or of Fresh charcuterie boxes available for purchase (while supplies last) =
+or guests are welcome to bring their own snacks to enjoy after class.=C2=A0
+
+=C2=A0
+
+https://www.exploretock.com/testwinerycompany/event/547257/vinyasa-=
+vino-with-joya-yoga-weekend-morning-events
+
+[Vinyasa & Vino Tickets](https://www.exploretock.com/testwinerycompany/event/547257/vinyasa-vino-with-joya-yoga-weekend-morning-events)
+
+Friday Night Live featuring Salvage Title
+Friday, July 25th |=C2=A06:00-9:00PM
+
+Turn up the volume and unwind at Test Winery for Friday Night Live! Salvage Tit=
+le will bring the energy with their high-powered rock tunes, setting the pe=
+rfect vibe for an evening of great music, delicious wine, and stunning vine=
+yard views. La Cocina Azul Food Truck will be on-site, serving up incredibl=
+e tacos and more, while Local Gelato offers the perfect sweet trea=
+t to top off the night.=C2=A0
+
+Tickets to this event include entry to enjoy the live music! Our Front Lawn=
+ offers an open, grassy space without tables, chairs, or shade, so we encou=
+rage you to bring blankets and low-back chairs to relax in comfort.
+
+=C2=A0
+
+https://www.exploretock.com/testwinerycompany/event/535229/friday-n=
+ight-live
+
+[Salvage Title Tickets](https://www.exploretock.com/testwinerycompany/event/535229/friday-night-live)
+
+[Private Arbor Cabana Reservation](https://www.exploretock.com/testwinerycompany/event/535230/friday-night-live-arbor-cabana-reservation)
+
+Barrels & Bingo Game Night
+Thursday, July 29th | 600-8:00PM
+
+Gather your squad and join us in the Barrel Room at Test Winery for a night of =
+pure fun, friendly competition, and fantastic wine! Surrounded by iconic wi=
+ne barrels, you=E2=80=99ll dive into the cozy vibes while playing classic b=
+ingo with a twist. Whether you're a bingo champ or just in it for the laugh=
+s, the energy will be contagious! Sip on Test Winery wines by the glass or bott=
+le, cheer on your friends, and let the good times roll. It=E2=80=99s the pe=
+rfect recipe for unforgettable memories, plenty of laughs, and the ultimate=
+ wine-and-games night out!
+=C2=A0
+
+https://www.exploretock.com/testwinerycompany/event/527432/barrels-=
+and-bingo-game-night
+
+[Barrels & Bingo Tickets](https://www.exploretock.com/testwinerycompany/event/527432/barrels-and-bingo-game-night)
+
+SAVE THE DATE
+
+Friday Night Live Summer Series!=C2=A0
+August 8th | GrrlzTalk
+August 22nd | Rock on Tap
+September 5th | No Requests
+September 19th | Funk Shui
+=C2=A0
+Barrels and Bingo Game Night
+August 26th, September 30th
+October 21st, November 18th, December 16th
+=C2=A0
+Back to School Bubbles
+Wednesday, August 13th
+9AM-1PM
+=C2=A0
+Bubbly & Beats
+Sunday, August 24th
+12:00PM-3:00PM
+=C2=A0
+Cowboys & Cabernet | A Nashville Night at Test Winery
+Saturday, August 16th
+6:00-10:00PM
+=C2=A0
+Sunset Concert featuring Forejour
+Tribute to Foreigner & Journey
+Sunday, August 31st
+5:30-8:30PM
+=C2=A0
+The Killer Dueling Pianos Show
+Thursday, October 9th
+6:00-10:00PM
+=C2=A0
+
+[Upcoming Event Tickets](https://www.exploretock.com/testwinerycompany/)
+
+[Visit Us](https://testwinerycompany.com/visit-us/)
+
+https://www.youtube.com/watch?v=3DzgpD-qcyxmI&t=3D21s
+
+Open daily from 11:00AM =E2=80=93 5:00PM
+Last reservation at 3:30PM.
+=C2=A0
+Reservations are available for groups up to 10 people. For parties over 10,=
+ please call the winery [555-123-4567].
+
+[Button Text](https://www.facebook.com/TestWineryCompany)
+[Custom](https://www.instagram.com/test_winery/)
+[Custom](https://www.tiktok.com/@testwinery)
+
+1234 Main Street, Anytown, CA 12345
+=E2=92=B8 2025 | All rights reserved. | [Unsubscribe](https://manage.kmail-=
+lists.com/subscriptions/unsubscribe?a=3DWsWm6C&c=3D01JN76J15RAFXK80C3AFJ5XW=
+Z0&k=3D9e3d65bd2f6a7fe910bdb06893af105e&m=3D01JXG9YPJ7GWHN3VMCCE1CVQBY&r=3D=
+01JZ38BZGHC7B3FG4ETK7BT7WD) |
+--e24cca0299fcaabd10e802a113e5a550e57d2809083623ba7b1ca286febb
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset=utf-8
+Mime-Version: 1.0
+
+<!DOCTYPE html>
+<html xmlns=3D"http://www.w3.org/1999/xhtml" xmlns:o=3D"urn:schemas-microso=
+ft-com:office:office" xmlns:v=3D"urn:schemas-microsoft-com:vml"><head>
+<title>
+</title>
+<!--[if !mso]><!-->
+<meta content=3D"IE=3Dedge" http-equiv=3D"X-UA-Compatible"/>
+<!--<![endif]-->
+<meta content=3D"text/html; charset=3Dutf-8" http-equiv=3D"Content-Type"/>
+<meta content=3D"width=3Ddevice-width, initial-scale=3D1" name=3D"viewport"=
+/>
+<!--[if mso]>
+        <noscript>
+        <xml>
+        <o:OfficeDocumentSettings>
+          <o:AllowPNG/>
+          <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+        </xml>
+        </noscript>
+        <![endif]-->
+<!--[if lte mso 11]>
+        <style type=3D"text/css" data-inliner=3D"ignore">
+          .mj-outlook-group-fix { width:100% !important; }
+        </style>
+        <![endif]-->
+<!--[if !mso]><!--><!--<![endif]-->
+<style>a:not([name]) {color:#FFFFFf;text-decoration:underline}
+a:link {color:#FFFFFf;text-decoration:underline}
+a:visited {color:#FFFFFf;text-decoration:underline}
+a:active {color:#FFFFFf;text-decoration:underline}
+a:hover {color:#FFFFFf;text-decoration:underline}</style><style>@import url=
+(https://static-forms.klaviyo.com/fonts/api/v1/WsWm6C/custom_fonts.css);
+#outlook a {
+    padding: 0
+    }
+body {
+    margin: 0;
+    padding: 0;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%
+    }
+table, td {
+    border-collapse: collapse;
+    mso-table-lspace: 0;
+    mso-table-rspace: 0
+    }
+img {
+    border: 0;
+    line-height: 100%;
+    outline: none;
+    text-decoration: none;
+    -ms-interpolation-mode: bicubic
+    }
+p {
+    display: block;
+    margin: 13px 0
+    }
+@media only screen and (min-width: 480px) {
+    .mj-column-per-100 {
+        width: 100% !important;
+        max-width: 100%
+        }
+    }
+.moz-text-html .mj-column-per-100 {
+    width: 100% !important;
+    max-width: 100%
+    }
+@media only screen and (max-width: 480px) {
+    div.kl-row.colstack div.kl-column {
+        display: block !important;
+        width: 100% !important
+        }
+    }
+.hlb-subblk td {
+    word-break: normal
+    }
+@media only screen and (max-width: 480px) {
+    .hlb-wrapper .hlb-block-settings-content {
+        padding: 9px !important
+        }
+    .hlb-logo {
+        padding-bottom: 9px !important
+        }
+    .r2-tbl {
+        width: 100%
+        }
+    .r2-tbl .lnk {
+        width: 100%
+        }
+    .r2-tbl .hlb-subblk:last-child {
+        padding-right: 0 !important
+        }
+    .r2-tbl .hlb-subblk {
+        padding-right: 10px !important
+        }
+    .kl-hlb-stack {
+        display: block !important;
+        width: 100% !important;
+        padding-right: 0 !important
+        }
+    .kl-hlb-stack.vspc {
+        margin-bottom: 9px
+        }
+    .kl-hlb-wrap {
+        display: inline-block !important;
+        width: auto !important
+        }
+    .kl-hlb-no-wrap {
+        display: table-cell !important
+        }
+    .kl-hlb-wrap.nospc.nospc {
+        padding-right: 0 !important
+        }
+    }
+@media only screen and (max-width: 480px) {
+    .component-wrapper .mob-no-spc {
+        padding-left: 0 !important;
+        padding-right: 0 !important
+        }
+    }
+@media only screen and (max-width: 480px) {
+    td.kl-img-base-auto-width {
+        width: 100% !important
+        }
+    }
+.kl-button a {
+    display: block !important
+    }
+@media only screen and (max-width: 480px) {
+    .kl-table-subblock.use-legacy-mobile-padding {
+        padding-left: 9px !important;
+        padding-right: 9px !important
+        }
+    }
+@media screen and (max-width: 480px) {
+    .kl-sl-stk {
+        display: block !important;
+        width: 100% !important;
+        padding: 0 0 9px !important;
+        text-align: center !important
+        }
+    .kl-sl-stk.lbls {
+        padding: 0 !important
+        }
+    .kl-sl-stk.spcblk {
+        display: none !important
+        }
+    }
+img {
+    border: 0;
+    height: auto;
+    line-height: 100%;
+    outline: none;
+    text-decoration: none;
+    max-width: 100%
+    }
+.root-container {
+    background-repeat: repeat !important;
+    background-size: auto !important;
+    background-position: left top !important
+    }
+.root-container-spacing {
+    padding-top: 50px !important;
+    padding-bottom: 20px !important;
+    font-size: 0 !important
+    }
+.content-padding {
+    padding-left: 0 !important;
+    padding-right: 0 !important
+    }
+.content-padding.first {
+    padding-top: 0 !important
+    }
+.content-padding.last {
+    padding-bottom: 0 !important
+    }
+@media only screen and (max-width: 480px) {
+    td.mobile-only {
+        display: table-cell !important
+        }
+    div.mobile-only {
+        display: block !important
+        }
+    table.mobile-only {
+        display: table !important
+        }
+    .desktop-only {
+        display: none !important
+        }
+    }
+@media only screen and (max-width: 480px) {
+    .table-mobile-only {
+        display: table-cell !important;
+        max-height: none !important
+        }
+    .table-mobile-only.block {
+        display: block !important
+        }
+    .table-mobile-only.inline-block {
+        display: inline-block !important
+        }
+    .table-desktop-only {
+        max-height: 0 !important;
+        display: none !important;
+        mso-hide: all !important;
+        overflow: hidden !important
+        }
+    }
+p {
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-bottom: 1em
+    }
+@media only screen and (max-width: 480px) {
+    body.mce-content-body, /* NOTE: needed for internal tinymce styles */.k=
+l-text > div, .kl-table-subblock div, .kl-split-subblock > div {
+        font-size: 14px !important;
+        line-height: 1.3 !important
+        }
+    }
+h1 {
+    color: #FFF;
+    font-family: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Gen=
+eva, Verdana, sans-serif;
+    font-size: 48px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    letter-spacing: 0;
+    margin: 0;
+    margin-bottom: 8px;
+    text-align: center
+    }
+@media only screen and (max-width: 480px) {
+    h1 {
+        font-size: 40px !important;
+        line-height: 1.1 !important
+        }
+    }
+h2 {
+    color: #050505;
+    font-family: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Gen=
+eva, Verdana, sans-serif;
+    font-size: 28px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: 0;
+    margin: 0;
+    margin-bottom: 16px;
+    text-align: left
+    }
+@media only screen and (max-width: 480px) {
+    h2 {
+        font-size: 32px !important;
+        line-height: 1.1 !important
+        }
+    }
+h3 {
+    color: #FFF;
+    font-family: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Gen=
+eva, Verdana, sans-serif;
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.3;
+    letter-spacing: 0;
+    margin: 0;
+    margin-bottom: 12px;
+    text-align: center
+    }
+@media only screen and (max-width: 480px) {
+    h3 {
+        font-size: 24px !important;
+        line-height: 1.1 !important
+        }
+    }
+h4 {
+    color: #000;
+    font-family: Lucida, "Lucida Grande", "Lucida Sans Unicode", "Lucida Sa=
+ns", Geneva, Verdana, sans-serif;
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: 0;
+    margin: 0;
+    margin-bottom: 9px;
+    text-align: left
+    }
+@media only screen and (max-width: 480px) {
+    h4 {
+        font-size: 18px !important;
+        line-height: 1.1 !important
+        }
+    }
+@media only screen and (max-width: 480px) {
+    .root-container {
+        width: 100% !important
+        }
+    .root-container-spacing {
+        padding: 10px !important
+        }
+    .content-padding {
+        padding-left: 0 !important;
+        padding-right: 0 !important
+        }
+    .content-padding.first {
+        padding-top: 0 !important
+        }
+    .content-padding.last {
+        padding-bottom: 0 !important
+        }
+    .kl-column > .component-wrapper {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        width: unset !important
+        }
+    .kl-text {
+        padding-right: 18px !important;
+        padding-left: 18px !important
+        }
+    }</style></head>
+<body style=3D"word-spacing:normal;background-color:#F7F7F7;">
+<div style=3D"display:none;font-size:1px;color:#ffffff;line-height:1px;max-=
+height:0px;max-width:0px;opacity:0;overflow:hidden;">
+      Friday Night Live and Sunset Concerts, Yoga, Bingo and more!&numsp;=
+=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=
+=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &=
+numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp=
+;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=
+=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &=
+numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp=
+;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=
+=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &=
+numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp=
+;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=
+=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &=
+numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp=
+;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=
+=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &=
+numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp=
+;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=
+=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &=
+numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp=
+;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=
+=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &=
+numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp=
+;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=
+=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &=
+numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp=
+;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=8F &numsp;=CD=
+=8F &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy;=
+ &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &s=
+hy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy;=
+ &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &s=
+hy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy;=
+ &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &s=
+hy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy;=
+ &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &s=
+hy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy;=
+ &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &shy; &s=
+hy;
+    </div>
+<!-- TRACKING_PIXEL_TOP -->
+<div class=3D"root-container" id=3D"bodyTable" style=3D"background-color:#F=
+7F7F7;">
+<div class=3D"root-container-spacing">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" cl=
+ass=3D"kl-section" role=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td>
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" class=3D"kl-section-outlook" style=3D"width:600px;" width=
+=3D"600" ><tr><td style=3D"line-height:0px;font-size:0px;mso-line-height-ru=
+le:exactly;"><![endif]-->
+<div style=3D"margin:0px auto;max-width:600px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td style=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;">
+<!--[if mso | IE]><table role=3D"presentation" border=3D"0" cellpadding=3D"=
+0" cellspacing=3D"0"><table align=3D"center" border=3D"0" cellpadding=3D"0"=
+ cellspacing=3D"0" class=3D"" style=3D"width:600px;" width=3D"600" bgcolor=
+=3D"#FFFFFF" ><tr><td style=3D"line-height:0px;font-size:0px;mso-line-heigh=
+t-rule:exactly;"><![endif]-->
+<div style=3D"background:#FFFFFF;background-color:#FFFFFF;margin:0px auto;b=
+order-radius:10px 10px 0px 0px;max-width:600px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"background:#FFFFFF;background-color:#FFFFFF;wi=
+dth:100%;border-radius:10px 10px 0px 0px;">
+<tbody>
+<tr>
+<td style=3D"direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;=
+padding-left:0px;padding-right:0px;padding-top:0px;text-align:center;">
+<!--[if mso | IE]><table role=3D"presentation" border=3D"0" cellpadding=3D"=
+0" cellspacing=3D"0"><![endif]-->
+<div class=3D"content-padding first">
+<!--[if true]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=
+=3D"600" style=3D"width:600px;direction:ltr"><tr><![endif]-->
+<div class=3D"kl-row colstack" style=3D"display:table;table-layout:fixed;wi=
+dth:100%;">
+<!--[if true]><td style=3D"vertical-align:top;width:600px;"><![endif]-->
+<div class=3D"kl-column" style=3D"display:table-cell;vertical-align:top;wid=
+th:100%;">
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper hlb-=
+wrapper" style=3D"font-size:0px;text-align:left;direction:ltr;vertical-alig=
+n:top;width:100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"hlb-block-settings-content" style=3D"background-color:#252425;=
+vertical-align:top;padding-top:16px;padding-right:20px;padding-bottom:16px;=
+padding-left:20px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"top" class=3D"kl-header-link-bar" style=3D"font-size:0px;paddi=
+ng:0px 0px 0px 0px;word-break:break-word;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"color:#000=
+000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-he=
+ight:22px;table-layout:auto;width:100%;border:0;" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"hlb-logo" style=3D"display:table-cell;width:1=
+00%;padding-bottom:10px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:collapse;border-spacing:0px;">
+<tbody>
+<tr>
+<!--[if true]><td style=3D"width:100px;" bgcolor=3D"transparent"><![endif]-=
+->
+<!--[if !true]><!--><td style=3D"width:100px;"><!--<![endif]-->
+<img alt=3D"logo placeholder" src=3D"https://d3k81ch9hvuctc.cloudfront.net/=
+company/WsWm6C/images/8ab8fa51-63a1-483e-a0aa-9af29759a708.png" style=3D"di=
+splay:block;outline:none;text-decoration:none;height:auto;width:100%;backgr=
+ound-color:transparent;" width=3D"100"/>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+<tr>
+<td>
+<table align=3D"center" cellpadding=3D"0" cellspacing=3D"0" class=3D"r2-tbl=
+" style=3D"table-layout:fixed;" width=3D"100%">
+<tbody><tr style=3D"text-align:center;">
+<td align=3D"center" class=3D"kl-hlb-stack block vspc hlb-subblk" style=3D"=
+" valign=3D"middle">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" class=3D"lnk" style=
+=3D"border-collapse:separate;line-height:100%;">
+<tbody><tr>
+<td align=3D"center" bgcolor=3D"transparent" role=3D"presentation" style=3D=
+"border:none;border-radius:5px;cursor:auto;font-style:normal;mso-padding-al=
+t:24px 10px 24px 10px;background:transparent;" valign=3D"middle">
+<a href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9MM56V2AVB4WN_0" style=
+=3D'color:#FFF; text-decoration:none; display:inline-block; background:tran=
+sparent; font-family:"Playfair Display", TimesNewRoman, "Times New Roman", =
+Times, Baskerville, Georgia, serif; font-size:14px; font-style:normal; font=
+-weight:400; line-height:100%; letter-spacing:0; margin:0; text-transform:n=
+one; padding:24px 10px 24px 10px; mso-padding-alt:0; border-radius:5px' tar=
+get=3D"_blank">
+              HOME
+            </a>
+</td>
+</tr>
+</tbody></table>
+</td>
+<td align=3D"center" class=3D"kl-hlb-stack block vspc hlb-subblk" style=3D"=
+" valign=3D"middle">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" class=3D"lnk" style=
+=3D"border-collapse:separate;line-height:100%;">
+<tbody><tr>
+<td align=3D"center" bgcolor=3D"transparent" role=3D"presentation" style=3D=
+"border:none;border-radius:5px;cursor:auto;font-style:normal;mso-padding-al=
+t:24px 10px 24px 10px;background:transparent;" valign=3D"middle">
+<a href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9MM56V2AVB4WN_1" style=
+=3D'color:#FFF; text-decoration:none; display:inline-block; background:tran=
+sparent; font-family:"Playfair Display", TimesNewRoman, "Times New Roman", =
+Times, Baskerville, Georgia, serif; font-size:14px; font-style:normal; font=
+-weight:400; line-height:100%; letter-spacing:0; margin:0; text-transform:n=
+one; padding:24px 10px 24px 10px; mso-padding-alt:0; border-radius:5px' tar=
+get=3D"_blank">
+              VISIT
+            </a>
+</td>
+</tr>
+</tbody></table>
+</td>
+<td align=3D"center" class=3D"kl-hlb-stack block hlb-subblk" style=3D"" val=
+ign=3D"middle">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" class=3D"lnk" style=
+=3D"border-collapse:separate;line-height:100%;">
+<tbody><tr>
+<td align=3D"center" bgcolor=3D"transparent" role=3D"presentation" style=3D=
+"border:none;border-radius:5px;cursor:auto;font-style:normal;mso-padding-al=
+t:24px 10px 24px 10px;background:transparent;" valign=3D"middle">
+<a href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9MM56V2AVB4WN_2" style=
+=3D'color:#FFF; text-decoration:none; display:inline-block; background:tran=
+sparent; font-family:"Playfair Display", TimesNewRoman, "Times New Roman", =
+Times, Baskerville, Georgia, serif; font-size:14px; font-style:normal; font=
+-weight:400; line-height:100%; letter-spacing:0; margin:0; text-transform:n=
+one; padding:24px 10px 24px 10px; mso-padding-alt:0; border-radius:5px' tar=
+get=3D"_blank">
+              SHOP WINES
+            </a>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!--[if true]></td><![endif]-->
+</div>
+<!--[if true]></tr></table><![endif]-->
+</div>
+<!--[if mso | IE]></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" cl=
+ass=3D"kl-section" role=3D"presentation" style=3D"background:#FFFFFF;backgr=
+ound-color:#FFFFFF;width:100%;">
+<tbody>
+<tr>
+<td>
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" class=3D"kl-section-outlook" style=3D"width:600px;" width=
+=3D"600" bgcolor=3D"#FFFFFF" ><tr><td style=3D"line-height:0px;font-size:0p=
+x;mso-line-height-rule:exactly;"><![endif]-->
+<div style=3D"margin:0px auto;max-width:600px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"width:100%;">
+<tbody>
+<tr>
+<td style=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;">
+<!--[if mso | IE]><table role=3D"presentation" border=3D"0" cellpadding=3D"=
+0" cellspacing=3D"0"><table align=3D"center" border=3D"0" cellpadding=3D"0"=
+ cellspacing=3D"0" class=3D"" style=3D"width:600px;" width=3D"600" bgcolor=
+=3D"#FFFFFF" ><tr><td style=3D"line-height:0px;font-size:0px;mso-line-heigh=
+t-rule:exactly;"><![endif]-->
+<div style=3D"background:#FFFFFF;background-color:#FFFFFF;margin:0px auto;b=
+order-radius:0px 0px 0px 0px;max-width:600px;">
+<table align=3D"center" border=3D"0" cellpadding=3D"0" cellspacing=3D"0" ro=
+le=3D"presentation" style=3D"background:#FFFFFF;background-color:#FFFFFF;wi=
+dth:100%;border-radius:0px 0px 0px 0px;">
+<tbody>
+<tr>
+<td style=3D"border:solid 1px #000000;direction:ltr;font-size:0px;padding:2=
+0px 0;padding-bottom:0px;padding-left:0px;padding-right:0px;padding-top:0px=
+;text-align:center;">
+<!--[if mso | IE]><table role=3D"presentation" border=3D"0" cellpadding=3D"=
+0" cellspacing=3D"0"><![endif]-->
+<div class=3D"content-padding">
+<!--[if true]><table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=
+=3D"598" style=3D"width:598px;direction:ltr"><tr><![endif]-->
+<div class=3D"kl-row colstack" style=3D"display:table;table-layout:fixed;wi=
+dth:100%;">
+<!--[if true]><td style=3D"vertical-align:top;width:598px;"><![endif]-->
+<div class=3D"kl-column" style=3D"display:table-cell;vertical-align:top;wid=
+th:100%;">
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:0px;padding-right:0p=
+x;padding-bottom:0px;padding-left:0px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"kl-image" style=3D"font-size:0px;word-break:b=
+reak-word;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:collapse;border-spacing:0px;">
+<tbody>
+<tr>
+<td class=3D"kl-img-base-auto-width" style=3D"border:0;padding:0px 0px 0px =
+0px;width:598px;" valign=3D"top">
+<img src=3D"https://d3k81ch9hvuctc.cloudfront.net/company/WsWm6C/images/339=
+de61b-8db0-492f-9b88-dc6617abc37a.png" style=3D"display:block;outline:none;=
+text-decoration:none;height:auto;font-size:13px;width:100%;" width=3D"598"/>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-text" style=3D"font-size:0px;padding:0px;pad=
+ding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-bre=
+ak:break-word;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div style=3D"text-align: center;"><em><strong><span style=3D"font-si=
+ze: 24px;">July Upcoming Events</span></strong></em></div></div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"background-color:#232323;vertical-align:top;padding=
+-top:48px;padding-right:16px;padding-bottom:48px;padding-left:16px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-text" style=3D"font-size:0px;padding:0px;pad=
+ding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-bre=
+ak:break-word;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><h3 style=3D"line-height: 130%; text-align: left;"><span style=3D"fon=
+t-family: 'Playfair Display', TimesNewRoman, 'Times New Roman', Times, Bask=
+erville, Georgia, serif; font-weight: 400; font-style: normal; font-size: 1=
+6px;">Hi Friend,</span></h3>
+<h3 style=3D"line-height: 130%; text-align: left;">
+<div><span style=3D"font-family: 'Playfair Display', TimesNewRoman, 'Times =
+New Roman', Times, Baskerville, Georgia, serif; font-weight: 400; font-styl=
+e: normal; font-size: 16px; color: rgb(245, 244, 244);">
+<div>
+<div>
+<div>Join us in July for summer fun at Test Winery! From soaking up live music =
+under the sunset at Friday Night Live to sipping through Cabernet Francs fo=
+r Franc Fest there's something for everyone.&nbsp;</div>
+<div><span style=3D"font-family: 'Playfair Display', TimesNewRoman, 'Times =
+New Roman', Times, Baskerville, Georgia, serif; font-weight: 400; font-styl=
+e: normal; font-size: 16px; color: rgb(245, 244, 244);">&nbsp;</span></div>
+<div>Bring your friends, mark your calendars, and get ready for a July fill=
+ed with great wine, tasty food, and incredible memories.</div>
+<div><span style=3D"font-family: 'Playfair Display', TimesNewRoman, 'Times =
+New Roman', Times, Baskerville, Georgia, serif; font-weight: 400; font-styl=
+e: normal; font-size: 16px; color: rgb(245, 244, 244);">&nbsp;</span></div>
+<div>Check out what&rsquo;s coming up and grab your tickets early&mdash;the=
+y won&rsquo;t last long!</div>
+</div>
+</div>
+</span></div>
+</h3><p><span style=3D"font-family: 'Playfair Display', TimesNewRoman, 'Tim=
+es New Roman', Times, Baskerville, Georgia, serif; font-weight: 400; font-s=
+tyle: normal; color: rgb(245, 244, 244); font-size: 16px;">&nbsp;</span></p>
+<p style=3D"padding-bottom:0"><span style=3D"font-size: 16px; font-family: =
+'Playfair Display', TimesNewRoman, 'Times New Roman', Times, Baskerville, G=
+eorgia, serif; font-weight: 400; font-style: normal; color: rgb(245, 244, 2=
+44);"><em>-The Test Winery Team</em></span></p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:18px;padding-right:1=
+8px;padding-bottom:18px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" style=3D"font-size:0px;padding:0px;word-break:break-wo=
+rd;">
+<p style=3D"padding-bottom:0; border-top:solid 1px #CCC; font-size:1px; mar=
+gin:0 auto; width:100%">
+</p>
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" style=3D"border-top:solid 1px #CCCCCC;font-size:1px;margin:=
+0px auto;width:562px;" role=3D"presentation" width=3D"562px" ><tr><td style=
+=3D"height:0;line-height:0;"> &nbsp;
+</td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-text" style=3D"font-size:0px;padding:0px;pad=
+ding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-bre=
+ak:break-word;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div style=3D"text-align: center;"><em><span style=3D"font-size: 20px=
+;">We're proud to announce the awards we received from </span></em></div>
+<div style=3D"text-align: center;"><em><span style=3D"font-size: 20px;">The=
+ Wine Report!&nbsp;</span></em></div></div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:18px;padding-right:1=
+8px;padding-bottom:18px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" style=3D"font-size:0px;padding:0px;word-break:break-wo=
+rd;">
+<p style=3D"padding-bottom:0; border-top:solid 1px #CCC; font-size:1px; mar=
+gin:0 auto; width:100%">
+</p>
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" style=3D"border-top:solid 1px #CCCCCC;font-size:1px;margin:=
+0px auto;width:562px;" role=3D"presentation" width=3D"562px" ><tr><td style=
+=3D"height:0;line-height:0;"> &nbsp;
+</td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:0px;padding-right:0p=
+x;padding-bottom:0px;padding-left:0px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"kl-image" style=3D"font-size:0px;word-break:b=
+reak-word;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:collapse;border-spacing:0px;">
+<tbody>
+<tr>
+<td class=3D"kl-img-base-auto-width" style=3D"border:0;padding:0px 0px 0px =
+0px;background-color:#20201D;width:598px;" valign=3D"top">
+<img src=3D"https://d3k81ch9hvuctc.cloudfront.net/company/WsWm6C/images/116=
+79f5e-2c64-4431-92c1-1f50d5ce9983.png" style=3D"display:block;outline:none;=
+text-decoration:none;height:auto;font-size:13px;width:100%;" width=3D"598"/>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"kl-button" style=3D"font-size:0px;padding:0px=
+;word-break:break-word;" vertical-align=3D"middle">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:separate;line-height:100%;">
+<tbody><tr>
+<td align=3D"center" bgcolor=3D"#211F1F" role=3D"presentation" style=3D"bor=
+der:none;border-radius:5px;cursor:auto;font-style:normal;mso-padding-alt:15=
+px 15px 15px 15px;background:#211F1F;" valign=3D"middle">
+<a href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9MM56V2AVB4WN_3" style=
+=3D'color:#FFF; text-decoration:none; display:inline-block; background:#211=
+F1F; font-family:"Playfair Display", TimesNewRoman, "Times New Roman", Time=
+s, Baskerville, Georgia, serif; font-size:14px; font-style:normal; font-wei=
+ght:400; line-height:100%; letter-spacing:0; margin:0; text-transform:none;=
+ padding:15px 15px 15px 15px; mso-padding-alt:0; border-radius:5px' target=
+=3D"_blank">
+              SHOP ALL WINES HERE
+            </a>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:18px;padding-right:1=
+8px;padding-bottom:18px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" style=3D"font-size:0px;padding:0px;word-break:break-wo=
+rd;">
+<p style=3D"padding-bottom:0; border-top:solid 1px #CCC; font-size:1px; mar=
+gin:0 auto; width:100%">
+</p>
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" style=3D"border-top:solid 1px #CCCCCC;font-size:1px;margin:=
+0px auto;width:562px;" role=3D"presentation" width=3D"562px" ><tr><td style=
+=3D"height:0;line-height:0;"> &nbsp;
+</td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"kl-image" style=3D"font-size:0px;word-break:b=
+reak-word;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:collapse;border-spacing:0px;">
+<tbody>
+<tr>
+<td class=3D"kl-img-base-auto-width" style=3D"border:0;padding:0px 0px 0px =
+0px;width:598px;" valign=3D"top">
+<img src=3D"https://d3k81ch9hvuctc.cloudfront.net/company/WsWm6C/images/312=
+e7db1-52cc-492a-9b66-44f473a31ff2.png" style=3D"display:block;outline:none;=
+text-decoration:none;height:auto;font-size:13px;width:100%;" width=3D"598"/>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"background-color:#F0E9E2;vertical-align:top;padding=
+-top:9px;padding-right:18px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-text" style=3D"font-size:0px;padding:0px;pad=
+ding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-bre=
+ak:break-word;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div style=3D"text-align: center;"><strong><span style=3D"font-size: =
+24px;"><em>Upcoming Events</em></span></strong></div></div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:18px;padding-right:1=
+8px;padding-bottom:18px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" style=3D"font-size:0px;padding:0px;word-break:break-wo=
+rd;">
+<p style=3D"padding-bottom:0; border-top:solid 1px #CCC; font-size:1px; mar=
+gin:0 auto; width:100%">
+</p>
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" style=3D"border-top:solid 1px #CCCCCC;font-size:1px;margin:=
+0px auto;width:562px;" role=3D"presentation" width=3D"562px" ><tr><td style=
+=3D"height:0;line-height:0;"> &nbsp;
+</td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-text" style=3D"font-size:0px;padding:0px;pad=
+ding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-bre=
+ak:break-word;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><!--StartFragment-->
+<div><span style=3D"font-family: 'Playfair Display', TimesNewRoman, 'Times =
+New Roman', Times, Baskerville, Georgia, serif; font-weight: 400; font-styl=
+e: normal;"><span style=3D"font-size: 18px; background-color: rgb(255, 255,=
+ 255);"><strong><span style=3D"color: rgb(0, 0, 0);">Friday Night Live feat=
+uring HonkyTonk Heroes</span></strong></span><span style=3D"font-size: 15px=
+; color: rgb(0, 0, 0);"><br/></span><span style=3D"font-size: 15px; color: =
+rgb(0, 0, 0);">Friday, July 11th | </span><span style=3D"font-size: 15px; c=
+olor: rgb(0, 0, 0);">6:00-9:00PM</span></span></div>
+<!--EndFragment--></div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-table" style=3D"font-size:0px;padding:0px;wo=
+rd-break:break-word;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"color:#000=
+000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-he=
+ight:22px;table-layout:fixed;width:100%;border:none;" width=3D"100%">
+<thead>
+</thead>
+<tbody>
+<tr>
+<td class=3D"kl-table-subblock" style=3D"width:auto;overflow:hidden;vertica=
+l-align:top;padding-top:4px;padding-right:0px;padding-bottom:4px;padding-le=
+ft:0px;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div><span style=3D"font-size: 1px;">
+<div><span style=3D"font-size: 14px;"><span style=3D"font-size: 15px;">Star=
+t your weekend at Test Winery at our Friday Night Live concert series with an e=
+vening of high-energy country and rock! Enjoy the boot-stomping, crowd-plea=
+sing tunes of HonkyTonk Heroes, sip on your favorite Test Winery wines, and tak=
+e in the breathtaking Valley sunset. California Inspirations Food=
+ Truck and Local Gelato will be on site serving up delicious food for purchase!</span><br/></span></div>
+<br/></span></div></div>
+</td>
+<td class=3D"kl-table-subblock" style=3D"width:auto;overflow:hidden;vertica=
+l-align:top;padding-top:4px;padding-right:0px;padding-bottom:4px;padding-le=
+ft:0px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%">
+<tbody><tr>
+<td align=3D"center" class=3D"" style=3D"font-size:0px;word-break:break-wor=
+d;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:collapse;border-spacing:0px;">
+<tbody>
+<tr>
+<td class=3D"" style=3D"border:0;padding:0;width:512px;" valign=3D"top">
+<a class=3D"kl-img-link" href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9M=
+M56V2AVB4WN_4" style=3D"color:#FFFFFf; text-decoration:underline; display:b=
+lock">
+<img alt=3D"" src=3D"https://d3k81ch9hvuctc.cloudfront.net/company/WsWm6C/i=
+mages/3094885a-329a-49b0-b3b0-60c7dd2dc61b.png" style=3D"display:block;outl=
+ine:none;text-decoration:none;height:auto;font-size:13px;width:100%;" title=
+=3D"" width=3D"512"/>
+</a>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"kl-button" style=3D"font-size:0px;padding:0px=
+;word-break:break-word;" vertical-align=3D"middle">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:separate;line-height:100%;">
+<tbody><tr>
+<td align=3D"center" bgcolor=3D"#292425" role=3D"presentation" style=3D"bor=
+der:none;border-radius:5px;cursor:auto;font-style:normal;mso-padding-alt:15=
+px 15px 15px 15px;background:#292425;" valign=3D"middle">
+<a href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9MM56V2AVB4WN_5" style=
+=3D'color:#FFF; text-decoration:none; display:inline-block; background:#292=
+425; font-family:"Playfair Display", TimesNewRoman, "Times New Roman", Time=
+s, Baskerville, Georgia, serif; font-size:14px; font-style:normal; font-wei=
+ght:400; line-height:100%; letter-spacing:0; margin:0; text-transform:none;=
+ padding:15px 15px 15px 15px; mso-padding-alt:0; border-radius:5px' target=
+=3D"_blank">
+              Friday Night Live Tickets
+            </a>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:18px;padding-right:1=
+8px;padding-bottom:18px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" style=3D"font-size:0px;padding:0px;word-break:break-wo=
+rd;">
+<p style=3D"padding-bottom:0; border-top:solid 1px #CCC; font-size:1px; mar=
+gin:0 auto; width:100%">
+</p>
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" style=3D"border-top:solid 1px #CCCCCC;font-size:1px;margin:=
+0px auto;width:562px;" role=3D"presentation" width=3D"562px" ><tr><td style=
+=3D"height:0;line-height:0;"> &nbsp;
+</td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-text" style=3D"font-size:0px;padding:0px;pad=
+ding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-bre=
+ak:break-word;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div><strong><span style=3D"font-size: 18px;">FrancFest</span></stron=
+g><br/><span style=3D"font-size: 14px;">Saturday July 12th &amp; 13th | 12:=
+00-4:00pm</span></div></div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-table" style=3D"font-size:0px;padding:0px;wo=
+rd-break:break-word;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"color:#000=
+000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-he=
+ight:22px;table-layout:fixed;width:100%;border:none;" width=3D"100%">
+<thead>
+</thead>
+<tbody>
+<tr>
+<td class=3D"kl-table-subblock" style=3D"width:auto;overflow:hidden;vertica=
+l-align:top;padding-top:4px;padding-right:0px;padding-bottom:4px;padding-le=
+ft:0px;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div><span style=3D"font-size: 15px;">Raise a glass to one of our fav=
+orite varietals during FrancFest at Test Winery! Join us for a weeken=
+d of wine, music, and stunning vineyard views as we pour our Cab Franc Guil=
+d Certified 2021 and 2022 Cabernet Francs, along with limited-production bl=
+ends like The Weston and Shamus Patrick.</span><br/><span style=3D"font-siz=
+e: 15px;">Experience the essence of Cabernet Franc at our interactive aroma=
+ bar, soak in live music on the Vineyard Patio, and enjoy a relaxed afterno=
+on in the heart of Valley wine country.</span></div></div>
+</td>
+<td class=3D"kl-table-subblock" style=3D"width:auto;overflow:hidden;vertica=
+l-align:top;padding-top:4px;padding-right:0px;padding-bottom:4px;padding-le=
+ft:0px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%">
+<tbody><tr>
+<td align=3D"left" class=3D"" style=3D"font-size:0px;word-break:break-word;=
+">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:collapse;border-spacing:0px;">
+<tbody>
+<tr>
+<td class=3D"" style=3D"border:0;padding:0;width:512px;" valign=3D"top">
+<a class=3D"kl-img-link" href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9M=
+M56V2AVB4WN_6" style=3D"color:#FFFFFf; text-decoration:underline; display:b=
+lock">
+<img alt=3D"" src=3D"https://d3k81ch9hvuctc.cloudfront.net/company/WsWm6C/i=
+mages/6a85a50b-eb89-427c-b71d-731757f6d655.png" style=3D"display:block;outl=
+ine:none;text-decoration:none;height:auto;font-size:13px;width:100%;" title=
+=3D"" width=3D"512"/>
+</a>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"kl-button" style=3D"font-size:0px;padding:0px=
+;word-break:break-word;" vertical-align=3D"middle">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:separate;line-height:100%;">
+<tbody><tr>
+<td align=3D"center" bgcolor=3D"#292425" role=3D"presentation" style=3D"bor=
+der:none;border-radius:5px;cursor:auto;font-style:normal;mso-padding-alt:15=
+px 15px 15px 15px;background:#292425;" valign=3D"middle">
+<a href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9MM56V2AVB4WN_7" style=
+=3D'color:#FFF; text-decoration:none; display:inline-block; background:#292=
+425; font-family:"Playfair Display", TimesNewRoman, "Times New Roman", Time=
+s, Baskerville, Georgia, serif; font-size:14px; font-style:normal; font-wei=
+ght:400; line-height:100%; letter-spacing:0; margin:0; text-transform:none;=
+ padding:15px 15px 15px 15px; mso-padding-alt:0; border-radius:5px' target=
+=3D"_blank">
+              FrancFest Tickets
+            </a>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:18px;padding-right:1=
+8px;padding-bottom:18px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" style=3D"font-size:0px;padding:0px;word-break:break-wo=
+rd;">
+<p style=3D"padding-bottom:0; border-top:solid 1px #CCC; font-size:1px; mar=
+gin:0 auto; width:100%">
+</p>
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" style=3D"border-top:solid 1px #CCCCCC;font-size:1px;margin:=
+0px auto;width:562px;" role=3D"presentation" width=3D"562px" ><tr><td style=
+=3D"height:0;line-height:0;"> &nbsp;
+</td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-text" style=3D"font-size:0px;padding:0px;pad=
+ding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-bre=
+ak:break-word;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><!--StartFragment-->
+<div><strong><span style=3D"font-size: 18px;">Sunset Concert featuring Craw=
+dad Republic</span></strong><br/><span style=3D"font-size: 14px;">Saturday =
+July 12th</span><br/>6:00&ndash;9:00PM</div>
+<!--EndFragment--></div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-table" style=3D"font-size:0px;padding:0px;wo=
+rd-break:break-word;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"color:#000=
+000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-he=
+ight:22px;table-layout:fixed;width:100%;border:none;" width=3D"100%">
+<thead>
+</thead>
+<tbody>
+<tr>
+<td class=3D"kl-table-subblock" style=3D"width:auto;overflow:hidden;vertica=
+l-align:top;padding-top:4px;padding-right:0px;padding-bottom:4px;padding-le=
+ft:0px;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div><span style=3D"font-size: 15px;">Kick off summer with an unforge=
+ttable evening at Test Winery! Gather your family and friends for a l=
+ively outdoor concert featuring hometown favorites, Crawdad Republic. With =
+their signature blend of folk and bluegrass, rich harmonies, and feel-good =
+melodies, Crawdad Republic is sure to get you dancing! A beloved staple of =
+the local music scene, some even call them 'the sound of our valley.' Do=
+n&rsquo;t miss this family-friendly night of music, fun, and summer vibes!<=
+/span></div></div>
+</td>
+<td class=3D"kl-table-subblock" style=3D"width:auto;overflow:hidden;vertica=
+l-align:top;padding-top:4px;padding-right:0px;padding-bottom:4px;padding-le=
+ft:0px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%">
+<tbody><tr>
+<td align=3D"center" class=3D"" style=3D"font-size:0px;word-break:break-wor=
+d;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:collapse;border-spacing:0px;">
+<tbody>
+<tr>
+<td class=3D"" style=3D"border:0;padding:0;width:512px;" valign=3D"top">
+<a class=3D"kl-img-link" href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9M=
+M56V2AVB4WN_8" style=3D"color:#FFFFFf; text-decoration:underline; display:b=
+lock">
+<img alt=3D"" src=3D"https://d3k81ch9hvuctc.cloudfront.net/company/WsWm6C/i=
+mages/5119d250-7d22-4a34-83e9-e50d03f70882.png" style=3D"display:block;outl=
+ine:none;text-decoration:none;height:auto;font-size:13px;width:100%;" title=
+=3D"" width=3D"512"/>
+</a>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"kl-button" style=3D"font-size:0px;padding:0px=
+;word-break:break-word;" vertical-align=3D"middle">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:separate;line-height:100%;">
+<tbody><tr>
+<td align=3D"center" bgcolor=3D"#292425" role=3D"presentation" style=3D"bor=
+der:none;border-radius:5px;cursor:auto;font-style:normal;mso-padding-alt:15=
+px 15px 15px 15px;background:#292425;" valign=3D"middle">
+<a href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9MM56V2AVB4WN_9" style=
+=3D'color:#FFF; text-decoration:none; display:inline-block; background:#292=
+425; font-family:"Playfair Display", TimesNewRoman, "Times New Roman", Time=
+s, Baskerville, Georgia, serif; font-size:14px; font-style:normal; font-wei=
+ght:400; line-height:100%; letter-spacing:0; margin:0; text-transform:none;=
+ padding:15px 15px 15px 15px; mso-padding-alt:0; border-radius:5px' target=
+=3D"_blank">
+              Sunset Concert Tickets
+            </a>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-text" style=3D"font-size:0px;padding:0px;pad=
+ding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-bre=
+ak:break-word;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div><strong><span style=3D"font-size: 18px;">Sunset Concert featurin=
+g Joanna Cotten and Greg Barnhill</span></strong><br/><em><span style=3D"fo=
+nt-size: 16px;">A Nashville Singer-Songwriter Showcase</span></em><br/>Satu=
+rday, July 19th |&nbsp;6:00-9:00PM</div></div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-table" style=3D"font-size:0px;padding:0px;wo=
+rd-break:break-word;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"color:#000=
+000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-he=
+ight:22px;table-layout:fixed;width:100%;border:none;" width=3D"100%">
+<thead>
+</thead>
+<tbody>
+<tr>
+<td class=3D"kl-table-subblock" style=3D"width:auto;overflow:hidden;vertica=
+l-align:top;padding-top:4px;padding-right:0px;padding-bottom:4px;padding-le=
+ft:0px;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div><span style=3D"font-size: 15px;">Experience an unforgettable nig=
+ht of music and magic in the vines as two Nashville icons take the Front La=
+wn Stage to perform the songs they&rsquo;ve written for country&rsquo;s big=
+gest stars and tell the stories behind them. We&rsquo;re thrilled to welcom=
+e country-soul powerhouse Joanna Cotten and hitmaker extraordinaire Greg Ba=
+rnhill to Test Winery for an intimate songwriter showcase you won&rsquo;t want =
+to miss!</span><br/><span style=3D"font-size: 15px;">Set against the rollin=
+g hills of Valley at sunset, this exclusive concert blends heartf=
+elt lyrics, world-class vocals, and the kind of behind-the-scenes stories t=
+hat only true songwriters can tell. Wine, local food trucks, and soul-stirr=
+ing melodies await!&nbsp;</span></div></div>
+</td>
+<td class=3D"kl-table-subblock" style=3D"width:auto;overflow:hidden;vertica=
+l-align:top;padding-top:4px;padding-right:0px;padding-bottom:4px;padding-le=
+ft:0px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%">
+<tbody><tr>
+<td align=3D"left" class=3D"" style=3D"font-size:0px;word-break:break-word;=
+">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:collapse;border-spacing:0px;">
+<tbody>
+<tr>
+<td class=3D"" style=3D"border:0;padding:0;width:512px;" valign=3D"top">
+<a class=3D"kl-img-link" href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9M=
+M56V2AVB4WN_10" style=3D"color:#FFFFFf; text-decoration:underline; display:=
+block">
+<img alt=3D"" src=3D"https://d3k81ch9hvuctc.cloudfront.net/company/WsWm6C/i=
+mages/288435c9-5f46-4f82-86c5-6ef1be4753fd.png" style=3D"display:block;outl=
+ine:none;text-decoration:none;height:auto;font-size:13px;width:100%;" title=
+=3D"" width=3D"512"/>
+</a>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"kl-button" style=3D"font-size:0px;padding:0px=
+;word-break:break-word;" vertical-align=3D"middle">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:separate;line-height:100%;">
+<tbody><tr>
+<td align=3D"center" bgcolor=3D"#292425" role=3D"presentation" style=3D"bor=
+der:none;border-radius:5px;cursor:auto;font-style:normal;mso-padding-alt:15=
+px 15px 15px 15px;background:#292425;" valign=3D"middle">
+<a href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9MM56V2AVB4WN_11" style=
+=3D'color:#FFF; text-decoration:none; display:inline-block; background:#292=
+425; font-family:"Playfair Display", TimesNewRoman, "Times New Roman", Time=
+s, Baskerville, Georgia, serif; font-size:14px; font-style:normal; font-wei=
+ght:400; line-height:100%; letter-spacing:0; margin:0; text-transform:none;=
+ padding:15px 15px 15px 15px; mso-padding-alt:0; border-radius:5px' target=
+=3D"_blank">
+              Front Lawn Tickets
+            </a>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"kl-button" style=3D"font-size:0px;padding:0px=
+;word-break:break-word;" vertical-align=3D"middle">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:separate;line-height:100%;">
+<tbody><tr>
+<td align=3D"center" bgcolor=3D"#292425" role=3D"presentation" style=3D"bor=
+der:none;border-radius:5px;cursor:auto;font-style:normal;mso-padding-alt:15=
+px 15px 15px 15px;background:#292425;" valign=3D"middle">
+<a href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9MM56V2AVB4WN_12" style=
+=3D'color:#FFF; text-decoration:none; display:inline-block; background:#292=
+425; font-family:"Playfair Display", TimesNewRoman, "Times New Roman", Time=
+s, Baskerville, Georgia, serif; font-size:14px; font-style:normal; font-wei=
+ght:400; line-height:100%; letter-spacing:0; margin:0; text-transform:none;=
+ padding:15px 15px 15px 15px; mso-padding-alt:0; border-radius:5px' target=
+=3D"_blank">
+              Private Arbor Cabana Reservation
+            </a>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:18px;padding-right:1=
+8px;padding-bottom:18px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" style=3D"font-size:0px;padding:0px;word-break:break-wo=
+rd;">
+<p style=3D"padding-bottom:0; border-top:solid 1px #CCC; font-size:1px; mar=
+gin:0 auto; width:100%">
+</p>
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" style=3D"border-top:solid 1px #CCCCCC;font-size:1px;margin:=
+0px auto;width:562px;" role=3D"presentation" width=3D"562px" ><tr><td style=
+=3D"height:0;line-height:0;"> &nbsp;
+</td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-text" style=3D"font-size:0px;padding:0px;pad=
+ding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-bre=
+ak:break-word;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div><strong><span style=3D"font-size: 18px;">Vinyasa &amp; Vino with=
+ Joya</span></strong><br/><em>Sunday, July 20th</em><br/>9:00-11:00AM</div>=
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-table" style=3D"font-size:0px;padding:0px;wo=
+rd-break:break-word;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"color:#000=
+000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-he=
+ight:22px;table-layout:fixed;width:100%;border:none;" width=3D"100%">
+<thead>
+</thead>
+<tbody>
+<tr>
+<td class=3D"kl-table-subblock" style=3D"width:auto;overflow:hidden;vertica=
+l-align:top;padding-top:4px;padding-right:0px;padding-bottom:4px;padding-le=
+ft:0px;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div>
+<div><span style=3D"font-size: 12px;">
+<div><span style=3D"font-size: 15px;">Enjoy a morning of rejuvenation and r=
+elaxation amidst stunning panoramic views of the Valley at Test Winery! Immerse yourself in the serenity of nature as you practice yog=
+a on the Front Lawn led by a local Joya Yoga instructor. This experience is=
+ designed to refresh your body and calm your mind. After the yoga session, =
+indulge in a delightful wine tasting of three Test Winery wines as you unwind a=
+nd savor the flavors. We will have Color of Fresh charcuterie boxes availab=
+le for purchase (while supplies last) or guests are welcome to bring their =
+own snacks to enjoy after class.&nbsp;</span></div>
+</span></div>
+<div>&nbsp;</div>
+</div></div>
+</td>
+<td class=3D"kl-table-subblock" style=3D"width:auto;overflow:hidden;vertica=
+l-align:top;padding-top:4px;padding-right:0px;padding-bottom:4px;padding-le=
+ft:0px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%">
+<tbody><tr>
+<td align=3D"left" class=3D"" style=3D"font-size:0px;word-break:break-word;=
+">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:collapse;border-spacing:0px;">
+<tbody>
+<tr>
+<td class=3D"" style=3D"border:0;padding:0;width:512px;" valign=3D"top">
+<a class=3D"kl-img-link" href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9M=
+M56V2AVB4WN_13" style=3D"color:#FFFFFf; text-decoration:underline; display:=
+block">
+<img alt=3D"" src=3D"https://d3k81ch9hvuctc.cloudfront.net/company/WsWm6C/i=
+mages/bdb571fb-21b6-4b08-816b-dd398dbd438f.png" style=3D"display:block;outl=
+ine:none;text-decoration:none;height:auto;font-size:13px;width:100%;" title=
+=3D"" width=3D"512"/>
+</a>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"kl-button" style=3D"font-size:0px;padding:0px=
+;word-break:break-word;" vertical-align=3D"middle">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:separate;line-height:100%;">
+<tbody><tr>
+<td align=3D"center" bgcolor=3D"#292425" role=3D"presentation" style=3D"bor=
+der:none;border-radius:5px;cursor:auto;font-style:normal;mso-padding-alt:15=
+px 15px 15px 15px;background:#292425;" valign=3D"middle">
+<a href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9MM56V2AVB4WN_14" style=
+=3D'color:#FFF; text-decoration:none; display:inline-block; background:#292=
+425; font-family:"Playfair Display", TimesNewRoman, "Times New Roman", Time=
+s, Baskerville, Georgia, serif; font-size:14px; font-style:normal; font-wei=
+ght:400; line-height:100%; letter-spacing:0; margin:0; text-transform:none;=
+ padding:15px 15px 15px 15px; mso-padding-alt:0; border-radius:5px' target=
+=3D"_blank">
+              Vinyasa &amp; Vino Tickets
+            </a>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:18px;padding-right:1=
+8px;padding-bottom:18px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" style=3D"font-size:0px;padding:0px;word-break:break-wo=
+rd;">
+<p style=3D"padding-bottom:0; border-top:solid 1px #CCC; font-size:1px; mar=
+gin:0 auto; width:100%">
+</p>
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" style=3D"border-top:solid 1px #CCCCCC;font-size:1px;margin:=
+0px auto;width:562px;" role=3D"presentation" width=3D"562px" ><tr><td style=
+=3D"height:0;line-height:0;"> &nbsp;
+</td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-text" style=3D"font-size:0px;padding:0px;pad=
+ding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-bre=
+ak:break-word;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div><strong><span style=3D"font-size: 18px;">Friday Night Live featu=
+ring Salvage Title</span></strong><br/>Friday, July 25th |&nbsp;6:00-9:00PM=
+</div></div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-table" style=3D"font-size:0px;padding:0px;wo=
+rd-break:break-word;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"color:#000=
+000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-he=
+ight:22px;table-layout:fixed;width:100%;border:none;" width=3D"100%">
+<thead>
+</thead>
+<tbody>
+<tr>
+<td class=3D"kl-table-subblock" style=3D"width:auto;overflow:hidden;vertica=
+l-align:top;padding-top:4px;padding-right:0px;padding-bottom:4px;padding-le=
+ft:0px;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div>
+<div><span style=3D"font-size: 12px;">
+<div><span style=3D"font-size: 12px;">
+<div><span style=3D"font-size: 15px;">Turn up the volume and unwind at Test=
+ Winery for Friday Night Live! Salvage Title will bring the energy with the=
+ir high-powered rock tunes, setting the perfect vibe for an evening of gre=
+at music, delicious wine, and stunning vineyard views. La Cocina Azul Food=
+ Truck will be on-site, serving up incredible tacos and more, while Local=
+ Gelato offers the perfect sweet treat to top off the night.&nbsp;</span></d=
+iv>
+<div><br/><span style=3D"font-size: 15px;">Tickets to this event include en=
+try to enjoy the live music! Our Front Lawn offers an open, grassy space wi=
+thout tables, chairs, or shade, so we encourage you to bring blankets and l=
+ow-back chairs to relax in comfort.</span></div>
+</span></div>
+</span></div>
+<div>&nbsp;</div>
+</div></div>
+</td>
+<td class=3D"kl-table-subblock" style=3D"width:auto;overflow:hidden;vertica=
+l-align:top;padding-top:4px;padding-right:0px;padding-bottom:4px;padding-le=
+ft:0px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%">
+<tbody><tr>
+<td align=3D"left" class=3D"" style=3D"font-size:0px;word-break:break-word;=
+">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:collapse;border-spacing:0px;">
+<tbody>
+<tr>
+<td class=3D"" style=3D"border:0;padding:0;width:512px;" valign=3D"top">
+<a class=3D"kl-img-link" href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9M=
+M56V2AVB4WN_15" style=3D"color:#FFFFFf; text-decoration:underline; display:=
+block">
+<img alt=3D"" src=3D"https://d3k81ch9hvuctc.cloudfront.net/company/WsWm6C/i=
+mages/339775f9-8c36-47d1-935b-268151386ad0.png" style=3D"display:block;outl=
+ine:none;text-decoration:none;height:auto;font-size:13px;width:100%;" title=
+=3D"" width=3D"512"/>
+</a>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"kl-button" style=3D"font-size:0px;padding:0px=
+;word-break:break-word;" vertical-align=3D"middle">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:separate;line-height:100%;">
+<tbody><tr>
+<td align=3D"center" bgcolor=3D"#292425" role=3D"presentation" style=3D"bor=
+der:none;border-radius:5px;cursor:auto;font-style:normal;mso-padding-alt:15=
+px 15px 15px 15px;background:#292425;" valign=3D"middle">
+<a href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9MM56V2AVB4WN_16" style=
+=3D'color:#FFF; text-decoration:none; display:inline-block; background:#292=
+425; font-family:"Playfair Display", TimesNewRoman, "Times New Roman", Time=
+s, Baskerville, Georgia, serif; font-size:14px; font-style:normal; font-wei=
+ght:400; line-height:100%; letter-spacing:0; margin:0; text-transform:none;=
+ padding:15px 15px 15px 15px; mso-padding-alt:0; border-radius:5px' target=
+=3D"_blank">
+              Salvage Title Tickets
+            </a>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"kl-button" style=3D"font-size:0px;padding:0px=
+;word-break:break-word;" vertical-align=3D"middle">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:separate;line-height:100%;">
+<tbody><tr>
+<td align=3D"center" bgcolor=3D"#292425" role=3D"presentation" style=3D"bor=
+der:none;border-radius:5px;cursor:auto;font-style:normal;mso-padding-alt:15=
+px 15px 15px 15px;background:#292425;" valign=3D"middle">
+<a href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9MM56V2AVB4WN_17" style=
+=3D'color:#FFF; text-decoration:none; display:inline-block; background:#292=
+425; font-family:"Playfair Display", TimesNewRoman, "Times New Roman", Time=
+s, Baskerville, Georgia, serif; font-size:14px; font-style:normal; font-wei=
+ght:400; line-height:100%; letter-spacing:0; margin:0; text-transform:none;=
+ padding:15px 15px 15px 15px; mso-padding-alt:0; border-radius:5px' target=
+=3D"_blank">
+              Private Arbor Cabana Reservation
+            </a>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:18px;padding-right:1=
+8px;padding-bottom:18px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" style=3D"font-size:0px;padding:0px;word-break:break-wo=
+rd;">
+<p style=3D"padding-bottom:0; border-top:solid 1px #CCC; font-size:1px; mar=
+gin:0 auto; width:100%">
+</p>
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" style=3D"border-top:solid 1px #CCCCCC;font-size:1px;margin:=
+0px auto;width:562px;" role=3D"presentation" width=3D"562px" ><tr><td style=
+=3D"height:0;line-height:0;"> &nbsp;
+</td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-text" style=3D"font-size:0px;padding:0px;pad=
+ding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-bre=
+ak:break-word;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div><span style=3D"font-size: 18px;"><strong>Barrels &amp; Bingo Gam=
+e Night</strong></span><br/><span style=3D"font-size: 14px;">Thursday, July=
+ 29th | 600-8:00PM</span></div></div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-table" style=3D"font-size:0px;padding:0px;wo=
+rd-break:break-word;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"color:#000=
+000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-he=
+ight:22px;table-layout:fixed;width:100%;border:none;" width=3D"100%">
+<thead>
+</thead>
+<tbody>
+<tr>
+<td class=3D"kl-table-subblock" style=3D"width:auto;overflow:hidden;vertica=
+l-align:top;padding-top:4px;padding-right:0px;padding-bottom:4px;padding-le=
+ft:0px;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div><span style=3D"font-size: 15px;">Gather your squad and join us i=
+n the Barrel Room at Test Winery for a night of pure fun, friendly competition,=
+ and fantastic wine! Surrounded by iconic wine barrels, you&rsquo;ll dive i=
+nto the cozy vibes while playing classic bingo with a twist. Whether you're=
+ a bingo champ or just in it for the laughs, the energy will be contagious!=
+ Sip on Test Winery wines by the glass or bottle, cheer on your friends, and le=
+t the good times roll. It&rsquo;s the perfect recipe for unforgettable memo=
+ries, plenty of laughs, and the ultimate wine-and-games night out!</span></=
+div>
+<div>&nbsp;</div></div>
+</td>
+<td class=3D"kl-table-subblock" style=3D"width:auto;overflow:hidden;vertica=
+l-align:top;padding-top:4px;padding-right:0px;padding-bottom:4px;padding-le=
+ft:0px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%">
+<tbody><tr>
+<td align=3D"left" class=3D"" style=3D"font-size:0px;word-break:break-word;=
+">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:collapse;border-spacing:0px;">
+<tbody>
+<tr>
+<td class=3D"" style=3D"border:0;padding:0;width:512px;" valign=3D"top">
+<a class=3D"kl-img-link" href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9M=
+M56V2AVB4WN_18" style=3D"color:#FFFFFf; text-decoration:underline; display:=
+block">
+<img alt=3D"" src=3D"https://d3k81ch9hvuctc.cloudfront.net/company/WsWm6C/i=
+mages/c3dcb050-b69e-4635-b1d8-4b39296239d5.png" style=3D"display:block;outl=
+ine:none;text-decoration:none;height:auto;font-size:13px;width:100%;" title=
+=3D"" width=3D"512"/>
+</a>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"kl-button" style=3D"font-size:0px;padding:0px=
+;word-break:break-word;" vertical-align=3D"middle">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:separate;line-height:100%;">
+<tbody><tr>
+<td align=3D"center" bgcolor=3D"#292425" role=3D"presentation" style=3D"bor=
+der:none;border-radius:5px;cursor:auto;font-style:normal;mso-padding-alt:15=
+px 15px 15px 15px;background:#292425;" valign=3D"middle">
+<a href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9MM56V2AVB4WN_19" style=
+=3D'color:#FFF; text-decoration:none; display:inline-block; background:#292=
+425; font-family:"Playfair Display", TimesNewRoman, "Times New Roman", Time=
+s, Baskerville, Georgia, serif; font-size:14px; font-style:normal; font-wei=
+ght:400; line-height:100%; letter-spacing:0; margin:0; text-transform:none;=
+ padding:15px 15px 15px 15px; mso-padding-alt:0; border-radius:5px' target=
+=3D"_blank">
+              Barrels &amp; Bingo Tickets
+            </a>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:18px;padding-right:1=
+8px;padding-bottom:18px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" style=3D"font-size:0px;padding:0px;word-break:break-wo=
+rd;">
+<p style=3D"padding-bottom:0; border-top:solid 1px #CCC; font-size:1px; mar=
+gin:0 auto; width:100%">
+</p>
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" style=3D"border-top:solid 1px #CCCCCC;font-size:1px;margin:=
+0px auto;width:562px;" role=3D"presentation" width=3D"562px" ><tr><td style=
+=3D"height:0;line-height:0;"> &nbsp;
+</td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:0px;padding-right:0p=
+x;padding-bottom:0px;padding-left:0px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"kl-image" style=3D"font-size:0px;word-break:b=
+reak-word;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:collapse;border-spacing:0px;">
+<tbody>
+<tr>
+<td class=3D"kl-img-base-auto-width" style=3D"border:0;padding:0px 0px 0px =
+0px;width:598px;" valign=3D"top">
+<img src=3D"https://d3k81ch9hvuctc.cloudfront.net/company/WsWm6C/images/974=
+e7ddc-5aa1-4c03-8560-6d02968515f9.jpeg" style=3D"display:block;outline:none=
+;text-decoration:none;height:auto;font-size:13px;width:100%;" width=3D"598"=
+/>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"background-color:#000000;vertical-align:top;padding=
+-top:9px;padding-right:18px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-text" style=3D"font-size:0px;padding:0px;pad=
+ding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-bre=
+ak:break-word;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div style=3D"text-align: center;"><span style=3D"font-size: 26px;"><=
+em><span style=3D"color: rgb(255, 255, 255);"><strong>SAVE THE DATE</strong=
+></span></em></span></div></div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"left" class=3D"kl-text" style=3D"font-size:0px;padding:0px;pad=
+ding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;word-bre=
+ak:break-word;">
+<div style=3D"font-family:'Playfair Display', TimesNewRoman, 'Times New Rom=
+an', Times, Baskerville, Georgia, serif;font-size:14px;font-style:normal;fo=
+nt-weight:400;letter-spacing:0px;line-height:1.3;text-align:left;color:#000=
+000;"><div style=3D"text-align: center;"><span style=3D"font-size: 14px;"><=
+strong>Friday Night Live Summer Series!&nbsp;</strong></span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;">August =
+8th | GrrlzTalk</span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;">August =
+22nd | Rock on Tap</span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;">Septemb=
+er 5th | No Requests</span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;">Septemb=
+er 19th | Funk Shui</span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;"><strong=
+>&nbsp;</strong></span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;"><strong=
+>Barrels and Bingo Game Night</strong></span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;">August =
+26th, September 30th</span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;">October=
+ 21st, November 18th, December 16th</span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;"><strong=
+>&nbsp;</strong></span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;"><strong=
+>Back to School Bubbles</strong></span><br/><span style=3D"font-size: 14px;=
+">Wednesday, August 13th</span><br/><span style=3D"font-size: 14px;">9AM-1P=
+M</span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;">&nbsp;<=
+/span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;"><strong=
+>Bubbly &amp; Beats</strong></span><br/><span style=3D"font-size: 14px;">Su=
+nday, August 24th</span><br/><span style=3D"font-size: 14px;">12:00PM-3:00P=
+M</span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;">&nbsp;<=
+/span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;"><strong=
+>Cowboys &amp; Cabernet | A Nashville Night at Test Winery</strong></span><br/>=
+<span style=3D"font-size: 14px;">Saturday, August 16th</span><br/><span sty=
+le=3D"font-size: 14px;">6:00-10:00PM</span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;">&nbsp;<=
+/span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;"><strong=
+>Sunset Concert featuring Forejour</strong></span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;"><strong=
+>Tribute to Foreigner &amp; Journey</strong></span><br/><span style=3D"font=
+-size: 14px;">Sunday, August 31st</span><br/><span style=3D"font-size: 14px=
+;">5:30-8:30PM</span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;">&nbsp;<=
+/span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;"><strong=
+>The Killer Dueling Pianos Show</strong></span><br/><span style=3D"font-siz=
+e: 14px;">Thursday, October 9th</span><br/><span style=3D"font-size: 14px;"=
+>6:00-10:00PM</span></div>
+<div style=3D"text-align: center;"><span style=3D"font-size: 14px;">&nbsp;<=
+/span></div></div>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:9px;padding-right:18=
+px;padding-bottom:9px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" class=3D"kl-button" style=3D"font-size:0px;padding:0px=
+;word-break:break-word;" vertical-align=3D"middle">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"border-col=
+lapse:separate;line-height:100%;">
+<tbody><tr>
+<td align=3D"center" bgcolor=3D"#0E1012" role=3D"presentation" style=3D"bor=
+der:none;border-radius:5px;cursor:auto;font-style:normal;mso-padding-alt:15=
+px 15px 15px 15px;background:#0E1012;" valign=3D"middle">
+<a href=3D"https://ctrk.klclick.com/l/01JZ38CPDFZEV9MM56V2AVB4WN_20" style=
+=3D'color:#FFF; text-decoration:none; display:inline-block; background:#0E1=
+012; font-family:"Playfair Display", TimesNewRoman, "Times New Roman", Time=
+s, Baskerville, Georgia, serif; font-size:16px; font-style:normal; font-wei=
+ght:400; line-height:100%; letter-spacing:0; margin:0; text-transform:none;=
+ padding:15px 15px 15px 15px; mso-padding-alt:0; border-radius:5px' target=
+=3D"_blank">
+              Upcoming Event Tickets
+            </a>
+</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class=3D"mj-column-per-100 mj-outlook-group-fix component-wrapper" sty=
+le=3D"font-size:0px;text-align:left;direction:ltr;vertical-align:top;width:=
+100%;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"width:100%;" width=3D"100%">
+<tbody>
+<tr>
+<td class=3D"" style=3D"vertical-align:top;padding-top:18px;padding-right:1=
+8px;padding-bottom:18px;padding-left:18px;">
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" role=3D"presentatio=
+n" style=3D"" width=3D"100%">
+<tbody>
+<tr>
+<td align=3D"center" style=3D"font-size:0px;padding:0px;word-break:break-wo=
+rd;">
+<p style=3D"padding-bottom:0; border-top:solid 1px #CCC; font-size:1px; mar=
+gin:0 auto; width:100%">
+</p>
+<!--[if mso | IE]><table align=3D"center" border=3D"0" cellpadding=3D"0" ce=
+llspacing=3D"0" style=3D"border-top:solid 1px #CCCCCC;font-size:1px;margin:=
+0px auto;width:562px;" role=3D"presentation" width=3D"562px" ><tr><td style=
+=3D"height:0;line-height:0;"> &nbsp;
+</td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!--[if true]></td><![endif]-->
+</div>
+<!--[if true]></tr></table><![endif]-->
+</div>
+<!--[if mso | IE]></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!--[if mso | IE]></td></tr></table><![endif]-->
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<img alt=3D"" border=3D"0" height=3D"1" src=3D"data:image/png;base64,iVBORw=
+0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4//8/AwAI/AL+p5qgoAAAA=
+ABJRU5ErkJggg=3D=3D" style=3D"height:1px !important;width:1px !important;bo=
+rder-width:0 !important;margin-top:0 !important;margin-bottom:0 !important;=
+margin-right:0 !important;margin-left:0 !important;padding-top:0 !important=
+;padding-bottom:0 !important;padding-right:0 !important;padding-left:0 !imp=
+ortant;" width=3D"1">
+</img></body></html>
+--e24cca0299fcaabd10e802a113e5a550e57d2809083623ba7b1ca286febb--

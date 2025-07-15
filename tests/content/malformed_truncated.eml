@@ -1,0 +1,11 @@
+From: test@example.com
+To: dest@example.com
+Subject: Truncated email
+Content-Type: text/html; charset=utf-8
+
+<html>
+<body>
+This email appears to be truncated mid-message.
+<img src="http://example.com/tracker.gif" width="1" height="1">
+The HTML is not properly closed and the message just ends abruptly
+<p>This paragraph is never clo 

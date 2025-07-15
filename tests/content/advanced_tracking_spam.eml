@@ -1,0 +1,74 @@
+Return-Path: <advanced@marketing.com>
+Delivered-To: user@example.com
+Received: by 2002:a17:90b:1b0e:0:0:0:0 with SMTP id lq14csp123456abc;
+        Wed, 15 Mar 2023 11:45:00 -0700 (PDT)
+Message-ID: <advanced-tracking-001@marketing.com>
+Date: Wed, 15 Mar 2023 11:45:00 -0700
+From: Advanced Marketing <advanced@marketing.com>
+To: user@example.com
+Subject: Advanced Tracking Test Email
+Content-Type: text/html; charset=utf-8
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Advanced Tracking Test</title>
+</head>
+<body>
+    <h1>Advanced Tracking Parameter Test</h1>
+    
+    <p>This email tests edge cases for parameter stripping:</p>
+    
+    <!-- UTM parameters at the beginning -->
+    <img src="https://example.com/first.gif?utm_source=email&regular_param=value" width="1" height="1" />
+    
+    <!-- UTM parameters in the middle -->
+    <img src="https://example.com/middle.gif?param1=value1&utm_medium=email&param2=value2" width="1" height="1" />
+    
+    <!-- UTM parameters at the end -->
+    <img src="https://example.com/last.gif?param1=value1&param2=value2&utm_campaign=test" width="1" height="1" />
+    
+    <!-- Multiple UTM parameters -->
+    <img src="https://example.com/multi.gif?param1=value1&utm_source=email&utm_medium=newsletter&utm_campaign=spring&utm_term=shoes&utm_content=banner" width="1" height="1" />
+    
+    <!-- Mixed tracking parameters -->
+    <img src="https://example.com/mixed.gif?param1=value1&utm_source=email&fbclid=FB123&gclid=GC456&param2=value2" width="1" height="1" />
+    
+    <!-- URL with no query parameters -->
+    <img src="https://example.com/no-params.gif" width="1" height="1" />
+    
+    <!-- URL with only one parameter that should be stripped -->
+    <img src="https://example.com/single.gif?utm_source=email" width="1" height="1" />
+    
+    <!-- URL with encoded parameters -->
+    <img src="https://example.com/encoded.gif?param1=value%201&utm_source=email%20campaign&param2=value%202" width="1" height="1" />
+    
+    <!-- URL with fragment -->
+    <img src="https://example.com/fragment.gif?param1=value1&utm_source=email&param2=value2#section" width="1" height="1" />
+    
+    <!-- URL with port -->
+    <img src="https://example.com:8080/port.gif?param1=value1&utm_source=email&param2=value2" width="1" height="1" />
+    
+    <!-- HTTPS URL -->
+    <img src="https://secure.example.com/secure.gif?param1=value1&utm_source=email&param2=value2" width="1" height="1" />
+    
+    <!-- Subdomain URL -->
+    <img src="https://tracking.example.com/subdomain.gif?param1=value1&utm_source=email&param2=value2" width="1" height="1" />
+    
+    <!-- Complex real-world tracking pixel -->
+    <img src="https://analytics.example.com/pixel.gif?event=email_open&user_id=12345&utm_source=newsletter&utm_medium=email&utm_campaign=march_promo&utm_content=header&utm_term=spring_sale&session_id=abcdef&timestamp=1647360000" width="1" height="1" />
+    
+    <!-- URL with empty parameter value -->
+    <img src="https://example.com/empty.gif?param1=&utm_source=email&param2=" width="1" height="1" />
+    
+    <!-- URL with parameter but no value -->
+    <img src="https://example.com/novalue.gif?param1=value1&utm_source&param2=value2" width="1" height="1" />
+    
+    <!-- Test links as well -->
+    <a href="https://example.com/link1?param1=value1&utm_source=email&param2=value2">Link 1</a>
+    <a href="https://example.com/link2?utm_source=email&param1=value1">Link 2</a>
+    <a href="https://example.com/link3?param1=value1&param2=value2">Link 3 (no tracking)</a>
+    
+    <p>End of advanced tracking test.</p>
+</body>
+</html> 
