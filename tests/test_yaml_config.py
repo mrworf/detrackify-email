@@ -24,7 +24,7 @@ def test_yaml_config():
     
     # Test configuration
     test_config = {
-        'guardsalt': 'test-salt-123',
+        'salt': 'test-salt-123',
         'listen_ip': '0.0.0.0',
         'listen_port': 8080,
         'timeout': 3,

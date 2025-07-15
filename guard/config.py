@@ -55,25 +55,33 @@ class GuardConfig:
             if not isinstance(config_data, dict):
                 raise ValueError("Configuration file must contain a dictionary")
             
+            # Extract guard section and shared settings
+            guard_settings = config_data.get('guard', {})
+            # Also load shared settings at root level
+            shared_settings = {k: v for k, v in config_data.items() 
+                             if k not in ['email', 'guard']}
+            # Merge shared settings with guard settings (guard takes precedence)
+            unified_config_data = {**shared_settings, **guard_settings}
+            
             # Extract configuration values with defaults
             return cls(
-                salt=config_data.get('guardsalt', ''),
-                timeout=config_data.get('timeout', 5),
-                template_dir=config_data.get('template_dir', 'templates'),
-                resource_dir=config_data.get('resources_dir', 'resources'),
-                privacy=config_data.get('privacy', False),
-                listen_ip=config_data.get('listen_ip', '127.0.0.1'),
-                listen_port=config_data.get('listen_port', 9090),
-                resolve=config_data.get('resolve'),
-                cache_file=config_data.get('resolve_cache_file'),
-                cache_days=config_data.get('resolve_cache_days', 30),
-                cache_max=config_data.get('resolve_cache_max', 4096),
-                strip_param_prefixes=config_data.get('strip_param_prefix', []),
-                user_agent=config_data.get('user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'),
-                force_language=config_data.get('force_language'),
-                domain_aliases_file=config_data.get('domain_aliases_file', 'domain_aliases.yml'),
-                blacklist_file=config_data.get('blacklist_file', 'blacklist.yml'),
-                deny_on_warnings=config_data.get('deny_on_warnings', []),
+                salt=unified_config_data.get('salt', ''),
+                timeout=unified_config_data.get('timeout', 5),
+                template_dir=unified_config_data.get('template_dir', 'templates'),
+                resource_dir=unified_config_data.get('resources_dir', 'resources'),
+                privacy=unified_config_data.get('privacy', False),
+                listen_ip=unified_config_data.get('listen_ip', '127.0.0.1'),
+                listen_port=unified_config_data.get('listen_port', 9090),
+                resolve=unified_config_data.get('resolve'),
+                cache_file=unified_config_data.get('resolve_cache_file'),
+                cache_days=unified_config_data.get('resolve_cache_days', 30),
+                cache_max=unified_config_data.get('resolve_cache_max', 4096),
+                strip_param_prefixes=unified_config_data.get('strip_param_prefix', []),
+                user_agent=unified_config_data.get('user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'),
+                force_language=unified_config_data.get('force_language'),
+                domain_aliases_file=unified_config_data.get('domain_aliases_file', 'domain_aliases.yml'),
+                blacklist_file=unified_config_data.get('blacklist_file', 'blacklist.yml'),
+                deny_on_warnings=unified_config_data.get('deny_on_warnings', []),
             )
         except FileNotFoundError:
             logging.error("Configuration file not found: %s", config_path)
@@ -146,8 +154,8 @@ class GuardConfig:
             config = cls(salt='')
 
         # Override with command line arguments
-        if args.guardsalt is not None:
-            config.salt = args.guardsalt
+        if args.salt is not None:
+            config.salt = args.salt
         if args.listen_ip is not None:
             config.listen_ip = args.listen_ip
         if args.listen_port is not None:
@@ -185,7 +193,7 @@ class GuardConfig:
 
         # Validate required fields
         if not config.salt:
-            raise ValueError("Guard salt is required. Specify with --guardsalt or in config file.")
+            raise ValueError("Salt is required. Specify with --salt or in config file.")
 
         return config
 
@@ -219,7 +227,7 @@ class GuardConfig:
     def to_dict(self) -> dict:
         """Convert configuration to dictionary for serialization."""
         return {
-            'guardsalt': self.salt,
+            'salt': self.salt,
             'timeout': self.timeout,
             'template_dir': self.template_dir,
             'resources_dir': self.resource_dir,

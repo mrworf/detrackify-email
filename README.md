@@ -25,7 +25,7 @@ The project uses a single `requirements.txt` file that includes all dependencies
 
 **Registry:** `ghcr.io/mrworf/detrackify-guard`
 **Latest Tag:** `ghcr.io/mrworf/detrackify-guard:latest`
-**Specific Versions:** `ghcr.io/mrworf/detrackify-guard:v1.0.0` (replace with actual version)
+**Specific Versions:** `ghcr.io/mrworf/detrackify-guard:v1.0.com` (replace with actual version)
 
 ### Quick Start
 
@@ -71,6 +71,8 @@ For complete Docker deployment instructions, configuration options, and producti
 
 `--testurl` detect which query parameters can be stripped from the URL (WARNING! Will make requests to the URLs)
 
+> For now, I recommend using `--strip-param-prefix` instead, a more reliable but less automatic approach.
+
 `--list` list all detected image URLs
 
 `--copy` copy the original email to this folder for debugging
@@ -110,13 +112,13 @@ Guard settings can also be provided in the YAML configuration file.  All guard
 options live under the top-level `options` key:
 
 ```yaml
-options:
-  guard:
-    server: https://guard.example.com
-    salt: mysecret123
-    link: mismatch
-    capture_to: false
-    whitelist_file: guard_whitelist.yml  # Path to guard whitelist file
+guard:
+  server: https://guard.example.com
+  link: mismatch
+  capture_to: false
+
+# Common secret between email and guard
+salt: mysecret123
 
 # Additional configuration files
 domain_aliases_file: domain_aliases.yml  # Path to domain aliases file
@@ -125,6 +127,155 @@ blacklist_file: blacklist.yml           # Path to blacklist file
 cache_file: cache.yml                   # Path to cache file for persistent caching
 
 See the [guard server guide](GUARD_SERVER.md) for more details on running the guard server, enabling privacy mode and using a reverse proxy.
+
+## Configuration
+
+Detrackify uses a unified YAML configuration format that allows both the email processor and guard server to use the same configuration file. This reduces configuration fragmentation and makes it easier to manage shared settings.
+
+### Configuration Format
+
+Create a single configuration file with separate sections for each application:
+
+```yaml
+# Unified Detrackify Configuration
+# This file can be used by both detrackify_email.py and detrackify_guard.py
+
+# Shared configuration (used by both email and guard)
+salt: "your-secret-salt-here"
+domain_aliases_file: domain_aliases.yml
+blacklist_file: blacklist.yml
+whitelist_file: whitelist.yml
+
+# Email processor configuration
+email:
+  options:
+    verbose: false
+    strip:
+      enable: false
+      file: strip.yml
+      cookies: true
+      redirect: true
+    copy: null
+    guard:
+      server: http://localhost:9090
+      link: mismatch
+      capture_to: false
+      whitelist_file: guard_whitelist.yml
+  
+  # Email-specific file paths (overrides shared settings)
+  cache_file: cache.yml
+
+# Guard server configuration
+guard:
+  # Server settings
+  listen_ip: "127.0.0.1"
+  listen_port: 9090
+  
+  # Security and behavior settings
+  timeout: 5
+  privacy: false
+  
+  # Link resolution settings
+  resolve: "head"
+  resolve_cache_file: "cache/resolve_cache.json"
+  resolve_cache_days: 30
+  resolve_cache_max: 4096
+  
+  # URL parameter stripping
+  strip_param_prefix:
+    - "utm_"
+    - "fbclid"
+    - "gclid"
+```
+
+### Configuration Structure
+
+- **Shared settings** (root level): Common configuration used by both applications
+- **`email` section**: Email processor specific settings
+- **`guard` section**: Guard server specific settings
+
+### Configuration Precedence
+
+1. **Shared settings** (root level): Used by both applications
+2. **Application-specific settings** (`email` or `guard` sections): Override shared settings
+3. **Command line arguments**: Override both shared and application-specific settings
+
+### Usage
+
+**Email processor:**
+```bash
+python detrackify_email.py --config config.yml
+```
+
+**Guard server:**
+```bash
+python detrackify_guard.py --config config.yml
+```
+
+### Example Files
+
+- `examples/config_unified.yml` - Complete configuration example
+- `examples/config_unified_simple.yml` - Minimal configuration example
+
+### Command Line Options
+
+**Email processor options:**
+
+`--config` path to YAML configuration file
+
+`--verbose` enable verbose logging
+
+`--strip` enable experimental URL parameter stripping
+
+`--copy` copy processed emails to folder
+
+`--guardserver` URL of the guard server (including scheme)
+
+`--guardsalt` specify salt used when creating guarded links. Must be at least 8 characters.
+
+`--guardlink` specify guard link mode (choices: off, mismatch, always)
+
+`--guardcaptureto` capture the To address in guarded links
+
+`--guard-whitelist-file` path to guard whitelist YAML file
+
+`--domain-aliases-file` path to domain aliases YAML file (default: domain_aliases.yml)
+
+`--cache-file` path to cache YAML file for persistent caching of blacklist/whitelist entries
+
+`--whitelist-file` path to whitelist YAML file (default: whitelist.yml)
+
+`--blacklist-file` path to blacklist YAML file (default: blacklist.yml)
+
+**Guard server options:**
+
+`--config` path to YAML configuration file
+
+`--salt` salt for hash validation (required if not in config file)
+
+`--listen-ip` IP to bind to (default: 127.0.0.1)
+
+`--listen-port` port to listen on (default: 9090)
+
+`--timeout` seconds before continue button activates (default: 5)
+
+`--privacy` disable logging of visited links
+
+`--resolve` resolve the final URL before showing the continue button (choices: head, get, default: None - disabled)
+
+`--template-dir` directory containing templates (default: templates)
+
+`--resources-dir` directory containing additional resources (images only)
+
+`--debug` enable debug mode with template auto-reload
+
+`--force-language` force serving a specific language template (e.g., de, es, fr, zh, ar)
+
+`--strip-param-prefix` remove tracking parameters starting with PREFIX (may be used multiple times)
+
+`--domain-aliases-file` path to domain aliases YAML file (default: domain_aliases.yml)
+
+`--blacklist-file` path to blacklist YAML file (default: blacklist.yml)
 
 ## Guard Whitelist Configuration
 

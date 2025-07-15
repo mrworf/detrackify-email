@@ -7,18 +7,17 @@ When guardlink runs in `mismatch` mode the domain of each link is compared with 
 Set the following options either on the command line or in your `detrackify_email.py` configuration file:
 
 ```yaml
-options:
-  guard:
-    server: https://guard.example.com
-    salt: changeme123
-    link: mismatch
-    capture_to: false
+salt: changeme123
+guard:
+  server: https://guard.example.com
+  link: mismatch
+  capture_to: false
 ```
 
-`options.guard.server` is the public URL to the guard server including the scheme. `options.guard.salt` must be at least eight characters and should be kept secret. `options.guard.link` controls which links are rewritten: `mismatch` only rewrites links that do not match the sender domain, `always` rewrites all links and `off` disables the feature.
+`guard.server` is the public URL to the guard server including the scheme. `salt` must be at least eight characters and should be kept secret. `guard.link` controls which links are rewritten: `mismatch` only rewrites links that do not match the sender domain, `always` rewrites all links and `off` disables the feature.
 
 When a link is rewritten, a JSON payload containing the original URL, its display text and the sender domain is base64 encoded.  A SHA256 hash is then calculated from that encoded payload plus the configured salt and both values are appended to the guard server address.  This allows the server to verify that the payload has not been tampered with when a user clicks the link.  The processed email will also include the headers `X-Detrackify-Guarded-Links` and `X-Detrackify-Guard-Mode` when guardlink is active.
-If `options.guard.capture_to` is enabled, the recipient address is included in the JSON so the server can log which user clicked the link&mdash;or at least which recipient the link was originally meant for (forwards and quoted mail may not reflect the actual clicker).
+If `guard.capture_to` is enabled, the recipient address is included in the JSON so the server can log which user clicked the link&mdash;or at least which recipient the link was originally meant for (forwards and quoted mail may not reflect the actual clicker).
 
 ## Running the guard server
 
@@ -93,7 +92,7 @@ gunicorn --config gunicorn.conf.py wsgi:app
 Start the server with at least the salt option:
 
 ```bash
-python3 detrackify_guard.py --guardsalt changeme123
+python3 detrackify_guard.py --salt changeme123
 ```
 
 ### Using YAML Configuration File
@@ -101,42 +100,65 @@ python3 detrackify_guard.py --guardsalt changeme123
 Instead of specifying all options on the command line, you can use a YAML configuration file:
 
 ```bash
-python3 detrackify_guard.py --config config_guard.yml
+python3 detrackify_guard.py --config config.yml
 ```
 
 The configuration file supports all the same options as command line arguments, except for `debug` and `force_language`, which are command line only. Command line arguments will override values from the configuration file.
 
-Example configuration file (`config_guard.yml`):
+#### Configuration File Format
+
+Detrackify uses a unified configuration format that can be shared between the email processor and guard server:
 
 ```yaml
-# Required: Guard salt for hash validation
-guardsalt: "your-secret-salt-here"
+# Unified Detrackify Configuration
+# This file can be used by both detrackify_email.py and detrackify_guard.py
 
-# Server settings
-listen_ip: "127.0.0.1"
-listen_port: 9090
+# Shared configuration (used by both email and guard)
+salt: "test123456789"
+domain_aliases_file: domain_aliases.yml
+blacklist_file: blacklist.yml
 
-# Security and behavior settings
-timeout: 5
-privacy: false
+# Email processor configuration
+email:
+  options:
+    guard:
+      server: http://localhost:9090
+      link: mismatch
 
-# Link resolution settings
-resolve: "head"
-resolve_cache_file: "cache/resolve_cache.json"
-resolve_cache_days: 30
-resolve_cache_max: 4096
-
-# URL parameter stripping
-strip_param_prefix:
-  - "utm_"
-  - "fbclid"
-  - "gclid"
-
-# User agent for link resolution requests
-user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-
-# Note: 'debug' and 'force_language' are command line only options and cannot be set in this file.
+# Guard server configuration
+guard:
+  # Server settings
+  listen_ip: "127.0.0.1"
+  listen_port: 9090
+  
+  # Security and behavior settings
+  timeout: 5
+  privacy: false
+  
+  # Link resolution settings
+  resolve: "head"
+  resolve_cache_file: "cache/resolve_cache.json"
+  resolve_cache_days: 30
+  resolve_cache_max: 4096
+  
+  # URL parameter stripping
+  strip_param_prefix:
+    - "utm_"
+    - "fbclid"
+    - "gclid"
+  
+  # User agent for link resolution requests
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 ```
+
+When using a unified configuration file, the guard server will:
+1. Load shared settings from the root level (including `salt`)
+2. Load guard-specific settings from the `guard` section
+3. Apply guard-specific settings with precedence over shared settings
+
+The `salt` option is shared between both applications and is used for hash validation. If not specified in the `guard` section, the shared `salt` from the root level will be used.
+
+See the main README for more details on configuration format.
 
 ### Command Line Parameters
 
@@ -145,7 +167,7 @@ Optional parameters:
 * `--config`, `-c` Path to YAML configuration file
 * `--listen-ip` IP to bind to (default `127.0.0.1`)
 * `--listen-port` Port to listen on (default `9090`)
-* `--guardsalt` Guard salt for hash validation (required if not in config file)
+* `--salt` Guard salt for hash validation (required if not in config file)
 * `--template-dir` Directory containing templates (default `templates`)
 * `--resources-dir` Directory containing additional resources (images only)
 * `--timeout` Seconds to wait before the continue button activates (default `5`)
@@ -456,8 +478,6 @@ docker run -d \
   -p 9090:9090 \
   -e GUARD_SALT=your_secure_salt_here \
   ghcr.io/mrworf/detrackify-guard:latest
-```
-```
 ```
 
 ### Building the Docker Image Locally

@@ -2,10 +2,31 @@
 
 This folder contains example configuration files for both the Detrackify email processor and the guard server.
 
-## Email Processor Configurations
+## Configuration Format
 
-### `config_email.yml`
-Main configuration file for `detrackify_email.py`. This file contains all the settings for processing emails and removing tracking pixels.
+Detrackify uses a unified YAML configuration format that allows both applications to use the same configuration file. This approach reduces configuration fragmentation and allows sharing common settings.
+However, should the user choose, they can have separate configuration files, as long as the relevant sections are completed.
+
+### `config_unified.yml`
+Complete configuration file that can be used by both `detrackify_email.py` and `detrackify_guard.py`.
+
+**Structure:**
+- **Shared settings**: Common configuration used by both applications
+- **`email` section**: Email processor specific settings
+- **`guard` section**: Guard server specific settings
+
+**Benefits:**
+- Single configuration file for both tools
+- Shared settings reduce duplication
+- Application-specific sections provide clear separation
+- Configuration precedence (application-specific overrides shared)
+
+### `config_unified_simple.yml`
+Minimal configuration showing only essential settings for both applications.
+
+## Email Processor Configuration
+
+The `email` section contains all settings for processing emails and removing tracking pixels:
 
 **Key sections:**
 - `options.verbose`: Enable debug logging
@@ -13,12 +34,11 @@ Main configuration file for `detrackify_email.py`. This file contains all the se
 - `options.guard`: Link guarding configuration
 - `domain_aliases_file`: Path to domain aliases file
 - `whitelist_file`: Path to whitelist file
-- `blocklist_file`: Path to blocklist file
+- `blacklist_file`: Path to blocklist file
 
-## Guard Server Configurations
+## Guard Server Configuration
 
-### `config_guard_server.yml`
-Complete configuration file for the guard server (`detrackify_guard.py`) with all available options.
+The `guard` section contains all settings for the guard server:
 
 **Key settings:**
 - `guardsalt`: Required salt for hash validation
@@ -27,15 +47,6 @@ Complete configuration file for the guard server (`detrackify_guard.py`) with al
 - `privacy`: Disable logging of visited links
 - `resolve`: Link resolution mode (head/get, default: None - disabled)
 - `strip_param_prefix`: URL parameters to strip
-
-### `config_guard_server_simple.yml`
-Minimal configuration for the guard server with only essential settings.
-
-### `config_guard_server_with_aliases.yml`
-Example configuration showing how to use domain aliases and blocklists with the guard server.
-
-### `config_guard_server_with_blocked_warnings.yml`
-Example configuration showing how to block specific warning types during URL resolution.
 
 ## Shared Configuration Files
 
@@ -61,12 +72,6 @@ blacklist:
   - sender: '^spam@malicious\.com$'
   - url: '^https://malicious\.com/.*'
 ```
-
-### `whitelist.yml` (Legacy)
-Legacy whitelist format. Use `blocklist.yml` instead.
-
-### `blacklist.yml` (Legacy)
-Legacy blacklist format. Use `blocklist.yml` instead.
 
 ## Usage
 

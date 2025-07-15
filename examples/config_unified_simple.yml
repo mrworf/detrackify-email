@@ -1,0 +1,19 @@
+# Simple Unified Detrackify Configuration
+# Minimal configuration for both email and guard server
+
+# Shared settings
+salt: "test123456789"
+domain_aliases_file: domain_aliases.yml
+blacklist_file: blacklist.yml
+
+# Email processor settings
+email:
+  options:
+    guard:
+      server: http://localhost:9090
+      link: mismatch
+
+# Guard server settings
+guard:
+  listen_ip: "127.0.0.1"
+  listen_port: 9090 

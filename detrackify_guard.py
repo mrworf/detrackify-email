@@ -470,7 +470,7 @@ def main():
     parser.add_argument('--config', '-c', help='Path to YAML configuration file')
     parser.add_argument('--listen-ip', default=None, help='Listen IP')
     parser.add_argument('--listen-port', default=None, type=int, help='Listen port')
-    parser.add_argument('--guardsalt', help='Guard salt')
+    parser.add_argument('--salt', help='Salt for hash validation')
     parser.add_argument('--template-dir', default=None, help='Template directory')
     parser.add_argument('--resources-dir', default=None, help='Directory for additional resources')
     parser.add_argument('--timeout', type=int, default=None,

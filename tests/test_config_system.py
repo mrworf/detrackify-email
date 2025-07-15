@@ -24,7 +24,7 @@ class TestLoadConfigFromYaml(unittest.TestCase):
         a dictionary with all the values matching the original YAML content.
         """
         config_data = {
-            'guardsalt': 'test-salt-123',
+            'salt': 'test-salt-123',
             'listen_ip': '0.0.0.0',
             'listen_port': 8080,
             'timeout': 3,
@@ -118,7 +118,7 @@ class TestLoadConfigFromYaml(unittest.TestCase):
         including complex types like lists and various data types (strings, integers, booleans).
         """
         config_data = {
-            'guardsalt': 'complex-salt-456',
+            'salt': 'complex-salt-456',
             'listen_ip': '127.0.0.1',
             'listen_port': 9090,
             'template_dir': 'custom_templates',
@@ -227,7 +227,7 @@ class TestConfigEdgeCases(unittest.TestCase):
         as lists in the configuration, supporting multiple parameter prefixes.
         """
         config_data = {
-            'guardsalt': 'test-salt',
+            'salt': 'test-salt',
             'strip_param_prefix': ['utm_', 'fbclid', 'gclid']
         }
         
@@ -249,7 +249,7 @@ class TestConfigEdgeCases(unittest.TestCase):
         Python boolean types (True/False) without string conversion issues.
         """
         config_data = {
-            'guardsalt': 'test-salt',
+            'salt': 'test-salt',
             'privacy': True
         }
         

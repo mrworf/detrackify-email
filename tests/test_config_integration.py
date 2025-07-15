@@ -23,7 +23,7 @@ def create_mock_args(**kwargs):
     """Create a mock args object with all required attributes."""
     args = MagicMock()
     # Set default values for all arguments that GuardConfig.from_args expects
-    args.guardsalt = kwargs.get('guardsalt', None)
+    args.salt = kwargs.get('salt', None)
     args.listen_ip = kwargs.get('listen_ip', None)
     args.listen_port = kwargs.get('listen_port', None)
     args.template_dir = kwargs.get('template_dir', None)
@@ -50,14 +50,14 @@ class TestConfigIntegration(unittest.TestCase):
     def test_command_line_overrides_yaml(self):
         """Test that command line arguments override YAML configuration."""
         with patch('sys.exit', side_effect=no_exit), \
-             patch('sys.argv', ['detrackify_guard.py', '--config', 'test.yml', '--guardsalt', 'cmd-salt']), \
+             patch('sys.argv', ['detrackify_guard.py', '--config', 'test.yml', '--salt', 'cmd-salt']), \
              patch('guard.config.GuardConfig.from_yaml') as mock_load_config, \
              patch('detrackify_guard.GuardServer') as mock_server, \
              patch('detrackify_guard.atexit.register'), \
              patch('argparse.ArgumentParser.parse_args') as mock_parse_args:
             
             # Mock the parsed args
-            mock_args = create_mock_args(guardsalt='cmd-salt')
+            mock_args = create_mock_args(salt='cmd-salt')
             mock_parse_args.return_value = mock_args
             
             # Mock YAML config
@@ -80,7 +80,7 @@ class TestConfigIntegration(unittest.TestCase):
     def test_command_line_only_no_yaml(self):
         """Test configuration with only command line arguments."""
         with patch('sys.exit', side_effect=no_exit), \
-             patch('sys.argv', ['detrackify_guard.py', '--guardsalt', 'cmd-only-salt']), \
+             patch('sys.argv', ['detrackify_guard.py', '--salt', 'cmd-only-salt']), \
              patch('detrackify_guard.GuardServer') as mock_server, \
              patch('detrackify_guard.atexit.register'):
             

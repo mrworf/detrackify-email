@@ -85,7 +85,16 @@ class Configuration:
         try:
             with open(path, 'r') as stream:
                 settings = yaml.safe_load(stream) or {}
-                self._merge_settings(settings)
+                
+                # Extract email section and shared settings
+                email_settings = settings.get('email', {})
+                # Also load shared settings at root level
+                shared_settings = {k: v for k, v in settings.items() 
+                                 if k not in ['email', 'guard']}
+                # Merge shared settings with email settings (email takes precedence)
+                unified_settings = {**shared_settings, **email_settings}
+                self._merge_settings(unified_settings)
+                    
         except FileNotFoundError:
             logging.exception(f"Configuration file not found: {path}")
             return False
@@ -167,7 +176,9 @@ class Configuration:
             else:
                 self.config[key] = value
         
-
+        # Handle shared salt option - if salt is provided at root level and not in guard options, use it
+        if 'salt' in settings and not self.config['options']['guard']['salt']:
+            self.config['options']['guard']['salt'] = settings['salt']
     
     def _update_counters(self) -> None:
         """Update internal counters for tracking changes."""

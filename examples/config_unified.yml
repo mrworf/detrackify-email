@@ -1,0 +1,64 @@
+# Unified Detrackify Configuration
+# This file can be used by both detrackify_email.py and detrackify_guard.py
+# Each application will use its respective section while sharing common settings
+
+# Shared configuration (used by both email and guard)
+salt: "your-secret-salt-here"
+domain_aliases_file: domain_aliases.yml
+blacklist_file: blacklist.yml
+whitelist_file: whitelist.yml
+
+# Email processor configuration
+email:
+  options:
+    verbose: false
+    strip:
+      enable: false
+      file: strip.yml
+      cookies: true
+      redirect: true
+    copy: null
+    guard:
+      server: http://localhost:9090
+      salt: test123456789
+      link: mismatch
+      capture_to: false
+      whitelist_file: guard_whitelist.yml
+  
+  # Email-specific file paths (overrides shared settings)
+  cache_file: cache.yml
+
+# Guard server configuration
+guard:
+  # Server settings
+  listen_ip: "127.0.0.1"
+  listen_port: 9090
+  
+  # Directory settings
+  template_dir: "templates"
+  resources_dir: "resources"
+  
+  # Security and behavior settings
+  timeout: 5  # Seconds before continue button activates
+  privacy: false  # Disable logging of visited links
+  
+  # Link resolution settings
+  resolve: "head"  # 'head', 'get', or null to disable
+  resolve_cache_file: "cache/resolve_cache.json"  # Path to cache file
+  resolve_cache_days: 30  # Days to keep cache entries
+  resolve_cache_max: 4096  # Maximum number of cached entries
+  
+  # URL parameter stripping
+  strip_param_prefix:
+    - "utm_"
+    - "fbclid"
+    - "gclid"
+    - "msclkid"
+  
+  # User agent for link resolution requests
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  
+  # Guard-specific file paths (overrides shared settings)
+  blacklist_file: "blacklist.yml"
+  
+  # Note: 'debug' and 'force_language' are command line only options and cannot be set in this file. 
