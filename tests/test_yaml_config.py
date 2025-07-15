@@ -14,7 +14,13 @@ from guard.config import GuardConfig
 
 
 def test_yaml_config():
-    """Test YAML configuration loading."""
+    """
+    Test loading a valid YAML configuration file with various data types.
+    
+    Expected outcome: All configuration values should be parsed correctly from
+    YAML format, maintaining proper data types (strings, integers, booleans, lists)
+    and demonstrating successful YAML-to-Python conversion.
+    """
     
     # Test configuration
     test_config = {
@@ -56,7 +62,13 @@ def test_yaml_config():
 
 
 def test_invalid_yaml():
-    """Test handling of invalid YAML."""
+    """
+    Test handling of syntactically invalid YAML content.
+    
+    Expected outcome: Function should raise yaml.YAMLError when attempting
+    to parse malformed YAML syntax, providing clear error indication rather
+    than silent failure or incorrect parsing.
+    """
     
     # Create temporary file with invalid YAML
     with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
@@ -77,7 +89,13 @@ def test_invalid_yaml():
 
 
 def test_missing_file():
-    """Test handling of missing configuration file."""
+    """
+    Test handling of non-existent configuration file paths.
+    
+    Expected outcome: Function should raise FileNotFoundError when attempting
+    to load a configuration file that doesn't exist, providing clear error
+    indication for missing configuration files.
+    """
     
     try:
         GuardConfig.from_yaml('/nonexistent/file.yml')

@@ -8,7 +8,7 @@ import os
 # Add the parent directory to the path so we can import url_utils
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from url_utils import strip_query_params, normalize_prefixes, is_tracking_parameter
+from common.url_utils import strip_query_params, normalize_prefixes, is_tracking_parameter
 
 
 class TestUrlUtils(unittest.TestCase):
