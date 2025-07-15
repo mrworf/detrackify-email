@@ -32,7 +32,7 @@ import email.utils
 import requests
 import urllib.parse
 
-from url_utils import strip_query_params
+from common.url_utils import strip_query_params
 
 class Detector:
     def __init__(self, config):

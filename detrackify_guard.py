@@ -40,7 +40,7 @@ from flask import (
 )
 from markupsafe import escape
 
-from url_utils import strip_query_params
+from common.url_utils import strip_query_params
 
 
 @dataclass
