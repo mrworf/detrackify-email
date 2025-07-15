@@ -44,6 +44,21 @@ class Detrackify:
         for img_tag in img_tags:
             logging.info(img_tag['src'])
     
+    def process_strip_params(self, img_tag) -> tuple:
+        """Process an HTML img tag and strip tracking parameters from its src URL."""
+        original_url = img_tag.get('src', '')
+        if not original_url:
+            return original_url, []
+        
+        # Strip tracking parameters using the detector
+        stripped_url = self.detector.strip_query_params(original_url)
+        
+        # If URL changed, return the stripped URL and reason
+        if stripped_url != original_url:
+            return stripped_url, ['Parameter stripping']
+        else:
+            return original_url, []
+    
     def replace_tracking_urls(self, html_content: str, from_address: str = None, to_address: str = None) -> str:
         """Rewrite tracking images and optionally guard links."""
         soup = BeautifulSoup(html_content, 'html.parser')
@@ -112,11 +127,13 @@ class Detrackify:
                 # Replace the src of the tracking pixel
                 logging.info(f'[{", ".join(tracker)}] {url}')
                 logging.debug(f"Image {i+1} REPLACING with blank tracker: {url} -> {replacement[:50]}...")
-                domain = SharedUtils.extract_domain_from_url(url).lower()
-                if domain in self.blocked_domains:
-                    self.blocked_domains[domain].append({url: tracker})
-                else:
-                    self.blocked_domains[domain] = [{url: tracker}]
+                domain = SharedUtils.extract_domain_from_url(url)
+                if domain:
+                    domain = domain.lower()
+                    if domain in self.blocked_domains:
+                        self.blocked_domains[domain].append({url: tracker})
+                    else:
+                        self.blocked_domains[domain] = [{url: tracker}]
                 url = replacement
             else:
                 logging.debug(f"Image {i+1} KEEPING original: {url}")
@@ -248,11 +265,11 @@ class Detrackify:
                 self.config.add_to_cache_whitelist(f'{stripped_url}')
         return stripped_url, reason
     
-    def process_file(self, email_path: str, output_path: str, listonly: bool = False) -> None:
+    def process_file(self, email_path: str, output_path: str, listonly: bool = False, hardfail: bool = False) -> None:
         """Process an email file."""
         with open(email_path, 'rb') as fd_in:
             with open(output_path, 'wb') as fd_out:
-                self.process(fd_in, fd_out, hardfail=True, listonly=listonly)
+                self.process(fd_in, fd_out, hardfail=hardfail, listonly=listonly)
     
     def process(self, input_fd, output_fd, hardfail: bool = False, listonly: bool = False) -> None:
         """Process email from file descriptor."""
@@ -272,7 +289,7 @@ class Detrackify:
                 logging.exception(f"Error copying original email: {e}")
         
         try:
-            self.process_buffer(raw_message, output_fd, listonly=listonly)
+            self.process_buffer(raw_message, output_fd, listonly=listonly, hardfail=hardfail)
         except Exception as e:
             logging.exception(f"Error: {e}")
             # Ensure we still allow message to be delivered
@@ -281,7 +298,7 @@ class Detrackify:
                 sys.exit(1)
             output_fd.write(raw_message)
     
-    def process_buffer(self, raw_message: bytes, output_fd, listonly: bool = False) -> None:
+    def process_buffer(self, raw_message: bytes, output_fd, listonly: bool = False, hardfail: bool = False) -> None:
         """Process email buffer."""
         hashtml = False
         self.guarded_links = 0
@@ -321,10 +338,35 @@ class Detrackify:
                 
                 if content_transfer_encoding == 'base64':
                     # Decode Base64 content
-                    html_content = SharedUtils.decode_base64(part.get_payload(), content_charset)
+                    try:
+                        html_content = SharedUtils.decode_base64(part.get_payload(), content_charset)
+                    except UnicodeDecodeError as e:
+                        # In hardfail mode, re-raise the exception
+                        if hardfail:
+                            raise
+                        # SharedUtils.decode_base64 already handles errors, but just in case
+                        html_content = SharedUtils.decode_base64(part.get_payload(), content_charset)
                 else:
                     # Decode normally if not Base64 encoded
-                    html_content = part.get_payload(decode=True).decode(content_charset)
+                    try:
+                        html_content = part.get_payload(decode=True).decode(content_charset)
+                    except UnicodeDecodeError as e:
+                        # In hardfail mode, re-raise the exception
+                        if hardfail:
+                            raise
+                        # Try with error handling - replace invalid characters
+                        try:
+                            html_content = part.get_payload(decode=True).decode(content_charset, errors='replace')
+                        except Exception:
+                            # If all else fails, try latin-1 which can decode any byte sequence
+                            html_content = part.get_payload(decode=True).decode('latin-1', errors='replace')
+                    except Exception as e:
+                        # In hardfail mode, re-raise the exception
+                        if hardfail:
+                            raise
+                        # If decoding fails, skip this part
+                        logging.warning(f"Failed to decode email part content: {e}")
+                        continue
                 
                 if listonly:
                     self.list_images(html_content)

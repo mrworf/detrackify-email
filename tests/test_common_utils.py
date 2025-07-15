@@ -161,10 +161,10 @@ class TestSharedUtilsURLProcessing(unittest.TestCase):
         result = SharedUtils.strip_query_parameters(url, ["fbclid", "utm_"])
         self.assertEqual(result, "https://example.com/?param1=value1")
         
-        # Case sensitivity - should NOT match uppercase
+        # Case insensitivity - should match uppercase (case-insensitive matching)
         url = "https://example.com/?param1=value1&UTM_SOURCE=test&param2=value2"
         result = SharedUtils.strip_query_parameters(url, ["utm_"])
-        self.assertEqual(result, "https://example.com/?param1=value1&UTM_SOURCE=test&param2=value2")
+        self.assertEqual(result, "https://example.com/?param1=value1")
         
         # Partial prefix matches
         url = "https://example.com/?param1=value1&utm_param=test&param2=value2"

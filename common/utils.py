@@ -144,7 +144,7 @@ class SharedUtils:
     
     @staticmethod
     def strip_query_parameters(url: str, strip_prefixes: list) -> str:
-        """Remove query parameters starting with configured prefixes."""
+        """Remove query parameters starting with configured prefixes (case-insensitive)."""
         if not strip_prefixes or not url:
             return url
         
@@ -158,11 +158,15 @@ class SharedUtils:
         
         params = parts.query.split("&")
         keep = []
+        
+        # Convert prefixes to lowercase for case-insensitive matching
+        lower_prefixes = [prefix.lower() for prefix in strip_prefixes]
+        
         for param in params:
             if not param:  # Skip empty parameters
                 continue
-            key = param.split("=")[0]
-            if any(key.startswith(p) for p in strip_prefixes):
+            key = param.split("=")[0].lower()
+            if any(key.startswith(p) for p in lower_prefixes):
                 break  # Stop processing when a matching prefix is found
             keep.append(param)
         
@@ -193,7 +197,18 @@ class SharedUtils:
     @staticmethod
     def decode_base64(content: bytes, charset: str = 'utf-8') -> str:
         """Decode Base64 content to string using the specified charset."""
-        return base64.b64decode(content).decode(charset)
+        try:
+            return base64.b64decode(content).decode(charset)
+        except UnicodeDecodeError:
+            # Try with error handling - replace invalid characters
+            try:
+                return base64.b64decode(content).decode(charset, errors='replace')
+            except Exception:
+                # If all else fails, try latin-1 which can decode any byte sequence
+                return base64.b64decode(content).decode('latin-1', errors='replace')
+        except Exception:
+            # If base64 decoding fails, return the original content as string
+            return content.decode(charset, errors='replace') if isinstance(content, bytes) else str(content)
     
     @staticmethod
     def encode_base64(content: str) -> str:

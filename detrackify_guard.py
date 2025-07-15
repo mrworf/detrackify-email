@@ -91,7 +91,9 @@ class GuardServer:
         # Register the after_request handler
         self.app.after_request(self.add_security_headers)
 
-
+    def strip_query_params(self, url: str) -> str:
+        """Strip query parameters based on configured prefixes."""
+        return SharedUtils.strip_query_parameters(url, self.strip_prefixes)
 
     def add_security_headers(self, response):
         response.headers['X-Content-Type-Options'] = 'nosniff'

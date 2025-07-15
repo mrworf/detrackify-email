@@ -49,6 +49,7 @@ def main():
     parser.add_argument('--guard-whitelist-file', help='Path to guard whitelist YAML file (default: guard_whitelist.yml)')
     parser.add_argument('--cache-file', help='Path to cache YAML file for persistent caching')
     parser.add_argument('--strip-param-prefix', action='append', default=[], help='Strip query parameters starting with PREFIX and everything after')
+    parser.add_argument('--hardfail', action='store_true', help='Exit with error code on processing failures instead of passing through original email')
 
     # Parse command line arguments
     args = parser.parse_args()
@@ -127,9 +128,9 @@ def main():
             logging.info(f'Processing message ID: {args.message_id}')
         
         if args.input and args.output:
-            detrack.process_file(args.input, args.output, listonly=args.list)
+            detrack.process_file(args.input, args.output, listonly=args.list, hardfail=args.hardfail)
         else:
-            detrack.process(sys.stdin.buffer, sys.stdout.buffer, hardfail=False)
+            detrack.process(sys.stdin.buffer, sys.stdout.buffer, hardfail=args.hardfail)
 
         if config.get(Configuration.CFG_STRIP_ENABLE):
             config.save_learned(config.get(Configuration.CFG_STRIP_FILE))

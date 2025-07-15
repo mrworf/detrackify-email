@@ -24,6 +24,11 @@ class Detector:
         """Strip tracking parameters from URL."""
         return SharedUtils.strip_tracking_parameters(url)
     
+    def strip_query_params(self, url: str) -> str:
+        """Strip query parameters based on configured prefixes."""
+        prefixes = self.config.get(Configuration.CFG_STRIP_PARAM_PREFIX, [])
+        return SharedUtils.strip_query_parameters(url, prefixes)
+    
     def detect_needed_rewrite(self, url: str, replace_1x1: bool = False) -> Optional[Dict[str, Any]]:
         """Check if the URL contains a query string and needs rewriting."""
         ret = {'url': url, 'reason': []}

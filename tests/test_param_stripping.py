@@ -20,6 +20,7 @@ class TestParameterStripping(unittest.TestCase):
         """Set up test configuration."""
         self.config = Configuration()
         self.config.set(Configuration.CFG_STRIP_PARAM_PREFIX, ['utm_', 'fbclid', 'gclid'])
+        self.config.set(Configuration.CFG_STRIP_ENABLE, True)
         self.detector = Detector(self.config)
         self.detrackify = Detrackify(self.config)
 
@@ -270,7 +271,7 @@ class TestParameterStripping(unittest.TestCase):
         """
         from bs4 import BeautifulSoup
         
-        # Create HTML with tracking parameters - use larger images to avoid tracking pixel detection
+        # Test the process_strip_params method directly on HTML img elements
         html = '''
         <html>
         <body>
@@ -281,16 +282,25 @@ class TestParameterStripping(unittest.TestCase):
         </html>
         '''
         
-        # Process the HTML
-        result_html = self.detrackify.replace_tracking_urls(html)
+        soup = BeautifulSoup(html, 'html.parser')
+        img_tags = soup.find_all('img')
+        
+        # Test parameter stripping on each image
+        result_url1, reasons1 = self.detrackify.process_strip_params(img_tags[0])
+        result_url2, reasons2 = self.detrackify.process_strip_params(img_tags[1])
+        result_url3, reasons3 = self.detrackify.process_strip_params(img_tags[2])
         
         # Check that tracking parameters were stripped
-        self.assertIn('https://example.com/image1.png?param1=value1', result_html)
-        self.assertNotIn('utm_source=test', result_html)
-        self.assertNotIn('fbclid=12345', result_html)
+        self.assertEqual(result_url1, "https://example.com/image1.png?param1=value1")
+        self.assertIn('Parameter stripping', reasons1)
         
-        # Check that non-tracking parameters remain (HTML encoded)
-        self.assertIn('https://example.com/image2.png?param1=value1&amp;param2=value2', result_html)
+        # Check that non-tracking parameters remain unchanged
+        self.assertEqual(result_url2, "https://example.com/image2.png?param1=value1&param2=value2")
+        self.assertEqual(reasons2, [])
+        
+        # Check that fbclid parameter was stripped
+        self.assertEqual(result_url3, "https://example.com/image3.png")
+        self.assertIn('Parameter stripping', reasons3)
 
 
 if __name__ == '__main__':

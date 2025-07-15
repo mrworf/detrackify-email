@@ -22,6 +22,7 @@ class Configuration:
     CFG_STRIP_COOKIES = 'options.strip.cookies'
     CFG_STRIP_REDIRECT = 'options.strip.redirect'
     CFG_STRIP_ENABLE = 'options.strip.enable'
+    CFG_STRIP_PARAM_PREFIX = 'options.strip.param_prefix'
     CFG_COPY = 'options.copy'
     CFG_GUARD_SERVER = 'options.guard.server'
     CFG_GUARD_SALT = 'options.guard.salt'
@@ -58,7 +59,8 @@ class Configuration:
                     'file': 'strip.yml',
                     'cookies': True,
                     'redirect': True,
-                    'enable': False
+                    'enable': False,
+                    'param_prefix': []
                 },
                 'verbose': False,
                 'copy': None,
@@ -143,6 +145,10 @@ class Configuration:
         if args.cache_file:
             self.set(Configuration.CFG_CACHE_FILE, args.cache_file)
             self.load_cache_from_file()
+        
+        # Handle strip parameter prefixes
+        if args.strip_param_prefix:
+            self.set(Configuration.CFG_STRIP_PARAM_PREFIX, args.strip_param_prefix)
     
     def _merge_settings(self, settings: Dict[str, Any]) -> None:
         """Merge settings into configuration."""
