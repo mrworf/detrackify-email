@@ -48,6 +48,7 @@ def main():
     parser.add_argument('--guardcaptureto', action='store_true', help='Capture the To address in guarded links')
     parser.add_argument('--guard-whitelist-file', help='Path to guard whitelist YAML file (default: guard_whitelist.yml)')
     parser.add_argument('--cache-file', help='Path to cache YAML file for persistent caching')
+    parser.add_argument('--strip-param-prefix', action='append', default=[], help='Strip query parameters starting with PREFIX and everything after')
 
     # Parse command line arguments
     args = parser.parse_args()

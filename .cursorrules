@@ -1,0 +1,86 @@
+# Cursor Rules for detrackify-email project
+
+## Testing Requirements
+
+### MANDATORY: pytest must be run and pass before completion
+- **ALWAYS run `pytest -v` before considering any work complete**
+- **ALL tests must pass with 0 warnings**
+- **If any tests fail, they must be fixed before work is considered done**
+- **If pytest shows warnings, they must be resolved**
+
+### Test execution guidelines:
+1. Run `pytest -v` to see detailed test results
+2. If there are warnings, investigate and fix them
+3. Ensure all 73+ tests pass (or current test count)
+4. Pay special attention to:
+   - New functionality tests
+   - Parameter stripping tests
+   - Configuration tests
+   - Integration tests
+
+### Before submitting work:
+- [ ] Run `pytest -v` 
+- [ ] Confirm all tests pass
+- [ ] Confirm no pytest warnings
+- [ ] Verify test coverage for new functionality
+
+## Code Quality Standards
+
+### Security practices
+- Follow best security practices
+- Input data validation
+- When making assumptions, add comments to explain why
+
+### Python Code Style:
+- Follow PEP 8 style guidelines
+- Use meaningful variable and function names
+- Add docstrings for new functions and classes
+- Handle edge cases and error conditions
+
+### Testing Standards:
+- Write tests for new functionality
+- Use proper assert statements (not return values)
+- Use pytest.raises() for exception testing
+- Include edge case testing
+- Test both positive and negative scenarios
+
+### Integration Testing Guidelines:
+- Test scripts as they would be used in production environment
+- Run scripts with various command line arguments and check output
+- Pipe content from test data files into scripts to simulate real usage
+- Verify end-to-end functionality, not just unit components
+
+### Documentation:
+- Update README.md, GUARD_SERVER.md and/or other relevant .MD file if functionality changes
+- Document new configuration options
+- Include usage examples for new features
+
+## Project-Specific Rules
+
+### URL Parameter Stripping:
+- Always test case-insensitive parameter matching
+- Verify both email and guard systems work identically
+- Test with real-world email examples when possible
+
+### Configuration Management:
+- Test both YAML and command-line configuration
+- Verify configuration precedence (command-line overrides YAML)
+- Test edge cases like missing files, invalid YAML
+
+### Error Handling:
+- Gracefully handle malformed URLs
+- Provide helpful error messages
+- Test error conditions thoroughly
+
+## Final Checklist
+
+Before marking work as complete:
+1. ✅ All functionality implemented as requested
+2. ✅ `pytest -v` runs successfully with no failures
+3. ✅ No pytest warnings present
+4. ✅ Code follows project style guidelines
+5. ✅ New tests written for new functionality
+6. ✅ Edge cases considered and tested
+7. ✅ Documentation updated if needed
+
+**REMEMBER: No work is complete until pytest passes cleanly!** 

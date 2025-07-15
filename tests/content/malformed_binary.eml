@@ -1,0 +1,10 @@
+From: test@example.com
+To: dest@example.com
+Subject: Email with binary content
+Content-Type: text/html
+
+<html>
+<body>
+This email contains some binary data:
+Binary data: ÿþýü
+NULL bytes: 

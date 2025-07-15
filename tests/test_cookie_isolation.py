@@ -13,7 +13,13 @@ from common.utils import SharedUtils
 
 
 def test_session_creation_and_cleanup():
-    """Test that sessions are created and cleaned up properly."""
+    """
+    Test that HTTP sessions are properly created and cleaned up after use.
+    
+    Expected outcome: Each request should create a new session with proper
+    initialization (User-Agent, cleared cookies) and ensure cleanup (close session,
+    clear cookies) to prevent resource leaks and state persistence.
+    """
     cfg = GuardConfig(salt="test")
     server = GuardServer(cfg)
     
@@ -57,7 +63,13 @@ def test_session_creation_and_cleanup():
 
 
 def test_multiple_sessions_are_isolated():
-    """Test that multiple requests create separate sessions."""
+    """
+    Test that multiple requests create separate, isolated sessions.
+    
+    Expected outcome: Each request should create a completely new session
+    to prevent cookie sharing between different link resolutions, ensuring
+    privacy and security isolation.
+    """
     cfg = GuardConfig(salt="test")
     server = GuardServer(cfg)
     
@@ -98,7 +110,13 @@ def test_multiple_sessions_are_isolated():
 
 
 def test_cookie_clearing_behavior():
-    """Test that cookies are explicitly cleared before and after requests."""
+    """
+    Test that cookies are explicitly cleared before and after each request.
+    
+    Expected outcome: Cookies should be cleared both before making requests
+    (to start clean) and after requests (to prevent persistence), ensuring
+    no tracking data is shared between different link resolutions.
+    """
     cfg = GuardConfig(salt="test")
     server = GuardServer(cfg)
     
@@ -137,7 +155,13 @@ def test_cookie_clearing_behavior():
 
 
 def test_base64_validation():
-    """Test that base64 data validation works correctly with various formats."""
+    """
+    Test that base64 data validation correctly handles various input formats.
+    
+    Expected outcome: Valid base64 strings (with proper characters, padding,
+    and URL-safe variants) should pass validation, while invalid strings
+    containing illegal characters should fail validation.
+    """
     cfg = GuardConfig(salt="test")
     server = GuardServer(cfg)
     
@@ -186,7 +210,13 @@ def test_base64_validation():
 
 
 def test_json_payload_cleaning():
-    """Test that JSON payload values are properly cleaned before base64 encoding."""
+    """
+    Test that JSON payload values are properly cleaned before base64 encoding.
+    
+    Expected outcome: Whitespace, newlines, and other problematic characters
+    should be cleaned from payload values to ensure valid base64 encoding and
+    prevent issues with guard link generation.
+    """
     import base64
     import json
     

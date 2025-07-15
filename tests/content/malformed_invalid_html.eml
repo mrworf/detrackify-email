@@ -1,0 +1,17 @@
+From: test@example.com
+To: dest@example.com
+Subject: Invalid HTML test
+Content-Type: text/html
+
+<html>
+<body>
+<p>This HTML has various issues:
+<img src="http://example.com/tracker.gif" width="1" height="1" alt="unclosed tag
+<div>Unclosed div
+<span>Nested tags</p></span>
+<img src="http://example.com/image.png" width="abc" height="def">
+<img src="missing-protocol://example.com/image.gif">
+<img src="">
+<img>
+</body>
+</html> 

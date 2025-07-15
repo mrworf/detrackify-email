@@ -1,0 +1,93 @@
+Return-path: <no-reply-HP2v6100000197c810458ba3080b434b5c4210179@access.testfinancial.com>
+Envelope-to: testuser@example.com
+Delivery-date: Sun, 29 Jun 2025 22:25:20 +0200
+Received: from Debian-exim by example.com with detrackify (Exim 4.97)
+	(envelope-from <no-reply-HP2v6100000197c810458ba3080b434b5c4210179@access.testfinancial.com>)
+	id 1uVyaV-000000050z2-3eDe
+	for testuser@example.com; Sun, 29 Jun 2025 22:25:20 +0200
+Received: from o1.email.testfinancial.com ([192.254.122.219])	by example.com
+ with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	(Exim 4.97)
+	(envelope-from <no-reply-HP2v6100000197c810458ba3080b434b5c4210179@access.testfinancial.com>)	id
+ 1uVyaV-000000050yy-19IY	for testuser@example.com;	Sun, 29 Jun 2025 22:25:19 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=testfinancial.com;
+	h=from:subject:mime-version:to:content-type:cc:content-type:from:
+	subject:to;
+	s=smtpapi; bh=dTwEmlvOjEEoYoOuMwnyHI+kpmb0gCJoZHTP4NVxaUA=;
+	b=RM7O0qvj+SumhSMNy6VaQ06vlHJHhIJhOmaA2cMqpEy7b0br0M8l/WPccKQb6rBl+zvX
+	3k0eUt44jHC1k/0V/t5r/9x/bnFiO7Y4MZVCkjNyHYAsJe2B6pyCs04SNdnGncA0k9gQGD
+	pZ3AP3MCggWgHd0JS27JiPuvopKB9NouQ=
+Received: by recvd-687ffb65f8-5zjrb with SMTP id
+ recvd-687ffb65f8-5zjrb-1-68619F33-56	2025-06-29 20:16:51.491781732 +0000 UTC
+ m=+2173396.716680710
+Received: from email.testfinancial.com (unknown)
+	by geopod-ismtpd-10 (SG)
+	with ESMTP id SsO13MMUQA28eQIkMxJU5g
+	for <testuser@example.com>;
+	Sun, 29 Jun 2025 20:16:51.344 +0000 (UTC)
+From: Test Financial Services <documents@access.testfinancial.com>
+Subject: Your Document is Ready for Viewing
+Date: Sun, 29 Jun 2025 20:16:51 +0000 (UTC)
+Message-ID: <20250629201651.B84226E05ED85B4B@email.testfinancial.com>
+MIME-Version: 1.0
+To: testuser@example.com
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0012_D3DE2EBA.9A13882E"
+X-RSPAMD-Scanned: Indeed
+X-Spam-Bar: 
+X-Detrackify: Processed by Detrackify
+
+------=_NextPart_000_0012_D3DE2EBA.9A13882E
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Dear John Smith,
+
+You have a new document available for viewing in your Test Financial Services account.
+
+Document: Account Statement - June 2025
+Date: June 29, 2025
+
+To view your document, please log in to your account at:
+https://access.testfinancial.com/documents
+
+Your Financial Advisor: Jane Doe
+Office: 123 Main Street, Anytown, CA 12345
+Phone: 555-123-4567
+
+Thank you for choosing Test Financial Services.
+
+Best regards,
+Test Financial Services
+CA Insurance License 0C12345, CA Agency Number 0C67890
+
+------=_NextPart_000_0012_D3DE2EBA.9A13882E
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+Content-Type: text/html; charset="utf-8"
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Test Financial Services Document Notification</title>
+</head>
+<body>
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+<h2>Dear John Smith,</h2>
+<p>You have a new document available for viewing in your Test Financial Services account.</p>
+<p><strong>Document:</strong> Account Statement - June 2025<br>
+<strong>Date:</strong> June 29, 2025</p>
+<p>To view your document, please log in to your account at:<br>
+<a href="https://access.testfinancial.com/documents">https://access.testfinancial.com/documents</a></p>
+<p><strong>Your Financial Advisor:</strong> Jane Doe<br>
+<strong>Office:</strong> 123 Main Street, Anytown, CA 12345<br>
+<strong>Phone:</strong> 555-123-4567</p>
+<p>Thank you for choosing Test Financial Services.</p>
+<p>Best regards,<br>
+Test Financial Services<br>
+CA Insurance License 0C12345, CA Agency Number 0C67890</p>
+</div>
+</body>
+</html>
+------=_NextPart_000_0012_D3DE2EBA.9A13882E--
+

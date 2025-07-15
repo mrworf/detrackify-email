@@ -133,7 +133,6 @@ class GuardServer:
         return 'guard_warning.html'
 
 
-
     def resource(self, filename):
         """Serve optional resource files."""
         if not self.resource_dir:

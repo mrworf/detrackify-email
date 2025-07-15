@@ -5,6 +5,7 @@ import sys
 import os
 import tempfile
 import yaml
+import pytest
 
 # Add the current directory to the path so we can import detrackify_guard
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -98,8 +99,11 @@ if __name__ == '__main__':
     total = len(tests)
     
     for test in tests:
-        if test():
+        try:
+            test()
             passed += 1
+        except Exception as e:
+            print(f"❌ Test {test.__name__} failed: {e}")
     
     print(f"\nTest results: {passed}/{total} tests passed")
     

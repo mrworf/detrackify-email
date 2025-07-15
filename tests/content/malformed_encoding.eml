@@ -1,0 +1,16 @@
+From: test@example.com
+To: dest@example.com
+Subject: Encoding issues test
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<body>
+This email has encoding issues:
+UTF-8 characters: café résumé naïve
+Invalid quoted-printable: =ZZ =GG =XX
+Mixed encodings: =C3=A9 café
+Incomplete sequences: =C3
+<img src="http://example.com/image.gif" width="1" height="1">
+</body>
+</html> 

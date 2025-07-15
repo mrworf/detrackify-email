@@ -1,0 +1,4 @@
+This is just body content without any headers.
+
+No From, To, Subject, Date, or other headers.
+This should test how the script handles emails with missing standard headers. 

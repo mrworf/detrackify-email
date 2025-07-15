@@ -17,7 +17,12 @@ class TestLoadConfigFromYaml(unittest.TestCase):
     """Test the GuardConfig.from_yaml method."""
 
     def test_load_valid_config(self):
-        """Test loading a valid YAML configuration."""
+        """
+        Test loading a valid YAML configuration file with all supported options.
+        
+        Expected outcome: The configuration should be parsed correctly and return
+        a dictionary with all the values matching the original YAML content.
+        """
         config_data = {
             'guardsalt': 'test-salt-123',
             'listen_ip': '0.0.0.0',
@@ -45,7 +50,12 @@ class TestLoadConfigFromYaml(unittest.TestCase):
             os.unlink(config_path)
 
     def test_load_invalid_yaml(self):
-        """Test loading invalid YAML raises an exception."""
+        """
+        Test loading a YAML file with invalid syntax.
+        
+        Expected outcome: Function should raise a yaml.YAMLError when attempting
+        to parse malformed YAML content, preventing silent failures.
+        """
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
             f.write("invalid: yaml: content: [")
             config_path = f.name
@@ -57,12 +67,22 @@ class TestLoadConfigFromYaml(unittest.TestCase):
             os.unlink(config_path)
 
     def test_load_missing_file(self):
-        """Test loading a non-existent file raises FileNotFoundError."""
+        """
+        Test loading a configuration file that doesn't exist.
+        
+        Expected outcome: Function should raise FileNotFoundError when trying
+        to load a non-existent file, providing clear error indication.
+        """
         with self.assertRaises(FileNotFoundError):
             GuardConfig.from_yaml('/nonexistent/file.yml')
 
     def test_load_empty_file(self):
-        """Test loading an empty YAML file."""
+        """
+        Test loading an empty YAML configuration file.
+        
+        Expected outcome: Function should raise ValueError when the file is empty
+        or contains only whitespace, as it cannot provide valid configuration.
+        """
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
             f.write("")
             config_path = f.name
@@ -74,7 +94,12 @@ class TestLoadConfigFromYaml(unittest.TestCase):
             os.unlink(config_path)
 
     def test_load_non_dict_yaml(self):
-        """Test loading YAML that doesn't contain a dictionary."""
+        """
+        Test loading YAML that contains valid syntax but not a dictionary structure.
+        
+        Expected outcome: Function should raise ValueError when YAML contains
+        non-dictionary content (like lists), as configuration requires key-value pairs.
+        """
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
             f.write("- item1\n- item2")
             config_path = f.name
@@ -86,7 +111,12 @@ class TestLoadConfigFromYaml(unittest.TestCase):
             os.unlink(config_path)
 
     def test_load_complex_config(self):
-        """Test loading a complex configuration with all options."""
+        """
+        Test loading a comprehensive configuration with all available options.
+        
+        Expected outcome: All configuration options should be parsed correctly,
+        including complex types like lists and various data types (strings, integers, booleans).
+        """
         config_data = {
             'guardsalt': 'complex-salt-456',
             'listen_ip': '127.0.0.1',
@@ -130,7 +160,12 @@ class TestGuardConfig(unittest.TestCase):
     """Test the GuardConfig dataclass."""
 
     def test_guard_config_defaults(self):
-        """Test GuardConfig with default values."""
+        """
+        Test GuardConfig initialization with default values.
+        
+        Expected outcome: All configuration fields should be set to their documented
+        default values, ensuring predictable behavior when minimal configuration is provided.
+        """
         config = GuardConfig(salt='test-salt')
         
         self.assertEqual(config.salt, 'test-salt')
@@ -146,7 +181,12 @@ class TestGuardConfig(unittest.TestCase):
         self.assertIsNone(config.force_language)
 
     def test_guard_config_custom_values(self):
-        """Test GuardConfig with custom values."""
+        """
+        Test GuardConfig initialization with custom values for all fields.
+        
+        Expected outcome: All provided custom values should be stored correctly,
+        demonstrating that the configuration system supports full customization.
+        """
         config = GuardConfig(
             salt='custom-salt',
             timeout=10,
@@ -180,7 +220,12 @@ class TestConfigEdgeCases(unittest.TestCase):
     """Test edge cases and error conditions."""
 
     def test_strip_param_prefix_list_handling(self):
-        """Test that strip_param_prefix is handled correctly as a list."""
+        """
+        Test that strip_param_prefix configuration is properly handled as a list.
+        
+        Expected outcome: List values in YAML should be parsed correctly and remain
+        as lists in the configuration, supporting multiple parameter prefixes.
+        """
         config_data = {
             'guardsalt': 'test-salt',
             'strip_param_prefix': ['utm_', 'fbclid', 'gclid']
@@ -197,7 +242,12 @@ class TestConfigEdgeCases(unittest.TestCase):
             os.unlink(config_path)
 
     def test_boolean_values_in_yaml(self):
-        """Test that boolean values are loaded correctly from YAML."""
+        """
+        Test that boolean values in YAML are parsed correctly as Python booleans.
+        
+        Expected outcome: YAML boolean values (true/false) should be converted to
+        Python boolean types (True/False) without string conversion issues.
+        """
         config_data = {
             'guardsalt': 'test-salt',
             'privacy': True
