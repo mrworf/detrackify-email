@@ -20,11 +20,28 @@
       <p>Dieser Link scheint ein Phishing-Versuch zu sein - bei dem jemand versucht, Sie zu täuschen, indem er sich als vertrauenswürdige Quelle ausgibt. Genau wie beim Angeln Köder verwendet werden, um Beute zu fangen, verwendet Phishing täuschende Links, um sensible Informationen zu erfassen.</p>
       <p>Um Sie zu schützen, zeigen wir Ihnen das tatsächliche Ziel dieses Links, das sich von dem unterscheidet, was präsentiert wurde. Diese Transparenz hilft Ihnen, eine fundierte Entscheidung zu treffen, bevor Sie fortfahren.</p>
     </div>
+    {% if block_reason == 'phishy' %}
     <div class="link-box link-box-left">
+      {% if sender_display %}
+      <p class="text-center">Die E-Mail behauptet, von <span class="domain-box">{{ sender_display }}</span> zu stammen, aber die E-Mail-Adresse ist <span class="domain-box">{{ sender_email }}</span>. </p>
+      {% endif %}
+      <p class="text-center">Der Link sagt <span class="display-box">{{ display }}</span> und führt Sie zu:</p>
+      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
+      <p class="hint">Seien Sie vorsichtig - dieser Link und diese E-Mail scheinen ein Phishing-Versuch zu sein.</p>
+    </div>
+    {% else %}
+    <div class="link-box link-box-left">
+      {% if sender_email and sender_display %}
+      <p class="text-center">Der Link, auf den Sie geklickt haben, sagte <span class="display-box">{{ display }}</span> und kam von <span class="domain-box">{{ sender_display }} ({{ sender_email }})</span>, aber das Klicken darauf wird die folgende Seite öffnen:</p>
+      {% elif sender_email %}
+      <p class="text-center">Der Link, auf den Sie geklickt haben, sagte <span class="display-box">{{ display }}</span> und kam von <span class="domain-box">{{ sender_email }}</span>, aber das Klicken darauf wird die folgende Seite öffnen:</p>
+      {% else %}
       <p class="text-center">Der Link, auf den Sie geklickt haben, sagte <span class="display-box">{{ display }}</span> und kam von <span class="domain-box">{{ domain }}</span>, aber das Klicken darauf wird die folgende Seite öffnen:</p>
+      {% endif %}
       <p class="noselect source-box"><span id="url">{{ url }}</span></p>
       <p class="hint">beachten Sie die andere Domain, die in Rot hervorgehoben ist</p>
     </div>
+    {% endif %}
     {% if resolve %}
     <div class="spinner" id="resolve-spinner"></div>
     <div class="link-box link-box-left">

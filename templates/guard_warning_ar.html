@@ -20,11 +20,28 @@
       <p>يبدو أن هذا الرابط محاولة تصيد احتيالي - حيث يحاول شخص ما خداعك من خلال التظاهر بأنه مصدر موثوق. تماماً كما يستخدم الصيد الطعم لاصطياد الفريسة، يستخدم التصيد الاحتيالي روابط خادعة لالتقاط المعلومات الحساسة.</p>
       <p>لحمايتك، نعرض لك الوجهة الفعلية لهذا الرابط، والتي تختلف عما تم تقديمه. هذه الشفافية تساعدك على اتخاذ قرار مستنير قبل المتابعة.</p>
     </div>
+    {% if block_reason == 'phishy' %}
     <div class="link-box link-box-left">
+      {% if sender_display %}
+      <p class="text-center">البريد الإلكتروني يدعي أنه من <span class="domain-box">{{ sender_display }}</span> لكن عنوان البريد الإلكتروني هو <span class="domain-box">{{ sender_email }}</span>. </p>
+      {% endif %}
+      <p class="text-center">الرابط يقول <span class="display-box">{{ display }}</span> وسيأخذك إلى:</p>
+      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
+      <p class="hint">كن حذراً - هذا الرابط والبريد الإلكتروني يبدوان كمحاولة تصيد احتيالي.</p>
+    </div>
+    {% else %}
+    <div class="link-box link-box-left">
+      {% if sender_email and sender_display %}
+      <p class="text-center">الرابط الذي نقرت عليه قال <span class="display-box">{{ display }}</span> وجاء من <span class="domain-box">{{ sender_display }} ({{ sender_email }})</span> لكن النقر عليه سيفتح الصفحة التالية:</p>
+      {% elif sender_email %}
+      <p class="text-center">الرابط الذي نقرت عليه قال <span class="display-box">{{ display }}</span> وجاء من <span class="domain-box">{{ sender_email }}</span> لكن النقر عليه سيفتح الصفحة التالية:</p>
+      {% else %}
       <p class="text-center">الرابط الذي نقرت عليه قال <span class="display-box">{{ display }}</span> وجاء من <span class="domain-box">{{ domain }}</span> لكن النقر عليه سيفتح الصفحة التالية:</p>
+      {% endif %}
       <p class="noselect source-box"><span id="url">{{ url }}</span></p>
       <p class="hint">لاحظ النطاق المختلف المظلل باللون الأحمر</p>
     </div>
+    {% endif %}
     {% if resolve %}
     <div class="spinner" id="resolve-spinner"></div>
     <div class="link-box link-box-left">

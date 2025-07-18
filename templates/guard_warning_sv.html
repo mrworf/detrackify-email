@@ -20,11 +20,28 @@
       <p>Denna länk verkar vara ett försök till phishing - där någon försöker lura dig genom att utge sig för att vara en betrodd källa. Precis som fiske använder beten för att fånga byte, använder phishing vilseledande länkar för att fånga känslig information.</p>
       <p>För att skydda dig visar vi dig den faktiska destinationen för denna länk, som skiljer sig från vad som presenterades. Denna transparens hjälper dig att fatta ett informerat beslut innan du fortsätter.</p>
     </div>
+    {% if block_reason == 'phishy' %}
     <div class="link-box link-box-left">
+      {% if sender_display %}
+      <p class="text-center">E-postmeddelandet påstår sig vara från <span class="domain-box">{{ sender_display }}</span> men e-postadressen är <span class="domain-box">{{ sender_email }}</span>. </p>
+      {% endif %}
+      <p class="text-center">Länken säger <span class="display-box">{{ display }}</span> och kommer att ta dig till:</p>
+      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
+      <p class="hint">Var försiktig - denna länk och e-post verkar vara ett phishing-försök.</p>
+    </div>
+    {% else %}
+    <div class="link-box link-box-left">
+      {% if sender_email and sender_display %}
+      <p class="text-center">Länken du klickade på sa <span class="display-box">{{ display }}</span> och kom från <span class="domain-box">{{ sender_display }} ({{ sender_email }})</span> men att klicka på den kommer att öppna följande sida:</p>
+      {% elif sender_email %}
+      <p class="text-center">Länken du klickade på sa <span class="display-box">{{ display }}</span> och kom från <span class="domain-box">{{ sender_email }}</span> men att klicka på den kommer att öppna följande sida:</p>
+      {% else %}
       <p class="text-center">Länken du klickade på sa <span class="display-box">{{ display }}</span> och kom från <span class="domain-box">{{ domain }}</span> men att klicka på den kommer att öppna följande sida:</p>
+      {% endif %}
       <p class="noselect source-box"><span id="url">{{ url }}</span></p>
       <p class="hint">notera den olika domänen markerad i rött</p>
     </div>
+    {% endif %}
     {% if resolve %}
     <div class="spinner" id="resolve-spinner"></div>
     <div class="link-box link-box-left">

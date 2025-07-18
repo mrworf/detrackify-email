@@ -20,11 +20,28 @@
       <p>Este enlace parece ser un intento de phishing - donde alguien intenta engañarte haciéndose pasar por una fuente confiable. Así como la pesca usa cebo para atrapar presas, el phishing usa enlaces engañosos para capturar información sensible.</p>
       <p>Para protegerte, te mostramos el destino real de este enlace, que difiere de lo que se presentó. Esta transparencia te ayuda a tomar una decisión informada antes de continuar.</p>
     </div>
+    {% if block_reason == 'phishy' %}
     <div class="link-box link-box-left">
+      {% if sender_display %}
+      <p class="text-center">El correo electrónico afirma ser de <span class="domain-box">{{ sender_display }}</span> pero la dirección de correo electrónico es <span class="domain-box">{{ sender_email }}</span>. </p>
+      {% endif %}
+      <p class="text-center">El enlace dice <span class="display-box">{{ display }}</span> y te llevará a:</p>
+      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
+      <p class="hint">Ten cuidado - este enlace y correo electrónico parecen ser un intento de phishing.</p>
+    </div>
+    {% else %}
+    <div class="link-box link-box-left">
+      {% if sender_email and sender_display %}
+      <p class="text-center">El enlace en el que hiciste clic decía <span class="display-box">{{ display }}</span> y venía de <span class="domain-box">{{ sender_display }} ({{ sender_email }})</span> pero hacer clic en él abrirá la siguiente página:</p>
+      {% elif sender_email %}
+      <p class="text-center">El enlace en el que hiciste clic decía <span class="display-box">{{ display }}</span> y venía de <span class="domain-box">{{ sender_email }}</span> pero hacer clic en él abrirá la siguiente página:</p>
+      {% else %}
       <p class="text-center">El enlace en el que hiciste clic decía <span class="display-box">{{ display }}</span> y venía de <span class="domain-box">{{ domain }}</span> pero hacer clic en él abrirá la siguiente página:</p>
+      {% endif %}
       <p class="noselect source-box"><span id="url">{{ url }}</span></p>
       <p class="hint">nota el dominio diferente resaltado en rojo</p>
     </div>
+    {% endif %}
     {% if resolve %}
     <div class="spinner" id="resolve-spinner"></div>
     <div class="link-box link-box-left">

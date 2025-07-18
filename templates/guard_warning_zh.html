@@ -20,11 +20,28 @@
       <p>此链接似乎是钓鱼尝试 - 有人试图通过冒充可信来源来欺骗您。就像钓鱼使用诱饵来捕获猎物一样，网络钓鱼使用欺骗性链接来捕获敏感信息。</p>
       <p>为了保护您，我们向您显示此链接的实际目标，这与所呈现的内容不同。这种透明度帮助您在继续之前做出明智的决定。</p>
     </div>
+    {% if block_reason == 'phishy' %}
     <div class="link-box link-box-left">
+      {% if sender_display %}
+      <p class="text-center">邮件声称来自 <span class="domain-box">{{ sender_display }}</span> 但邮件地址是 <span class="domain-box">{{ sender_email }}</span>。 </p>
+      {% endif %}
+      <p class="text-center">链接显示 <span class="display-box">{{ display }}</span> 并将带您到：</p>
+      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
+      <p class="hint">请小心 - 此链接和邮件似乎是钓鱼尝试。</p>
+    </div>
+    {% else %}
+    <div class="link-box link-box-left">
+      {% if sender_email and sender_display %}
+      <p class="text-center">您点击的链接显示 <span class="display-box">{{ display }}</span> 并来自 <span class="domain-box">{{ sender_display }} ({{ sender_email }})</span> 但点击它将打开以下页面：</p>
+      {% elif sender_email %}
+      <p class="text-center">您点击的链接显示 <span class="display-box">{{ display }}</span> 并来自 <span class="domain-box">{{ sender_email }}</span> 但点击它将打开以下页面：</p>
+      {% else %}
       <p class="text-center">您点击的链接显示 <span class="display-box">{{ display }}</span> 并来自 <span class="domain-box">{{ domain }}</span> 但点击它将打开以下页面：</p>
+      {% endif %}
       <p class="noselect source-box"><span id="url">{{ url }}</span></p>
       <p class="hint">注意以红色突出显示的不同域名</p>
     </div>
+    {% endif %}
     {% if resolve %}
     <div class="spinner" id="resolve-spinner"></div>
     <div class="link-box link-box-left">
