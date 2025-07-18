@@ -184,9 +184,19 @@ class GuardServer:
             try:
                 decoded = base64.urlsafe_b64decode(data).decode()
                 info = json.loads(decoded)
-                sender = info.get('domain', '') or ''
+                
+                # Extract domain from the 'from' email address
+                from_email = info.get('from', '')
+                sender = ''
+                if from_email and '@' in from_email:
+                    sender = from_email.split('@')[-1]
+                
+                # For backward compatibility, also check old 'domain' field
+                if not sender:
+                    sender = info.get('domain', '')
+                
                 block_reason = info.get('block', '')
-                logging.debug(f'opts_js: block_reason = "{block_reason}" (type: {type(block_reason)})')
+                logging.debug(f'opts_js: from_email = "{from_email}", sender_domain = "{sender}", block_reason = "{block_reason}" (type: {type(block_reason)})')
             except Exception:  # pylint: disable=broad-except
                 valid = False
         opts = {
@@ -353,9 +363,18 @@ class GuardServer:
         
         # Check if the resolved URL domain matches the sender domain
         url_domain = SharedUtils.extract_domain_from_url(url)
-        sender_domain = info.get('domain', '')
-        domains_match = False
         
+        # Extract domain from the 'from' email address for domain matching
+        from_email = info.get('from', '')
+        sender_domain = ''
+        if from_email and '@' in from_email:
+            sender_domain = from_email.split('@')[-1]
+        
+        # For backward compatibility, also check old 'domain' field
+        if not sender_domain:
+            sender_domain = info.get('domain', '')
+        
+        domains_match = False
         if url_domain and sender_domain:
             domains_match = self.domain_aliases.are_aliases(url_domain, sender_domain)
             logging.debug(f'Domain match check: {url_domain} vs {sender_domain} = {domains_match}')
@@ -450,11 +469,23 @@ class GuardServer:
         if self.blocklist.is_url_blacklisted(url):
             block_reason = 'blacklisted'
         
+        # Extract domain from the 'from' email address for backward compatibility
+        from_email = info.get('from', '')
+        sender_domain = ''
+        if from_email and '@' in from_email:
+            sender_domain = from_email.split('@')[-1]
+        
+        # For backward compatibility, also check old 'domain' field
+        if not sender_domain:
+            sender_domain = info.get('domain', '')
+        
         template = self.choose_template(request.headers.get('Accept-Language'))
         context = {
             'display': escape(info.get('display') or '** No link text provided **'),
-            'domain': escape(info.get('domain') or '** No domain provided **'),
-            'sender_domain': info.get('domain') or '',
+            'domain': escape(sender_domain or '** No domain provided **'),
+            'sender_domain': sender_domain,
+            'sender_email': escape(from_email),
+            'sender_display': escape(info.get('sender_display') or ''),
             'url': url,
             'ts': start,
             'timeout_ms': self.timeout * 1000,

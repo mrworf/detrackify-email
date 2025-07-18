@@ -571,17 +571,17 @@ class TestSharedUtilsNewFunctions(unittest.TestCase):
 
     def test_create_guard_payload(self):
         """Test guard payload creation."""
-        payload = SharedUtils.create_guard_payload('Click here', 'example.com', 'https://example.com/link')
+        payload = SharedUtils.create_guard_payload('Click here', 'user@example.com', 'https://example.com/link')
         expected = {
             'display': 'Click here',
-            'domain': 'example.com',
+            'from': 'user@example.com',
             'url': 'https://example.com/link'
         }
         self.assertEqual(payload, expected)
         
         # With optional fields
         payload = SharedUtils.create_guard_payload(
-            'Click here', 'example.com', 'https://example.com/link',
+            'Click here', 'user@example.com', 'https://example.com/link',
             to_address='user@example.com', block_reason='blacklisted'
         )
         expected.update({
@@ -594,7 +594,7 @@ class TestSharedUtilsNewFunctions(unittest.TestCase):
         """Test complete guard link creation."""
         link = SharedUtils.create_guard_link(
             'https://guard.example.com', 'testsalt',
-            'Click here', 'example.com', 'https://example.com/link'
+            'Click here', 'user@example.com', 'https://example.com/link'
         )
         
         # Verify the link structure
@@ -608,7 +608,7 @@ class TestSharedUtilsNewFunctions(unittest.TestCase):
         # Verify the payload
         payload = SharedUtils.decode_base64_payload(components['data'])
         self.assertEqual(payload['display'], 'Click here')
-        self.assertEqual(payload['domain'], 'example.com')
+        self.assertEqual(payload['from'], 'user@example.com')
         self.assertEqual(payload['url'], 'https://example.com/link')
 
     def test_verify_guard_link(self):
@@ -616,14 +616,14 @@ class TestSharedUtilsNewFunctions(unittest.TestCase):
         # Create a valid link
         link = SharedUtils.create_guard_link(
             'https://guard.example.com', 'testsalt',
-            'Click here', 'example.com', 'https://example.com/link'
+            'Click here', 'user@example.com', 'https://example.com/link'
         )
         
         # Verify it
         result = SharedUtils.verify_guard_link(link, 'testsalt')
         self.assertIsNotNone(result)
         self.assertEqual(result['display'], 'Click here')
-        self.assertEqual(result['domain'], 'example.com')
+        self.assertEqual(result['from'], 'user@example.com')
         self.assertEqual(result['url'], 'https://example.com/link')
         
         # Test with wrong salt
@@ -642,7 +642,7 @@ class TestSharedUtilsNewFunctions(unittest.TestCase):
         # Create a link with all fields
         link = SharedUtils.create_guard_link(
             'https://guard.example.com', 'testsalt',
-            'Click here', 'example.com', 'https://example.com/link',
+            'Click here', 'sender@example.com', 'https://example.com/link',
             to_address='user@example.com', block_reason='blacklisted'
         )
         
@@ -650,22 +650,22 @@ class TestSharedUtilsNewFunctions(unittest.TestCase):
         result = SharedUtils.verify_guard_link(link, 'testsalt')
         self.assertIsNotNone(result)
         self.assertEqual(result['display'], 'Click here')
-        self.assertEqual(result['domain'], 'example.com')
+        self.assertEqual(result['from'], 'sender@example.com')
         self.assertEqual(result['url'], 'https://example.com/link')
         self.assertEqual(result['to'], 'user@example.com')
         self.assertEqual(result['block'], 'blacklisted')
         
-        # Verify the link structure matches the old create_guarded_url function
-        old_link = SharedUtils.create_guarded_url({
+        # Verify the link structure matches the create_guarded_url function with new format
+        new_link = SharedUtils.create_guarded_url({
             'display': 'Click here',
-            'domain': 'example.com',
+            'from': 'sender@example.com',
             'url': 'https://example.com/link',
             'to': 'user@example.com',
             'block': 'blacklisted'
         }, 'https://guard.example.com', 'testsalt')
         
         # Both should produce the same result
-        self.assertEqual(link, old_link)
+        self.assertEqual(link, new_link)
 
 if __name__ == '__main__':
     unittest.main() 

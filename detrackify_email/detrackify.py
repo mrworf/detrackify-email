@@ -59,7 +59,7 @@ class Detrackify:
         else:
             return original_url, []
     
-    def replace_tracking_urls(self, html_content: str, from_address: str = None, to_address: str = None) -> str:
+    def replace_tracking_urls(self, html_content: str, from_address: str = None, to_address: str = None, msg=None) -> str:
         """Rewrite tracking images and optionally guard links."""
         soup = BeautifulSoup(html_content, 'html.parser')
         
@@ -144,11 +144,30 @@ class Detrackify:
         mode = self.config.get(Configuration.CFG_GUARD_LINK, 'off')
         from_domain = None
         sender_is_blacklisted = False
+        is_phishy = False
+        sender_display_name = ''
+        
         if from_address and '@' in from_address:
             logging.debug(f"Checking sender_is_blacklisted for: '{from_address}'")
             from_domain = from_address.split('@')[-1].lower()
             sender_is_blacklisted = self.config.is_sender_blacklisted(from_address)
             logging.debug(f"From address: {from_address}, domain: {from_domain}, sender blacklisted: {sender_is_blacklisted}")
+            
+            # Extract display name from the From header for use in guard links
+            from_header = msg.get('From')
+            if from_header:
+                from email.utils import parseaddr
+                sender_display_name, _ = parseaddr(from_header)
+            
+            # Check for phishing if guard-phishy is enabled
+            if self.config.get(Configuration.CFG_GUARD_PHISHY, False) and sender_display_name:
+                is_phishy = SharedUtils.detect_phishing_mismatch(from_address, sender_display_name)
+                if is_phishy:
+                    logging.info(f"Phishing detected: sender '{sender_display_name}' <{from_address}> appears suspicious")
+                    # Override guard mode to 'always' when phishing is detected
+                    mode = 'always'
+                else:
+                    logging.debug(f"No phishing detected for sender: '{sender_display_name}' <{from_address}>")
         
         if mode != 'off' and from_domain:
             logging.debug(f"Guard mode: {mode}, processing links")
@@ -185,6 +204,10 @@ class Detrackify:
                     elif self.config.is_blacklisted(href):
                         block_reason = 'blacklisted'
                         logging.debug(f"Link {i+1} URL is blacklisted: {href}")
+                    elif is_phishy:
+                        block_reason = 'phishy'
+                        logging.debug(f"Link {i+1} sender appears to be phishing")
+                        match = False  # Force mismatch so the link is always guarded
                     
                     link_domain = SharedUtils.extract_domain_from_url(href).lower()
                     match = self.config.are_domains_aliases(link_domain, from_domain)
@@ -198,20 +221,21 @@ class Detrackify:
                         display_text = SharedUtils.clean_display_text(display_html)
                         logging.debug(f"Link {i+1} cleaned display text: {display_text}")
                         display_text_clean = display_text.strip() if display_text else ''
-                        from_domain_clean = from_domain.strip() if from_domain else ''
+                        from_address_clean = from_address.strip() if from_address else ''
                         href_clean = href.strip() if href else ''
                         to_address_clean = to_address.strip() if to_address and self.config.get(Configuration.CFG_GUARD_CAPTURE_TO) else None
                         
-                        logging.debug(f"Link {i+1} creating guard link with: display='{display_text_clean}', domain='{from_domain_clean}', url='{href_clean}', to='{to_address_clean}', block_reason='{block_reason}'")
+                        logging.debug(f"Link {i+1} creating guard link with: display='{display_text_clean}', from='{from_address_clean}', url='{href_clean}', to='{to_address_clean}', block_reason='{block_reason}', sender_display='{sender_display_name}'")
                         salt = self.config.get(Configuration.CFG_GUARD_SALT)
                         new_href = SharedUtils.create_guard_link(
                             guard_server, 
                             salt, 
                             display_text_clean, 
-                            from_domain_clean, 
+                            from_address_clean, 
                             href_clean, 
                             to_address_clean, 
-                            block_reason
+                            block_reason,
+                            sender_display_name
                         )
                         logging.debug(f"Link {i+1} guarded: {href} -> {new_href[:50]}...")
                         logging.debug(f"Link {i+1} full guarded URL: {new_href}")
@@ -373,7 +397,7 @@ class Detrackify:
                     continue  # Skip processing, just list URLs
                 else:
                     # Replace tracking URLs in the HTML content
-                    modified_html = self.replace_tracking_urls(html_content, from_address, to_address)
+                    modified_html = self.replace_tracking_urls(html_content, from_address, to_address, msg)
                 
                 # Optionally, re-encode the modified HTML back to Base64 if needed
                 if content_transfer_encoding == 'base64':

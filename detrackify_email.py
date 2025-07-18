@@ -46,6 +46,7 @@ def main():
     parser.add_argument('--guardsalt', help='Salt used for guarded links')
     parser.add_argument('--guardlink', choices=['off', 'mismatch', 'always'], help='Guard link mode')
     parser.add_argument('--guardcaptureto', action='store_true', help='Capture the To address in guarded links')
+    parser.add_argument('--guardphishy', action='store_true', help='Enable phishing detection - guard all links when sender display name doesn\'t match email domain')
     parser.add_argument('--guard-whitelist-file', help='Path to guard whitelist YAML file (default: guard_whitelist.yml)')
     parser.add_argument('--cache-file', help='Path to cache YAML file for persistent caching')
     parser.add_argument('--strip-param-prefix', action='append', default=[], help='Strip query parameters starting with PREFIX and everything after')

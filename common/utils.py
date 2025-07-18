@@ -456,23 +456,25 @@ class SharedUtils:
         return None
 
     @staticmethod
-    def create_guard_payload(display: str, domain: str, url: str, to_address: str = None, block_reason: str = None) -> Dict[str, Any]:
+    def create_guard_payload(display: str, from_email: str, url: str, to_address: str = None, block_reason: str = None, sender_display: str = None) -> Dict[str, Any]:
         """Create standardized guard payload."""
         payload = {
             'display': display,
-            'domain': domain,
+            'from': from_email,
             'url': url,
         }
         if to_address:
             payload['to'] = to_address
         if block_reason:
             payload['block'] = block_reason
+        if sender_display:
+            payload['sender_display'] = sender_display
         return payload
 
     @staticmethod
-    def create_guard_link(server: str, salt: str, display: str, domain: str, url: str, to_address: str = None, block_reason: str = None) -> str:
+    def create_guard_link(server: str, salt: str, display: str, from_email: str, url: str, to_address: str = None, block_reason: str = None, sender_display: str = None) -> str:
         """Create complete guard link with hash and payload."""
-        payload = SharedUtils.create_guard_payload(display, domain, url, to_address, block_reason)
+        payload = SharedUtils.create_guard_payload(display, from_email, url, to_address, block_reason, sender_display)
         return SharedUtils.create_guarded_url(payload, server, salt)
 
     @staticmethod
@@ -489,3 +491,39 @@ class SharedUtils:
             return None
         
         return SharedUtils.decode_base64_payload(data) 
+
+    @staticmethod
+    def detect_phishing_mismatch(sender_email, display_name):
+        """
+        Detect potential phishing based on sender email vs display name mismatch.
+        
+        Args:
+            sender_email: The email address from the 'From' header
+            display_name: The display name from the 'From' header
+            
+        Returns:
+            bool: True if potential phishing detected, False otherwise
+        """
+        if not sender_email or not display_name:
+            return False
+            
+        # Extract email address if it's in "Display Name <email@domain.com>" format
+        from email.utils import parseaddr
+        _, email_addr = parseaddr(sender_email)
+        
+        if '@' not in email_addr:
+            return False
+            
+        domain = email_addr.split('@')[1].lower()
+        # Get domain root without TLD
+        domain_root = domain.split('.')[0]
+        
+        # Split display name into words, filter short/meaningless ones
+        import re
+        display_tokens = [w.lower() for w in re.findall(r'\w+', display_name) if len(w) > 2]
+        
+        # Main check: Is there *any* overlap between display name and domain?
+        overlap = any(token in domain_root for token in display_tokens)
+        
+        # Return True if NO overlap detected (suspicious)
+        return not overlap 

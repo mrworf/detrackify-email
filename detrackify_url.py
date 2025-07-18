@@ -19,6 +19,8 @@ import json
 import sys
 import logging
 
+from common.utils import SharedUtils
+
 
 def generate_guarded_url(server_url, salt, url, from_addr, to_addr=None, block_reason=None):
     """
@@ -28,17 +30,20 @@ def generate_guarded_url(server_url, salt, url, from_addr, to_addr=None, block_r
         server_url: Base URL of the guard server (e.g., http://localhost:9090)
         salt: Guard salt for hash validation
         url: Target URL to guard
-        from_addr: Sender email address
+        from_addr: Sender email address (can include display name)
         to_addr: Optional recipient email address
         block_reason: Optional block reason (e.g., 'blacklisted')
     
     Returns:
         The complete guarded URL
     """
+    # Extract just the email address from the from_addr (in case it includes display name)
+    from_email = SharedUtils.extract_email_from_header(from_addr) or from_addr
+    
     # Create the payload
     payload = {
         'display': f'Link to {url}',
-        'domain': from_addr.split('@')[-1] if '@' in from_addr else from_addr,
+        'from': from_email,
         'url': url,
     }
     
@@ -72,6 +77,9 @@ Examples:
   # With recipient and block reason
   python detrackify_url.py --server http://localhost:9090 --salt test123 --url https://malicious.com --from spam@evil.com --to victim@company.com --block blacklisted
   
+  # Simulate phishing detection
+  python detrackify_url.py --server http://localhost:9090 --salt test123 --url https://example.com --from "Microsoft Security <fake@suspicious.com>" --block phishy --sender-display "Microsoft Security"
+  
   # With custom display text (via --display)
   python detrackify_url.py --server http://localhost:9090 --salt test123 --url https://example.com --from user@example.com --display "Click here for special offer"
         """
@@ -82,8 +90,9 @@ Examples:
     parser.add_argument('--url', required=True, help='Target URL to guard')
     parser.add_argument('--from', dest='from_addr', required=True, help='Sender email address')
     parser.add_argument('--to', dest='to_addr', help='Optional recipient email address')
-    parser.add_argument('--block', help='Optional block reason (e.g., blacklisted)')
+    parser.add_argument('--block', help='Optional block reason (e.g., blacklisted, phishy, warning_blocked:ssl_certificate)')
     parser.add_argument('--display', help='Optional display text (defaults to "Link to {url}")')
+    parser.add_argument('--sender-display', help='Optional sender display name (for testing phishing detection)')
     parser.add_argument('--verbose', '-v', action='store_true', help='Show detailed information')
     
     args = parser.parse_args()
@@ -97,10 +106,13 @@ Examples:
         sys.stderr.write("Error: Salt must be at least 8 characters long\n")
         sys.exit(1)
     
+    # Extract just the email address from the from_addr (in case it includes display name)
+    from_email = SharedUtils.extract_email_from_header(args.from_addr) or args.from_addr
+    
     # Create the payload
     payload = {
         'display': args.display or f'Link to {args.url}',
-        'domain': args.from_addr.split('@')[-1] if '@' in args.from_addr else args.from_addr,
+        'from': from_email,
         'url': args.url,
     }
     
@@ -109,6 +121,8 @@ Examples:
         payload['to'] = args.to_addr
     if args.block:
         payload['block'] = args.block
+    if args.sender_display:
+        payload['sender_display'] = args.sender_display
     
     if args.verbose:
         logging.info("Payload:")

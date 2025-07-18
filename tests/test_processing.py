@@ -619,7 +619,7 @@ def test_guard_mismatch_only_changes_mismatched():
     assert links[0][1] == "https://example.com/welcome"
     b64 = base64.urlsafe_b64encode(json.dumps({
         "display": "Click \"here\" & enjoy",
-        "domain": "example.com",
+        "from": "user@example.com",
         "url": "https://other.com/path?x=1&y=2",
     }).encode()).decode()
     sha = hashlib.sha256((b64 + SALT).encode()).hexdigest()
@@ -644,14 +644,14 @@ def test_guard_all_changes_all():
     links = extract_links(msg)
     payload1 = base64.urlsafe_b64encode(json.dumps({
         "display": "Welcome",
-        "domain": "example.com",
+        "from": "user@example.com",
         "url": "https://example.com/welcome",
     }).encode()).decode()
     sha1 = hashlib.sha256((payload1 + SALT).encode()).hexdigest()
     expected1 = f"{SERVER}/guard/{sha1}/{payload1}"
     payload2 = base64.urlsafe_b64encode(json.dumps({
         "display": "Click \"here\" & enjoy",
-        "domain": "example.com",
+        "from": "user@example.com",
         "url": "https://other.com/path?x=1&y=2",
     }).encode()).decode()
     sha2 = hashlib.sha256((payload2 + SALT).encode()).hexdigest()
@@ -759,7 +759,7 @@ def test_guard_payload_is_json():
     links = extract_links(msg)
     b64 = links[1][1].split('/')[-1]
     payload = json.loads(base64.urlsafe_b64decode(b64).decode())
-    assert set(payload.keys()) == {"display", "domain", "url"}
+    assert set(payload.keys()) == {"display", "from", "url"}
     assert payload["url"] == "https://other.com/path?x=1&y=2"
 
 
@@ -981,7 +981,7 @@ def test_guard_sender_blacklisted():
             payload = json.loads(base64.urlsafe_b64decode(b64).decode())
             assert "block" in payload
             assert "blacklisted" in payload["block"]
-            assert payload["domain"] == "example.com"
+            assert payload["from"] == "user@example.com"
             
     finally:
         os.unlink(blacklist_path)
@@ -1029,7 +1029,7 @@ def test_guard_url_blacklisted():
         assert "block" in payload
         assert "blacklisted" in payload["block"]
         assert payload["url"] == "https://other.com/path?x=1&y=2"
-        assert payload["domain"] == "example.com"
+        assert payload["from"] == "user@example.com"
         
     finally:
         os.unlink(blacklist_path)
@@ -1073,7 +1073,7 @@ def test_guard_sender_and_url_blacklisted():
             payload = json.loads(base64.urlsafe_b64decode(b64).decode())
             assert "block" in payload
             assert "blacklisted" in payload["block"]
-            assert payload["domain"] == "example.com"
+            assert payload["from"] == "user@example.com"
         
     finally:
         os.unlink(blacklist_path)
@@ -1115,7 +1115,7 @@ def test_guard_no_blacklist_no_block_field():
         payload = json.loads(base64.urlsafe_b64decode(b64).decode())
         assert "block" not in payload
         assert payload["url"] == "https://other.com/path?x=1&y=2"
-        assert payload["domain"] == "example.com"
+        assert payload["from"] == "user@example.com"
         
     finally:
         os.unlink(blacklist_path)

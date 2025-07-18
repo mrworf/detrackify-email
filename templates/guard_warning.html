@@ -19,11 +19,28 @@
       <p>This link appears to be a phishing attempt - where someone tries to deceive you by masquerading as a trusted source. Just as fishing uses bait to catch prey, phishing uses deceptive links to capture sensitive information.</p>
       <p>To protect you, we're showing you the actual destination of this link, which differs from what was presented. This transparency helps you make an informed decision before proceeding.</p>
     </div>
+    {% if block_reason == 'phishy' %}
     <div class="link-box link-box-left">
+      {% if sender_display %}
+      <p class="text-center">The email claims to be from <span class="domain-box">{{ sender_display }}</span> but the email address is <span class="domain-box">{{ sender_email }}</span>. </p>
+      {% endif %}
+      <p class="text-center">The link says <span class="display-box">{{ display }}</span> and will take you to:</p>
+      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
+      <p class="hint">Be careful - this link and email seems to be a phishing attempt.</p>
+    </div>
+    {% else %}
+    <div class="link-box link-box-left">
+      {% if sender_email and sender_display %}
+      <p class="text-center">The link you clicked said <span class="display-box">{{ display }}</span> and came from <span class="domain-box">{{ sender_display }} ({{ sender_email }})</span> but clicking on it will open the following page:</p>
+      {% elif sender_email %}
+      <p class="text-center">The link you clicked said <span class="display-box">{{ display }}</span> and came from <span class="domain-box">{{ sender_email }}</span> but clicking on it will open the following page:</p>
+      {% else %}
       <p class="text-center">The link you clicked said <span class="display-box">{{ display }}</span> and came from <span class="domain-box">{{ domain }}</span> but clicking on it will open the following page:</p>
+      {% endif %}
       <p class="noselect source-box"><span id="url">{{ url }}</span></p>
       <p class="hint">note the different domain highlighted in red</p>
     </div>
+    {% endif %}
     {% if resolve %}
     <div class="spinner" id="resolve-spinner"></div>
     <div class="link-box link-box-left">

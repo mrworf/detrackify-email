@@ -29,6 +29,7 @@ class Configuration:
     CFG_GUARD_LINK = 'options.guard.link'
     CFG_GUARD_CAPTURE_TO = 'options.guard.capture_to'
     CFG_GUARD_WHITELIST_FILE = 'options.guard.whitelist_file'
+    CFG_GUARD_PHISHY = 'options.guard.phishy'
 
     CFG_DOMAIN_ALIASES_FILE = 'domain_aliases_file'
     CFG_WHITELIST_FILE = 'whitelist_file'
@@ -69,7 +70,8 @@ class Configuration:
                     'salt': None,
                     'link': 'off',
                     'capture_to': False,
-                    'whitelist_file': None
+                    'whitelist_file': None,
+                    'phishy': False
                 }
             },
             'domain_aliases_file': 'domain_aliases.yml',
@@ -137,6 +139,8 @@ class Configuration:
             self.set(Configuration.CFG_GUARD_LINK, args.guardlink)
         if args.guardcaptureto:
             self.set(Configuration.CFG_GUARD_CAPTURE_TO, True)
+        if hasattr(args, 'guardphishy') and args.guardphishy:
+            self.set(Configuration.CFG_GUARD_PHISHY, True)
         
         # Only load additional files if the paths were actually set via command line arguments
         if args.domain_aliases_file:

@@ -4,11 +4,16 @@ document.addEventListener('DOMContentLoaded', function () {
     // Check for blocking reason from server-side (now a string)
     var blockReason = opts.block_reason || '';
     
-    // Handle blocking - if there is a block reason, show blocking UI
-    // More explicit check for non-empty string
+    // Handle blocking - if there is a block reason, we'll still allow resolve
+    // but show blocking UI after resolution completes (or immediately if resolve is disabled)
     if (blockReason && typeof blockReason === 'string' && blockReason.trim().length > 0) {
-        handleBlocking(blockReason);
-        return; // Don't continue with normal flow
+        if (!opts.resolve) {
+            // No resolve enabled, block immediately
+            handleBlocking(blockReason);
+            return; // Don't continue with normal flow
+        }
+        // If resolve is enabled, we'll continue with normal flow and block after resolution
+        // This allows users to see where blocked links actually go for security analysis
     }
 
     // Domain highlighting function (simplified - no longer does domain comparison)
@@ -378,14 +383,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (resultMatch) resultMatch.innerHTML = highlight(resolvedData.url, opts.sender_domain, true);
                     if (resolvedData.title && titleMatch) {
                         titleMatch.textContent = resolvedData.title;
-                        titleMatch.style.display = 'block';
+                        titleMatch.classList.remove('hidden');
                     }
                 } else {
                     if (urlMismatch) urlMismatch.style.display = 'block';
                     if (resultMismatch) resultMismatch.innerHTML = highlight(resolvedData.url, opts.sender_domain, false);
                     if (resolvedData.title && titleMismatch) {
                         titleMismatch.textContent = resolvedData.title;
-                        titleMismatch.style.display = 'block';
+                        titleMismatch.classList.remove('hidden');
                     }
                 }
                 
@@ -644,6 +649,84 @@ document.addEventListener('DOMContentLoaded', function () {
                 return; // Don't continue with normal flow
             }
             
+            // Check if there was an original block reason from the payload
+            // (This happens when the original email/link was marked as blocked before resolve)
+            if (blockReason && typeof blockReason === 'string' && blockReason.trim().length > 0) {
+                // First, show the resolved URL data if we have it
+                if (data.url && data.hash) {
+                    var u = document.getElementById('final');
+                    var h = document.getElementById('hash');
+                    if (u) { u.value = data.url; }
+                    if (h) { h.value = data.hash; }
+                }
+                
+                // Calculate remaining time to meet minimum display requirement
+                var elapsed = Date.now() - resolveStartTime;
+                var remainingTime = Math.max(0, minDisplayTime - elapsed);
+                
+                setTimeout(function() {
+                    if (progress) {
+                        progress.style.display = 'none';
+                        
+                        // Replace spinner with arrow
+                        if (spinner) {
+                            spinner.classList.remove('spinner');
+                            spinner.classList.add('arrow-down');
+                            spinner.id = ''; // Remove the spinner ID since it's now an arrow
+                        }
+                        
+                        // Show the resolved URL information first
+                        var urlMatch = document.getElementById('url-match');
+                        var urlMismatch = document.getElementById('url-mismatch');
+                        var resultMatch = document.getElementById('result-match');
+                        var resultMismatch = document.getElementById('result-mismatch');
+                        var titleMatch = document.getElementById('title-match');
+                        var titleMismatch = document.getElementById('title-mismatch');
+                        
+                        // Check if URL domain matches sender domain
+                        var urlMatchesDomain = data.domains_match || false;
+                        
+                        if (urlMatchesDomain && urlMatch) {
+                            urlMatch.classList.remove('hidden');
+                            if (resultMatch) resultMatch.innerHTML = highlight(data.url, opts.sender_domain, true);
+                            if (data.title && titleMatch) {
+                                titleMatch.textContent = data.title;
+                                titleMatch.classList.remove('hidden');
+                            }
+                        } else if (urlMismatch) {
+                            urlMismatch.classList.remove('hidden');
+                            if (resultMismatch) resultMismatch.innerHTML = highlight(data.url, opts.sender_domain, false);
+                            if (data.title && titleMismatch) {
+                                titleMismatch.textContent = data.title;
+                                titleMismatch.classList.remove('hidden');
+                            }
+                        }
+                        
+                        // Now show blocked state for original block reason
+                        // But don't hide the resolved URL information
+                        var blockedState = document.getElementById('blocked-state');
+                        if (blockedState) blockedState.classList.remove('hidden');
+                        
+                        // Display the block reason if present
+                        var reasonSpan = document.getElementById('block-reason');
+                        var reasonLine = document.getElementById('block-reason-line');
+                        if (blockReason && reasonSpan && reasonLine) {
+                            reasonSpan.textContent = blockReason;
+                            reasonLine.style.display = '';
+                        }
+                        
+                        // Hide the form since it's blocked
+                        var form = document.getElementById('continueForm');
+                        if (form) form.style.display = 'none';
+                        
+                        // Apply URL truncation to newly added URL elements
+                        setTimeout(applyUrlTooltips, 100);
+                    }
+                }, remainingTime);
+                
+                return; // Don't continue with normal flow
+            }
+            
             if (data.url && data.hash) {
                 var u = document.getElementById('final');
                 var h = document.getElementById('hash');
@@ -691,14 +774,14 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (resultMatch) resultMatch.innerHTML = highlight(data.url, opts.sender_domain, urlMatchesDomain);
                             if (data.title && titleMatch) {
                                 titleMatch.textContent = data.title;
-                                titleMatch.style.display = 'block';
+                                titleMatch.classList.remove('hidden');
                             }
                         } else {
                             if (urlMismatch) urlMismatch.style.display = 'block';
                             if (resultMismatch) resultMismatch.innerHTML = highlight(data.url, opts.sender_domain, urlMatchesDomain);
                             if (data.title && titleMismatch) {
                                 titleMismatch.textContent = data.title;
-                                titleMismatch.style.display = 'block';
+                                titleMismatch.classList.remove('hidden');
                             }
                         }
                         

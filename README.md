@@ -12,6 +12,7 @@ Processes standard emails and tries to determine what images within are used to 
 - Adds X-Detrackify headers for statistics and debugging
 - Integrates with your MTA, allowing server based tracking prevention
 - Failsafe, if tool fails for some reason, will revert to passthru of the email (configurable)
+- Phishing detection - automatically guards links when sender display name doesn't match email domain
 
 ## Example Configurations
 
@@ -87,6 +88,8 @@ For complete Docker deployment instructions, configuration options, and producti
 
 `--guardcaptureto` include the `To:` address in guarded links so the guard server can log who clicked.
 
+`--guardphishy` enable phishing detection - guard all links when sender display name doesn't match email domain.
+
 `--guard-whitelist-file` path to guard whitelist YAML file (default: guard_whitelist.yml)
 
 `--domain-aliases-file` path to domain aliases YAML file (default: domain_aliases.yml).
@@ -116,6 +119,7 @@ guard:
   server: https://guard.example.com
   link: mismatch
   capture_to: false
+  phishy: false  # Enable phishing detection
 
 # Common secret between email and guard
 salt: mysecret123
@@ -127,6 +131,86 @@ blacklist_file: blacklist.yml           # Path to blacklist file
 cache_file: cache.yml                   # Path to cache file for persistent caching
 
 See the [guard server guide](GUARD_SERVER.md) for more details on running the guard server, enabling privacy mode and using a reverse proxy.
+
+## Phishing Detection
+
+The phishing detection feature analyzes sender display names against their email domains to identify potential impersonation attempts. When enabled, it automatically guards all links in suspicious emails with a special "phishy" warning.
+
+### How Phishing Detection Works
+
+The system compares the sender's display name with their email domain using token-based analysis:
+
+1. **Extract Information**: Gets the display name from the `From:` header (e.g., "Microsoft Security Team")
+2. **Tokenize Display Name**: Splits the display name into meaningful words (filters out words ≤2 characters)
+3. **Extract Domain Root**: Gets the main part of the email domain (e.g., "suspicious-domain" from "suspicious-domain.xyz")
+4. **Check for Overlap**: Determines if any display name tokens appear in the domain root
+5. **Flag as Suspicious**: If no overlap is found, flags the email as potentially phishing
+
+### Examples
+
+**Flagged as Suspicious (Phishing):**
+- Display Name: "Microsoft Security Team", Email: `support@suspicious-domain.com`
+- Display Name: "PayPal Security", Email: `noreply@random-site.net`
+- Display Name: "Amazon Customer Service", Email: `alerts@fake-amazon.xyz`
+- Display Name: "Apple Support", Email: `help@malicious-site.com`
+
+**NOT Flagged (Legitimate):**
+- Display Name: "Microsoft Corporation", Email: `support@microsoft.com`
+- Display Name: "PayPal", Email: `service@paypal.com`
+- Display Name: "Amazon.com", Email: `no-reply@amazon.com`
+- Display Name: "Apple Inc.", Email: `notifications@apple.com`
+
+### Configuration
+
+**Command Line:**
+```bash
+python detrackify_email.py \
+  --guardserver https://guard.example.com \
+  --guardsalt your_secure_salt \
+  --guardlink mismatch \
+  --guardphishy \
+  --input email.eml \
+  --output cleaned.eml
+```
+
+**YAML Configuration:**
+```yaml
+# Email processor configuration
+email:
+  options:
+    guard:
+      server: https://guard.example.com
+      salt: your_secure_salt
+      link: mismatch
+      phishy: true  # Enable phishing detection
+```
+
+### What Happens When Phishing is Detected
+
+1. **Automatic Link Guarding**: All links in the email are automatically guarded, regardless of domain matching
+2. **Special Block Reason**: Guarded links get a "phishy" block reason instead of the normal "mismatch" reason
+3. **User-Friendly Warning**: The guard server displays a specialized warning message:
+   - "The sender of this email doesn't seem to match the content of the email"
+   - "Be careful - the sender's name and email domain don't match"
+4. **Logging**: The system logs when phishing is detected for monitoring and analysis
+
+### Guard Server Display
+
+When users click a link from a phishing email, they see a warning page that explains:
+- The sender's display name doesn't match their email domain
+- This could be an impersonation attempt
+- Where the link will actually take them
+- A clear warning about the domain mismatch
+
+The warning message is designed to be understandable by non-technical users while providing enough information to make informed decisions.
+
+### Integration with Other Features
+
+Phishing detection works alongside existing guard features:
+- **Domain Aliases**: Legitimate organizational domains are respected
+- **Whitelisting**: Trusted senders can still bypass phishing detection
+- **Blacklisting**: Blacklisted senders are handled separately
+- **Link Resolution**: The guard server still resolves final destinations for phishing links
 
 ## Configuration
 
@@ -160,6 +244,7 @@ email:
       server: http://localhost:9090
       link: mismatch
       capture_to: false
+      phishy: false
       whitelist_file: guard_whitelist.yml
   
   # Email-specific file paths (overrides shared settings)
@@ -216,6 +301,7 @@ python detrackify_guard.py --config config.yml
 
 - `examples/config_unified.yml` - Complete configuration example
 - `examples/config_unified_simple.yml` - Minimal configuration example
+- `examples/config_guard_with_phishing_detection.yml` - Guard configuration with phishing detection enabled
 
 ### Command Line Options
 
@@ -236,6 +322,8 @@ python detrackify_guard.py --config config.yml
 `--guardlink` specify guard link mode (choices: off, mismatch, always)
 
 `--guardcaptureto` capture the To address in guarded links
+
+`--guardphishy` enable phishing detection - guard all links when sender display name doesn't match email domain
 
 `--guard-whitelist-file` path to guard whitelist YAML file
 
@@ -624,6 +712,14 @@ python detrackify_url.py \
   --to victim@company.com \
   --block blacklisted
 
+# Simulate phishing detection
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt your_secure_salt \
+  --url https://example.com \
+  --from "Microsoft Security <fake@suspicious.com>" \
+  --block phishy
+
 # Verbose output for debugging
 python detrackify_url.py \
   --server http://localhost:9090 \
@@ -672,6 +768,16 @@ python detrackify_url.py \
   --url https://example.com \
   --from spam@malicious.com \
   --block blacklisted
+```
+
+**Phishing Detection:**
+```bash
+python detrackify_url.py \
+  --server http://localhost:9090 \
+  --salt test123 \
+  --url https://example.com \
+  --from "Microsoft Security <fake@suspicious.com>" \
+  --block phishy
 ```
 
 **Warning Simulation:**
