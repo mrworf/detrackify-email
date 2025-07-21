@@ -120,10 +120,9 @@ blacklist_file: blacklist.yml
 
 # Email processor configuration
 email:
-  options:
-    guard:
-      server: http://localhost:9090
-      link: mismatch
+  guard:
+    server: http://localhost:9090
+    link: mismatch
 
 # Guard server configuration
 guard:

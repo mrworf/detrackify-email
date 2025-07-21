@@ -1,4 +1,4 @@
-options:
+email:
   guard:
     server: https://guard.example.com
     salt: testsalt

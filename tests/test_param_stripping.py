@@ -241,10 +241,8 @@ class TestParameterStripping(unittest.TestCase):
         configuration files rather than just command-line arguments.
         """
         config_data = {
-            'options': {
-                'strip': {
-                    'param_prefix': ['utm_', 'fbclid', 'custom_']
-                }
+            'strip': {
+                'param_prefix': ['utm_', 'fbclid', 'custom_']
             }
         }
         

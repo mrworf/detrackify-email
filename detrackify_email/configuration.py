@@ -16,20 +16,20 @@ from common.cache import Cache
 class Configuration:
     """Configuration management class with YAML loading and argparse override support."""
     
-    # Configuration keys
-    CFG_VERBOSE = 'options.verbose'
-    CFG_STRIP_FILE = 'options.strip.file'
-    CFG_STRIP_COOKIES = 'options.strip.cookies'
-    CFG_STRIP_REDIRECT = 'options.strip.redirect'
-    CFG_STRIP_ENABLE = 'options.strip.enable'
-    CFG_STRIP_PARAM_PREFIX = 'options.strip.param_prefix'
-    CFG_COPY = 'options.copy'
-    CFG_GUARD_SERVER = 'options.guard.server'
-    CFG_GUARD_SALT = 'options.guard.salt'
-    CFG_GUARD_LINK = 'options.guard.link'
-    CFG_GUARD_CAPTURE_TO = 'options.guard.capture_to'
-    CFG_GUARD_WHITELIST_FILE = 'options.guard.whitelist_file'
-    CFG_GUARD_PHISHY = 'options.guard.phishy'
+    # Configuration keys - removed 'options.' prefix
+    CFG_VERBOSE = 'verbose'
+    CFG_STRIP_FILE = 'strip.file'
+    CFG_STRIP_COOKIES = 'strip.cookies'
+    CFG_STRIP_REDIRECT = 'strip.redirect'
+    CFG_STRIP_ENABLE = 'strip.enable'
+    CFG_STRIP_PARAM_PREFIX = 'strip.param_prefix'
+    CFG_COPY = 'copy'
+    CFG_GUARD_SERVER = 'guard.server'
+    CFG_GUARD_SALT = 'guard.salt'
+    CFG_GUARD_LINK = 'guard.link'
+    CFG_GUARD_CAPTURE_TO = 'guard.capture_to'
+    CFG_GUARD_WHITELIST_FILE = 'guard.whitelist_file'
+    CFG_GUARD_PHISHY = 'guard.phishy'
 
     CFG_DOMAIN_ALIASES_FILE = 'domain_aliases_file'
     CFG_WHITELIST_FILE = 'whitelist_file'
@@ -55,24 +55,23 @@ class Configuration:
     def _get_default_config(self) -> Dict[str, Any]:
         """Get default configuration values."""
         return {
-            'options': {
-                'strip': {
-                    'file': 'strip.yml',
-                    'cookies': True,
-                    'redirect': True,
-                    'enable': False,
-                    'param_prefix': []
-                },
-                'verbose': False,
-                'copy': None,
-                'guard': {
-                    'server': None,
-                    'salt': None,
-                    'link': 'off',
-                    'capture_to': False,
-                    'whitelist_file': None,
-                    'phishy': False
-                }
+            # Flattened structure - removed nested 'options' level
+            'strip': {
+                'file': 'strip.yml',
+                'cookies': True,
+                'redirect': True,
+                'enable': False,
+                'param_prefix': []
+            },
+            'verbose': False,
+            'copy': None,
+            'guard': {
+                'server': None,
+                'salt': None,
+                'link': 'off',
+                'capture_to': False,
+                'whitelist_file': None,
+                'phishy': False
             },
             'domain_aliases_file': 'domain_aliases.yml',
             'whitelist_file': None,
@@ -165,24 +164,16 @@ class Configuration:
     
     def _merge_settings(self, settings: Dict[str, Any]) -> None:
         """Merge settings into configuration."""
-        opts = settings.get('options', {})
-        for key, value in opts.items():
-            if isinstance(value, dict) and isinstance(self.config['options'].get(key), dict):
-                self.config['options'][key].update(value)
-            else:
-                self.config['options'][key] = value
-        
+        # Handle direct settings at root level (flattened structure)
         for key, value in settings.items():
-            if key == 'options':
-                continue
             if key in self.config and isinstance(self.config[key], list) and isinstance(value, list):
                 self.config[key].extend(value)
             else:
                 self.config[key] = value
         
         # Handle shared salt option - if salt is provided at root level and not in guard options, use it
-        if 'salt' in settings and not self.config['options']['guard']['salt']:
-            self.config['options']['guard']['salt'] = settings['salt']
+        if 'salt' in settings and not self.config['guard'].get('salt'):
+            self.config['guard']['salt'] = settings['salt']
     
     def _update_counters(self) -> None:
         """Update internal counters for tracking changes."""
@@ -348,7 +339,7 @@ class Configuration:
             return
         
         self.guard_whitelist = Blocklist(guard_whitelist_file, 'whitelist')
-        self.config['options']['guard']['whitelist'] = self.guard_whitelist.get_entries()
+        self.config['guard']['whitelist'] = self.guard_whitelist.get_entries()
         
         logging.info(f'Loaded {len(self.guard_whitelist)} guard whitelist entries from {guard_whitelist_file}')
     

@@ -1,15 +1,15 @@
 # Example configuration file with domain aliases and blocklist
-options:
-  guard:
-    server: https://guard.example.com
-    salt: mysecret123
-    link: mismatch
-    capture_to: false
-    whitelist_file: guard_whitelist.yml
-    # Domain aliases are now loaded from a shared file
-    # This ensures consistency between detrackify_email.py and detrackify_guard.py
-    domain_aliases_file: domain_aliases.yml
-    # See domain_aliases.yml for the format and examples
+guard:
+  server: https://guard.example.com
+  salt: mysecret123
+  link: mismatch
+  capture_to: false
+  whitelist_file: guard_whitelist.yml
+
+# Domain aliases are now loaded from a shared file
+# This ensures consistency between detrackify_email.py and detrackify_guard.py
+domain_aliases_file: domain_aliases.yml
+# See domain_aliases.yml for the format and examples
 
 # Blocklist file configuration
 blacklist_file: blacklist.yml

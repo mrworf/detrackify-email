@@ -29,9 +29,9 @@ Minimal configuration showing only essential settings for both applications.
 The `email` section contains all settings for processing emails and removing tracking pixels:
 
 **Key sections:**
-- `options.verbose`: Enable debug logging
-- `options.strip`: Experimental URL parameter stripping
-- `options.guard`: Link guarding configuration
+- `verbose`: Enable debug logging
+- `strip`: Experimental URL parameter stripping
+- `guard`: Link guarding configuration
 - `domain_aliases_file`: Path to domain aliases file
 - `whitelist_file`: Path to whitelist file
 - `blacklist_file`: Path to blocklist file

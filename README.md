@@ -111,8 +111,7 @@ domain from the email's `From:` header. Optionally the recipient address can be
 included. The payload is hashed together with the salt to ensure it has not been
 tampered with before the server redirects the user.
 
-Guard settings can also be provided in the YAML configuration file.  All guard
-options live under the top-level `options` key:
+Guard settings can also be provided in the YAML configuration file:
 
 ```yaml
 guard:
@@ -177,12 +176,11 @@ python detrackify_email.py \
 ```yaml
 # Email processor configuration
 email:
-  options:
-    guard:
-      server: https://guard.example.com
-      salt: your_secure_salt
-      link: mismatch
-      phishy: true  # Enable phishing detection
+  guard:
+    server: https://guard.example.com
+    salt: your_secure_salt
+    link: mismatch
+    phishy: true  # Enable phishing detection
 ```
 
 ### What Happens When Phishing is Detected
@@ -232,20 +230,19 @@ whitelist_file: whitelist.yml
 
 # Email processor configuration
 email:
-  options:
-    verbose: false
-    strip:
-      enable: false
-      file: strip.yml
-      cookies: true
-      redirect: true
-    copy: null
-    guard:
-      server: http://localhost:9090
-      link: mismatch
-      capture_to: false
-      phishy: false
-      whitelist_file: guard_whitelist.yml
+  verbose: false
+  strip:
+    enable: false
+    file: strip.yml
+    cookies: true
+    redirect: true
+  copy: null
+  guard:
+    server: http://localhost:9090
+    link: mismatch
+    capture_to: false
+    phishy: false
+    whitelist_file: guard_whitelist.yml
   
   # Email-specific file paths (overrides shared settings)
   cache_file: cache.yml
@@ -413,9 +410,8 @@ python detrackify_email.py --guard-whitelist-file /path/to/guard_whitelist.yml
 **YAML Configuration:**
 ```yaml
 # In your main config file
-options:
-  guard:
-    whitelist_file: guard_whitelist.yml  # Path to guard whitelist file
+guard:
+  whitelist_file: guard_whitelist.yml  # Path to guard whitelist file
 ```
 
 ## Blocklist Configuration

@@ -3,29 +3,28 @@
 
 # Email processing section
 email:
-  options:
-    verbose: true
-    guard:
-      # Guard server configuration
-      server: "https://your-guard-server.example.com"
-      salt: "your-secure-salt-here-should-be-long-and-random"
-      
-      # Guard link mode:
-      # - off: No link guarding
-      # - mismatch: Guard only when sender domain doesn't match link domain
-      # - always: Guard all links
-      link: "mismatch"
-      
-      # Enable phishing detection
-      # When enabled, analyzes sender display name vs email domain
-      # If mismatch detected, forces all links to be guarded with 'phishy' block reason
-      phishy: true
-      
-      # Capture recipient email in guarded links (optional)
-      capture_to: false
-      
-      # Path to guard whitelist file (optional)
-      whitelist_file: "guard_whitelist.yml"
+  verbose: true
+  guard:
+    # Guard server configuration
+    server: "https://your-guard-server.example.com"
+    salt: "your-secure-salt-here-should-be-long-and-random"
+    
+    # Guard link mode:
+    # - off: No link guarding
+    # - mismatch: Guard only when sender domain doesn't match link domain
+    # - always: Guard all links
+    link: "mismatch"
+    
+    # Enable phishing detection
+    # When enabled, analyzes sender display name vs email domain
+    # If mismatch detected, forces all links to be guarded with 'phishy' block reason
+    phishy: true
+    
+    # Capture recipient email in guarded links (optional)
+    capture_to: false
+    
+    # Path to guard whitelist file (optional)
+    whitelist_file: "guard_whitelist.yml"
 
 # Additional configuration files
 domain_aliases_file: "domain_aliases.yml"

@@ -22,22 +22,20 @@ def test_unified_config_email_section():
     the 'email' section while also loading shared settings from root level.
     """
     
-    # Test unified configuration
+    # Test unified configuration with new flattened structure
     test_config = {
         'domain_aliases_file': 'shared_aliases.yml',
         'blacklist_file': 'shared_blacklist.yml',
         'email': {
-            'options': {
-                'verbose': True,
-                'guard': {
-                    'server': 'http://localhost:9090',
-                    'salt': 'test-salt-123'
-                }
+            'verbose': True,
+            'guard': {
+                'server': 'http://localhost:9090',
+                'salt': 'test-salt-123'
             },
             'cache_file': 'email_cache.yml'
         },
         'guard': {
-            'guardsalt': 'guard-salt-456',
+            'salt': 'guard-salt-456',
             'listen_port': 8080
         }
     }
@@ -56,9 +54,9 @@ def test_unified_config_email_section():
         assert config.get('domain_aliases_file') == 'shared_aliases.yml'
         assert config.get('blacklist_file') == 'shared_blacklist.yml'
         assert config.get('cache_file') == 'email_cache.yml'
-        assert config.get('options.guard.server') == 'http://localhost:9090'
-        assert config.get('options.guard.salt') == 'test-salt-123'
-        assert config.get('options.verbose') is True
+        assert config.get('guard.server') == 'http://localhost:9090'
+        assert config.get('guard.salt') == 'test-salt-123'
+        assert config.get('verbose') is True
         
         print("✅ Unified email configuration loading test passed!")
         
@@ -84,11 +82,9 @@ def test_unified_config_guard_section():
         'domain_aliases_file': 'shared_aliases.yml',
         'blacklist_file': 'shared_blacklist.yml',
         'email': {
-            'options': {
-                'guard': {
-                    'server': 'http://localhost:9090',
-                    'salt': 'email-salt-123'
-                }
+            'guard': {
+                'server': 'http://localhost:9090',
+                'salt': 'email-salt-123'
             }
         },
         'guard': {
@@ -144,11 +140,9 @@ def test_unified_config_precedence():
         'blacklist_file': 'shared_blacklist.yml',
         'email': {
             'domain_aliases_file': 'email_aliases.yml',
-            'options': {
-                'guard': {
-                    'server': 'http://localhost:9090',
-                    'salt': 'email-salt-123'
-                }
+            'guard': {
+                'server': 'http://localhost:9090',
+                'salt': 'email-salt-123'
             }
         },
         'guard': {
@@ -175,7 +169,7 @@ def test_unified_config_precedence():
         # Email should use shared blacklist_file since not overridden
         assert email_config.get('blacklist_file') == 'shared_blacklist.yml'
         # Email should use its own guard salt, not shared
-        assert email_config.get('options.guard.salt') == 'email-salt-123'
+        assert email_config.get('guard.salt') == 'email-salt-123'
         
         # Test guard configuration precedence
         guard_config = GuardConfig.from_yaml(config_path)
@@ -209,11 +203,9 @@ def test_unified_config_minimal():
     test_config = {
         'salt': 'test-salt-123',
         'email': {
-            'options': {
-                'guard': {
-                    'server': 'http://localhost:9090',
-                    'link': 'mismatch'
-                }
+            'guard': {
+                'server': 'http://localhost:9090',
+                'link': 'mismatch'
             }
         },
         'guard': {
@@ -233,8 +225,8 @@ def test_unified_config_minimal():
         email_success = email_config.load_from_yaml(config_path)
         
         assert email_success is True
-        assert email_config.get('options.guard.server') == 'http://localhost:9090'
-        assert email_config.get('options.guard.salt') == 'test-salt-123'  # Should use shared salt
+        assert email_config.get('guard.server') == 'http://localhost:9090'
+        assert email_config.get('guard.salt') == 'test-salt-123'  # Should use shared salt
         
         # Test guard configuration with minimal settings
         guard_config = GuardConfig.from_yaml(config_path)
@@ -268,11 +260,9 @@ def test_shared_salt_functionality():
         'salt': 'shared-salt-456',
         'domain_aliases_file': 'shared_aliases.yml',
         'email': {
-            'options': {
-                'guard': {
-                    'server': 'http://localhost:9090',
-                    'link': 'mismatch'
-                }
+            'guard': {
+                'server': 'http://localhost:9090',
+                'link': 'mismatch'
             }
         },
         'guard': {
@@ -292,7 +282,7 @@ def test_shared_salt_functionality():
         email_success = email_config.load_from_yaml(config_path)
         
         assert email_success is True
-        assert email_config.get('options.guard.salt') == 'shared-salt-456'
+        assert email_config.get('guard.salt') == 'shared-salt-456'
         
         # Test guard configuration uses shared salt
         guard_config = GuardConfig.from_yaml(config_path)

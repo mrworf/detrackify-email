@@ -317,12 +317,10 @@ class TestDomainAliasesYAMLConfig(unittest.TestCase):
         
         # Create a test config file that references the aliases file
         config_data = {
-            'options': {
-                'guard': {
-                    'server': 'https://guard.example.com',
-                    'salt': 'test-salt',
-                    'link': 'mismatch'
-                }
+            'guard': {
+                'server': 'https://guard.example.com',
+                'salt': 'test-salt',
+                'link': 'mismatch'
             },
             'domain_aliases_file': aliases_path
         }
@@ -355,12 +353,10 @@ class TestDomainAliasesYAMLConfig(unittest.TestCase):
         config.domain_aliases = DomainAliases()
         
         yaml_data = {
-            'options': {
-                'guard': {
-                    'server': 'https://guard.example.com',
-                    'salt': 'test-salt',
-                    'domain_aliases': {}
-                }
+            'guard': {
+                'server': 'https://guard.example.com',
+                'salt': 'test-salt',
+                'domain_aliases': {}
             }
         }
         
@@ -385,11 +381,9 @@ class TestDomainAliasesYAMLConfig(unittest.TestCase):
         config.domain_aliases = DomainAliases()
         
         yaml_data = {
-            'options': {
-                'guard': {
-                    'server': 'https://guard.example.com',
-                    'salt': 'test-salt'
-                }
+            'guard': {
+                'server': 'https://guard.example.com',
+                'salt': 'test-salt'
             }
         }
         
@@ -413,12 +407,10 @@ class TestDomainAliasesYAMLConfig(unittest.TestCase):
         config.domain_aliases = DomainAliases()
         
         yaml_data = {
-            'options': {
-                'guard': {
-                    'server': 'https://guard.example.com',
-                    'salt': 'test-salt',
-                    'domain_aliases_file': '/nonexistent/aliases.yml'
-                }
+            'guard': {
+                'server': 'https://guard.example.com',
+                'salt': 'test-salt',
+                'domain_aliases_file': '/nonexistent/aliases.yml'
             }
         }
         
@@ -513,9 +505,9 @@ class TestDomainAliasesIntegration(unittest.TestCase):
         config.domain_aliases = DomainAliases()
         
         # Set up guard configuration with domain aliases
-        config.config['options']['guard']['server'] = 'https://guard.example.com'
-        config.config['options']['guard']['salt'] = 'test-salt'
-        config.config['options']['guard']['link'] = 'mismatch'
+        config.config['guard']['server'] = 'https://guard.example.com'
+        config.config['guard']['salt'] = 'test-salt'
+        config.config['guard']['link'] = 'mismatch'
         config.domain_aliases.set_aliases({
             'instacart.com': ['instacartemail.com'],
             'example.org': ['example-email.org']

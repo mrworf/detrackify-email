@@ -10,20 +10,19 @@ whitelist_file: whitelist.yml
 
 # Email processor configuration
 email:
-  options:
-    verbose: false
-    strip:
-      enable: false
-      file: strip.yml
-      cookies: true
-      redirect: true
-    copy: null
-    guard:
-      server: http://localhost:9090
-      salt: test123456789
-      link: mismatch
-      capture_to: false
-      whitelist_file: guard_whitelist.yml
+  verbose: false
+  strip:
+    enable: false
+    file: strip.yml
+    cookies: true
+    redirect: true
+  copy: null
+  guard:
+    server: http://localhost:9090
+    salt: test123456789
+    link: mismatch
+    capture_to: false
+    whitelist_file: guard_whitelist.yml
   
   # Email-specific file paths (overrides shared settings)
   cache_file: cache.yml
