@@ -68,6 +68,12 @@ The Docker build automatically excludes development tools during the build proce
 - `USER_AGENT`: Custom User-Agent for link resolution requests
 - `TEMPLATE_DIR`: Directory containing templates (default: /app/templates)
 - `RESOURCES_DIR`: Directory containing additional resources (default: /app/resources)
+- `LISTEN_IP`: IP address to bind to (default: 127.0.0.1)
+- `LISTEN_PORT`: Port to listen on (default: 9090)
+- `FORCE_LANGUAGE`: Force specific language template (e.g., de, es, fr, zh, ar)
+- `DOMAIN_ALIASES_FILE`: Path to domain aliases YAML file (default: domain_aliases.yml)
+- `BLACKLIST_FILE`: Path to blacklist YAML file (default: blacklist.yml)
+- `DENY_ON_WARNINGS`: Comma-separated list of warnings to deny access for (e.g., "ssl_certificate,connection_error")
 
 #### Gunicorn Configuration (Production)
 - `USE_GUNICORN`: Use Gunicorn instead of Flask development server (true/false, default: true)

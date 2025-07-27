@@ -2,19 +2,41 @@
 
 Many phishing attempts disguise a malicious link behind seemingly innocent text. `detrackify_email.py` can rewrite such links so that the user is warned before the browser follows them. The guard server verifies the link using a shared secret, serves a warning page and then redirects without storing any state on the server. Logging of the clicked link can be disabled for privacy.
 When guardlink runs in `mismatch` mode the domain of each link is compared with the sender's domain. Links from a different domain or subdomain are considered suspicious and replaced.
+
+## User protection
+
+By default, the tool does not perform any resolve on the URLs provided and will simply show the user that the domain of the email sender doesn't match the domain of the link. This is to avoid triggering any kind of tracking mechanism. However, it's the opinion of the author that the use of `--resolve` is preferable.
+
+Here's why...
+
+While using `--resolve` means the server will make HTTP/HTTPS requests on behalf of users, potentially triggering tracking mechanisms, this approach provides several important benefits:
+
+1. Once resolved, no more tracking will be done since result is cached on server.
+2. IP of "user" will always be the server.
+3. Device fingerprinting will not match.
+4. Cookies aren't available and does not persist on server, all requests are essentially "incognito".
+5. No javascript or other malicious payloads are ever sent to user unless they click after being warned.
+
+It also means better protection from phishing attempts that are hiding behind URL redirects.
+
+### Privacy
+
+Nothing is stored on the server. Normally each redirect is logged along with how long the user waited before continuing. When `--privacy` is enabled these informational messages are suppressed, but warnings and errors are still logged.
+
 ## Enabling guarded links
 
 Set the following options either on the command line or in your `detrackify_email.py` configuration file:
 
 ```yaml
 salt: changeme123
-guard:
-  server: https://guard.example.com
-  link: mismatch
-  capture_to: false
+email:
+  guard:
+    server: https://guard.example.com
+    link: mismatch
+    capture_to: false
 ```
 
-`guard.server` is the public URL to the guard server including the scheme. `salt` must be at least eight characters and should be kept secret. `guard.link` controls which links are rewritten: `mismatch` only rewrites links that do not match the sender domain, `always` rewrites all links and `off` disables the feature.
+`email.guard.server` is the public URL to the guard server including the scheme. `salt` must be at least eight characters and should be kept secret. `email.guard.link` controls which links are rewritten: `mismatch` only rewrites links that do not match the sender domain, `always` rewrites all links and `off` disables the feature.
 
 When a link is rewritten, a JSON payload containing the original URL, its display text and the sender domain is base64 encoded.  A SHA256 hash is then calculated from that encoded payload plus the configured salt and both values are appended to the guard server address.  This allows the server to verify that the payload has not been tampered with when a user clicks the link.  The processed email will also include the headers `X-Detrackify-Guarded-Links` and `X-Detrackify-Guard-Mode` when guardlink is active.
 If `guard.capture_to` is enabled, the recipient address is included in the JSON so the server can log which user clicked the link&mdash;or at least which recipient the link was originally meant for (forwards and quoted mail may not reflect the actual clicker).
@@ -58,6 +80,8 @@ set GUNICORN_WORKERS=4
 set GUNICORN_TIMEOUT=30
 gunicorn --config gunicorn.conf.py wsgi:app
 ```
+
+> NOTE! Windows is untested.
 
 #### Gunicorn Configuration
 
@@ -148,14 +172,19 @@ guard:
   
   # User agent for link resolution requests
   user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  
+  # Warning blocking - deny access for specific warning types
+  deny_on_warnings:
+    - "ssl_certificate"
+    - "connection_error"
 ```
 
 When using a unified configuration file, the guard server will:
 1. Load shared settings from the root level (including `salt`)
 2. Load guard-specific settings from the `guard` section
-3. Apply guard-specific settings with precedence over shared settings
+3. Apply command line arguments with precedence over settings file
 
-The `salt` option is shared between both applications and is used for hash validation. If not specified in the `guard` section, the shared `salt` from the root level will be used.
+The `salt` option is shared between both applications and is used for hash validation. 
 
 See the main README for more details on configuration format.
 
@@ -179,9 +208,43 @@ Optional parameters:
 * `--debug` Enable debug mode with template auto-reload
 * `--force-language` Force serving a specific language template (e.g., da, de, es, fr, zh, ar)
 * `--strip-param-prefix` Remove tracking parameters starting with PREFIX and everything after (may be used multiple times)
+* `--deny-on-warnings` Deny access for specific warnings instead of showing warning modals (may be used multiple times)
 
 The `--strip-param-prefix` option is useful for removing marketing parameters such as `utm_source`. The first matching parameter and all subsequent parameters are dropped from the URL before displaying it or performing the redirect.
 Removing parameters may break links if any subsequent parameter is required by the destination site.
+
+The `--deny-on-warnings` option allows you to completely block access to URLs that trigger specific warning types during resolution, instead of showing a warning modal. When a denied warning is detected, the user sees a blocked page with an explanation but no continue button. This option can be specified multiple times to deny different warning types.
+
+#### Available Warning Types
+
+The following warning types can be used with `--deny-on-warnings`:
+
+- **`ssl_certificate`** - SSL certificate verification failed, expired, or unverifiable certificates
+- **`connection_error`** - Connection errors including DNS failures and network connectivity issues  
+- **`connection_timeout`** - Connection timeout when server takes too long to respond
+- **`too_many_redirects`** - Too many redirects detected (potential redirect chains)
+- **`request_error`** - Other HTTP request-related errors
+- **`unexpected_error`** - Unexpected errors during URL resolution
+
+#### Usage Examples
+
+Command line (multiple warnings):
+```bash
+python3 detrackify_guard.py --salt mysalt --deny-on-warnings ssl_certificate --deny-on-warnings connection_error
+```
+
+YAML configuration:
+```yaml
+deny_on_warnings:
+  - "ssl_certificate"
+  - "connection_error" 
+  - "too_many_redirects"
+```
+
+Environment variable:
+```bash
+export DENY_ON_WARNINGS="ssl_certificate,connection_error,too_many_redirects"
+```
 
 The server verifies the provided hash, shows a warning page and then redirects the
 user without sending a referrer header. It automatically chooses a warning page
@@ -233,7 +296,7 @@ The guard server supports multiple languages through template-based localization
 ### Supported Languages
 
 Currently supported languages:
-- **English** (`guard_warning.html`) - Default template
+- **English** (`guard_warning.html`) - Default template (and fallback when language support is missing)
 - **German** (`guard_warning_de.html`)
 - **Spanish** (`guard_warning_es.html`)
 - **French** (`guard_warning_fr.html`)
@@ -337,9 +400,11 @@ To test a new language template:
 - **Use appropriate fonts** for languages with special characters
 - **Keep it simple** to not scare or baffle regular users
 
+## Link resolution
+
 When link resolution is enabled the server will attempt to determine the final
-destination of the provided link. Use `--resolve head` for HEAD requests or `--resolve get` for GET requests
-or `--resolve get` for GET requests which also extracts the page title.
+destination of the provided link. Use `--resolve head` for HEAD requests or `--resolve get` for GET requests which also extracts the page title.
+
 The page will display a progress message while this happens and the
 continue button activates only once the real URL is known. The
 result is cached in memory and optionally persisted to a JSON file to speed up
@@ -347,7 +412,7 @@ future requests.
 Using `--resolve get` downloads the full page, which may consume significantly
 more data and could trigger tracking mechanisms on the remote server. 
 
-It's worth noting that while HEAD is less bandwidth intensive, some servers don't allow HEAD and some won't provide the redirects we need to resolve the path. And yet they may still track you. 
+> It's worth noting that while HEAD is less bandwidth intensive, some servers don't allow HEAD and some won't provide the redirects we need to resolve the path. And yet they may still track you. 
 
 The resolved link replaces the progress message and is highlighted just like the
 original URL. If the final destination shares the same domain as the sender then
@@ -362,7 +427,7 @@ The cache key is `SHA256(data + SHA256(data))` where `data` is the base64-encode
 Entries older than the configured number of days are pruned every 24 hours and
 the cache never grows beyond the specified maximum size.
 
-### Endpoints
+## Endpoints
 
 All endpoints except `/resources/` are served below the `/guard/` prefix:
 
@@ -584,21 +649,15 @@ All configuration options are available as environment variables:
 | `USER_AGENT` | User-Agent string for link resolution | Chrome browser | `USER_AGENT=MyBot/1.0` |
 | `TEMPLATE_DIR` | Directory containing templates | `/app/templates` | `TEMPLATE_DIR=/custom/templates` |
 | `RESOURCES_DIR` | Directory containing additional resources | `/app/resources` | `RESOURCES_DIR=/custom/resources` |
+| `DENY_ON_WARNINGS` | Comma-separated list of warnings to deny access for | `None` | `DENY_ON_WARNINGS=ssl_certificate,connection_error` |
 
 #### Multiple Values
 
-For parameters that can be specified multiple times (like `--strip-param-prefix`), you can use:
+For parameters that can be specified multiple times (like `--strip-param-prefix`), you should use commas to separate them:
 
-**Method 1: Comma-separated values**
+**Comma-separated values**
 ```bash
 STRIP_PARAM_PREFIX=utm_source,utm_medium,utm_campaign
-```
-
-**Method 2: Individual numbered variables**
-```bash
-STRIP_PARAM_PREFIX_1=utm_source
-STRIP_PARAM_PREFIX_2=utm_medium
-STRIP_PARAM_PREFIX_3=utm_campaign
 ```
 
 #### Example Environment Configuration
@@ -617,6 +676,7 @@ RESOLVE_CACHE_MAX=4096
 PRIVACY=true
 USER_AGENT="Mozilla/5.0 (compatible; MyBot/1.0)"
 STRIP_PARAM_PREFIX=utm_source,utm_medium,utm_campaign,fbclid
+DENY_ON_WARNINGS=ssl_certificate,connection_error
 ```
 
 #### Production Configuration
@@ -652,6 +712,7 @@ services:
       - RESOLVE_CACHE_MAX=4096
       - PRIVACY=true
       - STRIP_PARAM_PREFIX=utm_source,utm_medium,utm_campaign,fbclid
+      - DENY_ON_WARNINGS=ssl_certificate,connection_error
     volumes:
       - ./templates:/app/templates:ro
       - ./resources:/app/resources:ro
@@ -697,6 +758,3 @@ docker-compose build --no-cache
 docker-compose up -d
 ```
 
-### Privacy
-
-Nothing is stored on the server. Normally each redirect is logged along with how long the user waited before continuing. When `--privacy` is enabled these informational messages are suppressed, but warnings and errors are still logged.
