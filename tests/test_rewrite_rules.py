@@ -118,7 +118,8 @@ class TestRewriteRulesConfiguration:
         
         # Test data
         config_data = {
-            'rewrite': [
+            'email': {
+                'rewrite': [
                 {
                     'from': r'https://old\.example\.com/(.+)',
                     'to': r'https://new.example.com/\1'
@@ -127,7 +128,8 @@ class TestRewriteRulesConfiguration:
                     'from': r'https://tracking\.example\.com/(.+)',
                     'to': r'https://clean.example.com/\1'
                 }
-            ]
+                ]
+            }
         }
         
         # Create temporary config file
@@ -177,12 +179,14 @@ class TestRewriteRulesConfiguration:
         
         # Test with invalid rewrite rule (missing 'to' field)
         config_data = {
-            'rewrite': [
+            'email': {
+                'rewrite': [
                 {
                     'from': 'https://old.example.com/(.*)'
                     # Missing 'to' field
                 }
-            ]
+                ]
+            }
         }
         
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
@@ -344,12 +348,14 @@ Content-Type: text/html; charset=utf-8
         
         # Configuration with rewrite rules
         config_data = {
-            'rewrite': [
+            'email': {
+                'rewrite': [
                 {
                     'from': r'https://old\.example\.com/(.+)',
                     'to': r'https://new.example.com/\1'
                 }
-            ]
+                ]
+            }
         }
         
         try:
@@ -390,15 +396,17 @@ Content-Type: text/html; charset=utf-8
         
         # Configuration with rewrite rules and blacklist
         config_data = {
-            'rewrite': [
+            'email': {
+                'rewrite': [
                 {
                     'from': r'https://old\.example\.com/(.+)',
                     'to': r'https://new.example.com/\1'
                 }
-            ],
-            'blacklist': [
-                'https://tracking.example.com/.*'
-            ]
+                ],
+                'blacklist': [
+                    'https://tracking.example.com/.*'
+                ]
+            }
         }
         
         try:
@@ -437,15 +445,17 @@ Content-Type: text/html; charset=utf-8
         
         # Configuration with rewrite rules and whitelist
         config_data = {
-            'rewrite': [
+            'email': {
+                'rewrite': [
                 {
                     'from': r'https://old\.example\.com/(.+)',
                     'to': r'https://new.example.com/\1'
                 }
-            ],
-            'whitelist': [
-                'https://trusted.example.com/.*'
-            ]
+                ],
+                'whitelist': [
+                    'https://trusted.example.com/.*'
+                ]
+            }
         }
         
         try:
@@ -484,7 +494,8 @@ Content-Type: text/html; charset=utf-8
         
         # Configuration with multiple rewrite rules
         config_data = {
-            'rewrite': [
+            'email': {
+                'rewrite': [
                 {
                     'from': r'https://old\.example\.com/(.+)',
                     'to': r'https://new.example.com/\1'
@@ -497,7 +508,8 @@ Content-Type: text/html; charset=utf-8
                     'from': r'https://cdn\.example\.com/(.+)',
                     'to': r'https://static.example.com/\1'
                 }
-            ]
+                ]
+            }
         }
         
         try:

@@ -3,10 +3,16 @@
 # Each application will use its respective section while sharing common settings
 
 # Shared configuration (used by both email and guard)
-salt: "your-secret-salt-here"
-domain_aliases_file: domain_aliases.yml
-blacklist_file: blacklist.yml
-whitelist_file: whitelist.yml
+common:
+  salt: "your-secret-salt-here"
+  domain_aliases_file: domain_aliases.yml
+  blacklist_file: blacklist.yml
+  # URL parameter stripping (applies to both)
+  strip_param_prefix:
+    - "utm_"
+    - "fbclid"
+    - "gclid"
+    - "msclkid"
 
 # Email processor configuration
 email:
@@ -19,7 +25,6 @@ email:
   copy: null
   guard:
     server: http://localhost:9090
-    salt: test123456789
     link: mismatch
     capture_to: false
     whitelist_file: guard_whitelist.yml
@@ -28,7 +33,7 @@ email:
   cache_file: cache.yml
 
 # Guard server configuration
-guard:
+guard_server:
   # Server settings
   listen_ip: "127.0.0.1"
   listen_port: 9090
@@ -47,17 +52,7 @@ guard:
   resolve_cache_days: 30  # Days to keep cache entries
   resolve_cache_max: 4096  # Maximum number of cached entries
   
-  # URL parameter stripping
-  strip_param_prefix:
-    - "utm_"
-    - "fbclid"
-    - "gclid"
-    - "msclkid"
-  
   # User agent for link resolution requests
   user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-  
-  # Guard-specific file paths (overrides shared settings)
-  blacklist_file: "blacklist.yml"
   
   # Note: 'debug' and 'force_language' are command line only options and cannot be set in this file. 

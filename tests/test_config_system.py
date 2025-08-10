@@ -24,13 +24,17 @@ class TestLoadConfigFromYaml(unittest.TestCase):
         a dictionary with all the values matching the original YAML content.
         """
         config_data = {
-            'salt': 'test-salt-123',
-            'listen_ip': '0.0.0.0',
-            'listen_port': 8080,
-            'timeout': 3,
-            'privacy': True,
-            'resolve': 'head',
-            'strip_param_prefix': ['utm_', 'fbclid']
+            'common': {
+                'salt': 'test-salt-123',
+                'strip_param_prefix': ['utm_', 'fbclid']
+            },
+            'guard_server': {
+                'listen_ip': '0.0.0.0',
+                'listen_port': 8080,
+                'timeout': 3,
+                'privacy': True,
+                'resolve': 'head'
+            }
         }
         
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
@@ -118,19 +122,23 @@ class TestLoadConfigFromYaml(unittest.TestCase):
         including complex types like lists and various data types (strings, integers, booleans).
         """
         config_data = {
-            'salt': 'complex-salt-456',
-            'listen_ip': '127.0.0.1',
-            'listen_port': 9090,
-            'template_dir': 'custom_templates',
-            'resources_dir': 'custom_resources',
-            'timeout': 10,
-            'privacy': False,
-            'resolve': 'get',
-            'resolve_cache_file': '/var/cache/resolve.json',
-            'resolve_cache_days': 60,
-            'resolve_cache_max': 8192,
-            'strip_param_prefix': ['utm_', 'fbclid', 'gclid', 'msclkid'],
-            'user_agent': 'Custom User Agent String'
+            'common': {
+                'salt': 'complex-salt-456',
+                'strip_param_prefix': ['utm_', 'fbclid', 'gclid', 'msclkid'],
+            },
+            'guard_server': {
+                'listen_ip': '127.0.0.1',
+                'listen_port': 9090,
+                'template_dir': 'custom_templates',
+                'resources_dir': 'custom_resources',
+                'timeout': 10,
+                'privacy': False,
+                'resolve': 'get',
+                'resolve_cache_file': '/var/cache/resolve.json',
+                'resolve_cache_days': 60,
+                'resolve_cache_max': 8192,
+                'user_agent': 'Custom User Agent String'
+            }
         }
         
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
@@ -227,8 +235,10 @@ class TestConfigEdgeCases(unittest.TestCase):
         as lists in the configuration, supporting multiple parameter prefixes.
         """
         config_data = {
-            'salt': 'test-salt',
-            'strip_param_prefix': ['utm_', 'fbclid', 'gclid']
+            'common': {
+                'salt': 'test-salt',
+                'strip_param_prefix': ['utm_', 'fbclid', 'gclid']
+            }
         }
         
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
@@ -249,8 +259,12 @@ class TestConfigEdgeCases(unittest.TestCase):
         Python boolean types (True/False) without string conversion issues.
         """
         config_data = {
-            'salt': 'test-salt',
-            'privacy': True
+            'common': {
+                'salt': 'test-salt'
+            },
+            'guard_server': {
+                'privacy': True
+            }
         }
         
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:

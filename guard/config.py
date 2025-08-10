@@ -10,6 +10,7 @@ from typing import Optional, List
 import yaml
 from guard.utils import GuardUtils
 from common.utils import SharedUtils
+from common.config_loader import load_config_sections
 
 
 @dataclass
@@ -48,46 +49,39 @@ class GuardConfig:
 
     @classmethod
     def from_yaml(cls, config_path: str) -> 'GuardConfig':
-        """Load configuration from YAML file."""
+        """Load configuration from YAML using shared loader and strict validation."""
         try:
-            with open(config_path, 'r', encoding='utf-8') as fh:
-                config_data = yaml.safe_load(fh)
-            if not isinstance(config_data, dict):
+            common, _, guard_settings = load_config_sections(config_path)
+            if not common and not guard_settings:
+                # Mirror previous behavior: empty file is invalid for guard loader
                 raise ValueError("Configuration file must contain a dictionary")
-            
-            # Extract guard section and shared settings
-            guard_settings = config_data.get('guard', {})
-            # Also load shared settings at root level
-            shared_settings = {k: v for k, v in config_data.items() 
-                             if k not in ['email', 'guard']}
-            # Merge shared settings with guard settings (guard takes precedence)
-            unified_config_data = {**shared_settings, **guard_settings}
-            
-            # Extract configuration values with defaults
+
+            salt = (common.get('salt') or '')
+            domain_aliases_file = common.get('domain_aliases_file', 'domain_aliases.yml')
+            blacklist_file = common.get('blacklist_file', 'blacklist.yml')
+            strip_param_prefixes = common.get('strip_param_prefix', []) or []
+
             return cls(
-                salt=unified_config_data.get('salt', ''),
-                timeout=unified_config_data.get('timeout', 5),
-                template_dir=unified_config_data.get('template_dir', 'templates'),
-                resource_dir=unified_config_data.get('resources_dir', 'resources'),
-                privacy=unified_config_data.get('privacy', False),
-                listen_ip=unified_config_data.get('listen_ip', '127.0.0.1'),
-                listen_port=unified_config_data.get('listen_port', 9090),
-                resolve=unified_config_data.get('resolve'),
-                cache_file=unified_config_data.get('resolve_cache_file'),
-                cache_days=unified_config_data.get('resolve_cache_days', 30),
-                cache_max=unified_config_data.get('resolve_cache_max', 4096),
-                strip_param_prefixes=unified_config_data.get('strip_param_prefix', []),
-                user_agent=unified_config_data.get('user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'),
-                force_language=unified_config_data.get('force_language'),
-                domain_aliases_file=unified_config_data.get('domain_aliases_file', 'domain_aliases.yml'),
-                blacklist_file=unified_config_data.get('blacklist_file', 'blacklist.yml'),
-                deny_on_warnings=unified_config_data.get('deny_on_warnings', []),
+                salt=salt,
+                timeout=guard_settings.get('timeout', 5),
+                template_dir=guard_settings.get('template_dir', 'templates'),
+                resource_dir=guard_settings.get('resources_dir', 'resources'),
+                privacy=guard_settings.get('privacy', False),
+                listen_ip=guard_settings.get('listen_ip', '127.0.0.1'),
+                listen_port=guard_settings.get('listen_port', 9090),
+                resolve=guard_settings.get('resolve'),
+                cache_file=guard_settings.get('resolve_cache_file'),
+                cache_days=guard_settings.get('resolve_cache_days', 30),
+                cache_max=guard_settings.get('resolve_cache_max', 4096),
+                strip_param_prefixes=strip_param_prefixes,
+                user_agent=guard_settings.get('user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'),
+                force_language=guard_settings.get('force_language'),
+                domain_aliases_file=domain_aliases_file,
+                blacklist_file=blacklist_file,
+                deny_on_warnings=guard_settings.get('deny_on_warnings', []),
             )
         except FileNotFoundError:
             logging.error("Configuration file not found: %s", config_path)
-            raise
-        except yaml.YAMLError as e:
-            logging.error("Invalid YAML in configuration file: %s", e)
             raise
         except Exception as e:
             logging.error("Error loading configuration file: %s", e)

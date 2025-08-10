@@ -1,13 +1,17 @@
 # Example configuration for Detrackify Email with Phishing Detection
 # This configuration enables guard functionality with phishing detection
 
+common:
+  salt: "your-secure-salt-here-should-be-long-and-random"
+  domain_aliases_file: "domain_aliases.yml"
+  blacklist_file: "blacklist.yml"
+
 # Email processing section
 email:
   verbose: true
   guard:
     # Guard server configuration
     server: "https://your-guard-server.example.com"
-    salt: "your-secure-salt-here-should-be-long-and-random"
     
     # Guard link mode:
     # - off: No link guarding
@@ -26,10 +30,7 @@ email:
     # Path to guard whitelist file (optional)
     whitelist_file: "guard_whitelist.yml"
 
-# Additional configuration files
-domain_aliases_file: "domain_aliases.yml"
-blacklist_file: "blacklist.yml"
-whitelist_file: "whitelist.yml"
+# whitelist_file is email-side only; include in email if needed
 
 # Example usage:
 # python detrackify_email.py --config config_guard_with_phishing_detection.yml --input email.eml --output cleaned.eml

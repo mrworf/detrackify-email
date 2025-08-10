@@ -95,10 +95,10 @@ Most if not all options found here can also be defined in the YAML file in the n
 
 ```yaml
 # Shared configuration (used by both email and guard)
-salt: "your-secret-salt-here"
-domain_aliases_file: domain_aliases.yml
-blacklist_file: blocklist.yml
-whitelist_file: whitelist.yml
+common:
+  salt: "your-secret-salt-here"
+  domain_aliases_file: domain_aliases.yml
+  blacklist_file: blacklist.yml
 
 # Email processor configuration
 email:
@@ -122,6 +122,7 @@ email:
     whitelist_file: guard_whitelist.yml
   
   # Email-specific file paths (overrides shared settings)
+  whitelist_file: whitelist.yml
   cache_file: cache.yml
 ```
 

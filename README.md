@@ -98,9 +98,10 @@ Detrackify uses a unified YAML configuration format that works with both tools:
 
 ```yaml
 # Shared configuration
-salt: "your-secret-salt-here"
-domain_aliases_file: domain_aliases.yml
-blacklist_file: blocklist.yml
+common:
+  salt: "your-secret-salt-here"
+  domain_aliases_file: domain_aliases.yml
+  blacklist_file: blacklist.yml
 
 # Email processor settings
 email:
@@ -109,8 +110,10 @@ email:
     link: mismatch
     phishy: true
 
-# Guard server settings  
-guard:
+# Guard server settings
+# Note: top-level `guard_server` config controls the standalone guard service.
+# The nested `email.guard` section controls email-side link rewriting behavior.
+guard_server:
   listen_ip: "127.0.0.1"
   listen_port: 9090
   timeout: 5

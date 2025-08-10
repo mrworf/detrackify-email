@@ -28,7 +28,8 @@ Nothing is stored on the server. Normally each redirect is logged along with how
 Set the following options either on the command line or in your `detrackify_email.py` configuration file:
 
 ```yaml
-salt: changeme123
+common:
+  salt: changeme123
 email:
   guard:
     server: https://guard.example.com
@@ -138,9 +139,14 @@ Detrackify uses a unified configuration format that can be shared between the em
 # This file can be used by both detrackify_email.py and detrackify_guard.py
 
 # Shared configuration (used by both email and guard)
-salt: "test123456789"
-domain_aliases_file: domain_aliases.yml
-blacklist_file: blacklist.yml
+common:
+  salt: "test123456789"
+  domain_aliases_file: domain_aliases.yml
+  blacklist_file: blacklist.yml
+  strip_param_prefix:
+    - "utm_"
+    - "fbclid"
+    - "gclid"
 
 # Email processor configuration
 email:
@@ -149,7 +155,7 @@ email:
     link: mismatch
 
 # Guard server configuration
-guard:
+guard_server:
   # Server settings
   listen_ip: "127.0.0.1"
   listen_port: 9090
@@ -164,12 +170,6 @@ guard:
   resolve_cache_days: 30
   resolve_cache_max: 4096
   
-  # URL parameter stripping
-  strip_param_prefix:
-    - "utm_"
-    - "fbclid"
-    - "gclid"
-  
   # User agent for link resolution requests
   user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
   
@@ -180,8 +180,8 @@ guard:
 ```
 
 When using a unified configuration file, the guard server will:
-1. Load shared settings from the root level (including `salt`)
-2. Load guard-specific settings from the `guard` section
+1. Load shared settings from the `common` section (including `salt`)
+2. Load guard-specific settings from the `guard_server` section
 3. Apply command line arguments with precedence over settings file
 
 The `salt` option is shared between both applications and is used for hash validation. 
@@ -190,7 +190,7 @@ See the main README for more details on configuration format.
 
 ### Command Line Parameters
 
-Optional parameters:
+Optional parameters (command line):
 
 * `--config`, `-c` Path to YAML configuration file
 * `--listen-ip` IP to bind to (default `127.0.0.1`)
@@ -207,11 +207,10 @@ Optional parameters:
 * `--user-agent` User-Agent string for link resolution requests (default: Chrome browser)
 * `--debug` Enable debug mode with template auto-reload
 * `--force-language` Force serving a specific language template (e.g., da, de, es, fr, zh, ar)
-* `--strip-param-prefix` Remove tracking parameters starting with PREFIX and everything after (may be used multiple times)
+* `--strip-param-prefix` Remove tracking parameters starting with PREFIX (may be used multiple times)
 * `--deny-on-warnings` Deny access for specific warnings instead of showing warning modals (may be used multiple times)
 
-The `--strip-param-prefix` option is useful for removing marketing parameters such as `utm_source`. The first matching parameter and all subsequent parameters are dropped from the URL before displaying it or performing the redirect.
-Removing parameters may break links if any subsequent parameter is required by the destination site.
+The `--strip-param-prefix` option is useful for removing marketing parameters such as `utm_source`. Parameters that start with any of the configured prefixes are removed before displaying the final destination or performing the redirect. Removing parameters may break links if required parameters are stripped.
 
 The `--deny-on-warnings` option allows you to completely block access to URLs that trigger specific warning types during resolution, instead of showing a warning modal. When a denied warning is detected, the user sees a blocked page with an explanation but no continue button. This option can be specified multiple times to deny different warning types.
 
@@ -522,7 +521,7 @@ location /resources/ {
 }
 ```
 
-When using a proxy, set `guard.server` to the external URL clients will access (e.g. `https://example.com`). No code changes are required.
+When using a proxy, set `email.guard.server` to the external URL clients will access (e.g. `https://example.com`). No code changes are required.
 
 ## Docker Deployment
 

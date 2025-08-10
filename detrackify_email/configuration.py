@@ -11,6 +11,7 @@ from common.utils import SharedUtils
 from common.alias import DomainAliases
 from common.blocklist import Blocklist
 from common.cache import Cache
+from common.config_loader import load_config_sections
 
 
 class Configuration:
@@ -82,19 +83,40 @@ class Configuration:
         }
     
     def load_from_yaml(self, path: str) -> bool:
-        """Load configuration from YAML file."""
+        """Load configuration from YAML file with strict section validation.
+
+        Expected top-level sections:
+        - common: keys shared by both email and guard (salt, domain_aliases_file, blacklist_file, whitelist_file, cache_file)
+        - email: email-specific keys (verbose, strip, copy, guard)
+        - guard: guard-specific keys (ignored here, but scanned for misplaced keys)
+        Any other top-level keys are warned about and ignored.
+        """
         try:
-            with open(path, 'r') as stream:
-                settings = yaml.safe_load(stream) or {}
-                
-                # Extract email section and shared settings
-                email_settings = settings.get('email', {})
-                # Also load shared settings at root level
-                shared_settings = {k: v for k, v in settings.items() 
-                                 if k not in ['email', 'guard']}
-                # Merge shared settings with email settings (email takes precedence)
-                unified_settings = {**shared_settings, **email_settings}
-                self._merge_settings(unified_settings)
+            common, email_settings, guard_settings = load_config_sections(path)
+
+            # Build unified settings from validated sections
+            unified_settings: Dict[str, Any] = {}
+            # Email-top level keys we accept
+            for key in ('verbose', 'strip', 'copy', 'guard', 'cache_file', 'rewrite'):
+                if key in email_settings:
+                    unified_settings[key] = email_settings[key]
+
+            # Map common shared keys
+            if 'domain_aliases_file' in common:
+                unified_settings['domain_aliases_file'] = common['domain_aliases_file']
+            if 'blacklist_file' in common:
+                unified_settings['blacklist_file'] = common['blacklist_file']
+            # salt → guard.salt
+            if 'salt' in common:
+                unified_settings.setdefault('guard', {})
+                unified_settings['guard']['salt'] = common['salt']
+            # strip_param_prefix → strip.param_prefix
+            if 'strip_param_prefix' in common:
+                unified_settings.setdefault('strip', {})
+                unified_settings['strip']['param_prefix'] = list(common.get('strip_param_prefix') or [])
+
+            # Merge into internal config
+            self._merge_settings(unified_settings)
                     
         except FileNotFoundError:
             logging.exception(f"Configuration file not found: {path}")

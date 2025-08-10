@@ -1,8 +1,13 @@
 # Simple Detrackify Guard Configuration
-guardsalt: "my-secret-salt-123"
-listen_ip: "0.0.0.0"
-listen_port: 9090
-timeout: 3
-privacy: true
+# NOTE: Top-level `guard_server` config controls the standalone guard service.
+#       The nested `email.guard` section controls link rewriting behavior on the
+#       email processor side, which is separate.
+common:
+  salt: "my-secret-salt-123"
+guard_server:
+  listen_ip: "0.0.0.0"
+  listen_port: 9090
+  timeout: 3
+  privacy: true
 
 # Note: 'debug' and 'force_language' are command line only options and cannot be set in this file. 

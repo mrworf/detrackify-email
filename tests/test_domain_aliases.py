@@ -317,12 +317,16 @@ class TestDomainAliasesYAMLConfig(unittest.TestCase):
         
         # Create a test config file that references the aliases file
         config_data = {
-            'guard': {
-                'server': 'https://guard.example.com',
+            'common': {
                 'salt': 'test-salt',
-                'link': 'mismatch'
+                'domain_aliases_file': aliases_path
             },
-            'domain_aliases_file': aliases_path
+            'email': {
+                'guard': {
+                    'server': 'https://guard.example.com',
+                    'link': 'mismatch'
+                }
+            }
         }
         
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as config_file:

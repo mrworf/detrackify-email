@@ -1,19 +1,19 @@
-# Configuration file for Detrackify
-verbose: false
-strip:
-  enable: false
-  file: strip.yml
-  cookies: true
-  redirect: true
-copy: null
-guard:
-  server: http://localhost:9090
+common:
   salt: test123456789
-  link: mismatch
-  capture_to: false
-  whitelist_file: guard_whitelist.yml
+  domain_aliases_file: domain_aliases.yml
+  blacklist_file: blacklist.yml
 
-domain_aliases_file: domain_aliases.yml
-whitelist_file: whitelist.yml
-blacklist_file: blacklist.yml
-cache_file: cache.yml
+email:
+  verbose: false
+  strip:
+    enable: false
+    file: strip.yml
+    cookies: true
+    redirect: true
+  copy: null
+  guard:
+    server: http://localhost:9090
+    link: mismatch
+    capture_to: false
+    whitelist_file: guard_whitelist.yml
+  cache_file: cache.yml

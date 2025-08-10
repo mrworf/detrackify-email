@@ -24,13 +24,17 @@ def test_yaml_config():
     
     # Test configuration
     test_config = {
-        'salt': 'test-salt-123',
-        'listen_ip': '0.0.0.0',
-        'listen_port': 8080,
-        'timeout': 3,
-        'privacy': True,
-        'resolve': 'head',
-        'strip_param_prefix': ['utm_', 'fbclid']
+        'common': {
+            'salt': 'test-salt-123',
+            'strip_param_prefix': ['utm_', 'fbclid']
+        },
+        'guard_server': {
+            'listen_ip': '0.0.0.0',
+            'listen_port': 8080,
+            'timeout': 3,
+            'privacy': True,
+            'resolve': 'head'
+        }
     }
     
     # Create temporary YAML file

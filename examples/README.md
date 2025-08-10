@@ -13,7 +13,7 @@ Complete configuration file that can be used by both `detrackify_email.py` and `
 **Structure:**
 - **Shared settings**: Common configuration used by both applications
 - **`email` section**: Email processor specific settings
-- **`guard` section**: Guard server specific settings
+- **`guard_server` section**: Guard server specific settings
 
 **Benefits:**
 - Single configuration file for both tools
@@ -34,14 +34,14 @@ The `email` section contains all settings for processing emails and removing tra
 - `guard`: Link guarding configuration
 - `domain_aliases_file`: Path to domain aliases file
 - `whitelist_file`: Path to whitelist file
-- `blacklist_file`: Path to blocklist file
+- `blacklist_file`: Path to blacklist file
 
 ## Guard Server Configuration
 
-The `guard` section contains all settings for the guard server:
+The `guard_server` section contains all settings for the guard server:
 
 **Key settings:**
-- `guardsalt`: Required salt for hash validation
+- `salt` (under `common`): Required salt for hash validation
 - `listen_ip`/`listen_port`: Server binding
 - `timeout`: Seconds before continue button activates
 - `privacy`: Disable logging of visited links

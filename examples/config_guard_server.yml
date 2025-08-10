@@ -1,38 +1,43 @@
 # Detrackify Guard Server Configuration
 # This file contains all configuration options for the guard server
+# NOTE: Top-level `guard_server` config controls the standalone guard service.
+#       The nested `email.guard` section controls link rewriting behavior on the
+#       email processor side, which is separate.
 
-# Required: Guard salt for hash validation
-guardsalt: "your-secret-salt-here"
+# Shared configuration
+common:
+  # Required: Guard salt for hash validation
+  salt: "your-secret-salt-here"
+  # URL parameter stripping applied globally
+  strip_param_prefix:
+    - "utm_"
+    - "fbclid"
+    - "gclid"
+    - "msclkid"
 
-# Server settings
-listen_ip: "127.0.0.1"
-listen_port: 9090
+guard_server:
+  # Server settings
+  listen_ip: "127.0.0.1"
+  listen_port: 9090
 
-# Directory settings
-template_dir: "templates"
-resources_dir: "resources"
+  # Directory settings
+  template_dir: "templates"
+  resources_dir: "resources"
 
-# Security and behavior settings
-timeout: 5  # Seconds before continue button activates
-privacy: false  # Disable logging of visited links
+  # Security and behavior settings
+  timeout: 5  # Seconds before continue button activates
+  privacy: false  # Disable logging of visited links
 
-# Link resolution settings
-resolve: "head"  # 'head', 'get', or null to disable
-resolve_cache_file: "cache/resolve_cache.json"  # Path to cache file
-resolve_cache_days: 30  # Days to keep cache entries
-resolve_cache_max: 4096  # Maximum number of cached entries
+  # Link resolution settings
+  resolve: "head"  # 'head', 'get', or null to disable
+  resolve_cache_file: "cache/resolve_cache.json"  # Path to cache file
+  resolve_cache_days: 30  # Days to keep cache entries
+  resolve_cache_max: 4096  # Maximum number of cached entries
 
-# URL parameter stripping
-strip_param_prefix:
-  - "utm_"
-  - "fbclid"
-  - "gclid"
-  - "msclkid"
+  # User agent for link resolution requests
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
-# User agent for link resolution requests
-user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-
-# Blocklist configuration
-blacklist_file: "blacklist.yml"
+  # Blocklist configuration
+  # Shared blacklist file belongs under `common.blacklist_file` in unified configs.
 
 # Note: 'debug' and 'force_language' are command line only options and cannot be set in this file. 

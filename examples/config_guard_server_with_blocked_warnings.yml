@@ -1,45 +1,48 @@
 # Example configuration for Detrackify Guard Server with blocked warnings
 # This configuration blocks specific warning types from being shown to users
 
-# Required: Guard salt for URL signing
-guardsalt: "your-secret-salt-here"
+common:
+  # Required: Guard salt for URL signing
+  salt: "your-secret-salt-here"
+  # URL parameter stripping
+  strip_param_prefix: ["utm_", "fbclid", "gclid"]
+  # Shared blocklist file reference
+  blacklist_file: "blacklist.yml"
 
-# Server configuration
-listen_ip: "127.0.0.1"
-listen_port: 9090
+guard_server:
+  # Server configuration
+  listen_ip: "127.0.0.1"
+  listen_port: 9090
 
-# Template and resource directories
-template_dir: "templates"
-resources_dir: "resources"
+  # Template and resource directories
+  template_dir: "templates"
+  resources_dir: "resources"
 
-# Privacy mode (disable logging of visited links)
-privacy: false
+  # Privacy mode (disable logging of visited links)
+  privacy: false
 
-# URL resolution configuration
-resolve: "head"  # Use HEAD requests to resolve final destinations
-resolve_cache_file: "resolve_cache.json"
-resolve_cache_days: 30
-resolve_cache_max: 4096
+  # URL resolution configuration
+  resolve: "head"  # Use HEAD requests to resolve final destinations
+  resolve_cache_file: "resolve_cache.json"
+  resolve_cache_days: 30
+  resolve_cache_max: 4096
 
-# URL processing
-strip_param_prefix: ["utm_", "fbclid", "gclid"]  # Strip tracking parameters
-user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  # URL processing
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
-# Localization
-force_language: null  # Auto-detect from Accept-Language header
+  # Localization
+  force_language: null  # Auto-detect from Accept-Language header
 
-# Domain aliases and blocklists
-domain_aliases_file: "domain_aliases.yml"
-blacklist_file: "blacklist.yml"
+  # Domain aliases and blocklists
 
-# Deny access for specific warning types
-# When a warning of these types is detected, access will be completely denied
-# instead of showing a warning modal. The denied warning is displayed in the
-# URL transition format with explanation and no continue button.
-deny_on_warnings:
-  - "ssl_certificate"      # Deny access for SSL certificate issues
-  - "connection_error"     # Deny access for connection errors
-  - "too_many_redirects"   # Deny access for suspicious redirect chains
+  # Deny access for specific warning types
+  # When a warning of these types is detected, access will be completely denied
+  # instead of showing a warning modal. The denied warning is displayed in the
+  # URL transition format with explanation and no continue button.
+  deny_on_warnings:
+    - "ssl_certificate"      # Deny access for SSL certificate issues
+    - "connection_error"     # Deny access for connection errors
+    - "too_many_redirects"   # Deny access for suspicious redirect chains
 
 # Available warning types that can be denied:
 # - ssl_certificate: SSL certificate verification failed
