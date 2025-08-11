@@ -90,6 +90,43 @@ class TestWSGISetup:
             assert wsgi.app is not None
             assert hasattr(wsgi.app, 'route')
 
+    def test_wsgi_app_with_config_file(self):
+        """Test that WSGI app is created when CONFIG_FILE points to a valid YAML config."""
+        import tempfile
+        import importlib
+        import yaml
+        import wsgi as wsgi_module
+
+        # Minimal valid unified config with common.salt
+        config_data = {
+            'common': {
+                'salt': 'file-salt-123'
+            },
+            'guard_server': {
+                'listen_ip': '127.0.0.1',
+                'listen_port': 9090
+            }
+        }
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as tmp:
+            yaml.dump(config_data, tmp)
+            tmp_path = tmp.name
+
+        # Ensure GUARD_SALT is not set so app creation relies on CONFIG_FILE
+        env = {
+            'CONFIG_FILE': tmp_path
+        }
+
+        # Clear potential GUARD_SALT in current env
+        if 'GUARD_SALT' in os.environ:
+            del os.environ['GUARD_SALT']
+
+        with patch.dict(os.environ, env, clear=False):
+            # Reload the module to apply env changes at import time
+            importlib.reload(wsgi_module)
+            assert wsgi_module.app is not None
+            assert hasattr(wsgi_module.app, 'route')
+
     def test_environment_variable_parsing(self):
         """Test parsing of various environment variable types."""
         test_env = {
