@@ -4,9 +4,16 @@ set -e
 # Check if we should use Gunicorn (default: true for production)
 USE_GUNICORN=${USE_GUNICORN:-true}
 
-# Required parameter
-if [ -z "$GUARD_SALT" ]; then
-    echo "Error: GUARD_SALT environment variable is required"
+# Determine configuration source: single well-known path inside container
+CONFIG_PATH="/app/config.yml"
+if [ ! -f "$CONFIG_PATH" ]; then
+    CONFIG_PATH=""
+fi
+
+# If no config file is available, require GUARD_SALT
+if [ -z "$CONFIG_PATH" ] && [ -z "$GUARD_SALT" ]; then
+    echo "Error: No configuration file found and GUARD_SALT not provided"
+    echo "Mount a unified YAML to /app/config.yml (or set CONFIG_FILE), or set GUARD_SALT."
     exit 1
 fi
 
@@ -42,7 +49,12 @@ else
     echo "Starting Detrackify Guard Server with Flask (development mode)..."
     
     # Build command line arguments for direct execution
-    ARGS=("--listen-ip" "$LISTEN_IP" "--listen-port" "$LISTEN_PORT" "--guardsalt" "$GUARD_SALT")
+    ARGS=("--listen-ip" "$LISTEN_IP" "--listen-port" "$LISTEN_PORT")
+    if [ -n "$CONFIG_PATH" ]; then
+        ARGS+=("--config" "$CONFIG_PATH")
+    else
+        ARGS+=("--salt" "$GUARD_SALT")
+    fi
     
     # Optional parameters
     if [ -n "$TEMPLATE_DIR" ]; then

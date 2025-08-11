@@ -123,6 +123,10 @@ guard_server:
 
 See [examples/](examples/) for complete configuration examples.
 
+Note on blocklist/whitelist files:
+- Both lists can be stored in the same YAML file. Only top-level `whitelist` and `blacklist` keys are read; other keys are ignored.
+- Missing keys are treated as empty, so one file can serve both tools.
+
 ## Testing
 
 Run the test suite to verify everything works:

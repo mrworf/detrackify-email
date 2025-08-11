@@ -242,6 +242,11 @@ blacklist:
   - url: '^https://.*\.phishing\.net/.*'
 ```
 
+Note on combined files:
+- You can put both `whitelist:` and `blacklist:` in the same YAML file.
+- The tools only read the top-level keys `whitelist` and `blacklist` in that file and ignore everything else.
+- If either key is missing, it is treated as empty. This lets you reuse a single file for both lists without duplication.
+
 **How Blocking Works:**
 - **Sender blacklisting**: All links in emails from blacklisted senders are guarded
 - **Sender whitelisting**: All links in emails from whitelisted senders bypass all processing

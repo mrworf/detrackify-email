@@ -188,6 +188,11 @@ The `salt` option is shared between both applications and is used for hash valid
 
 See the main README for more details on configuration format.
 
+### Whitelist/Blacklist file behavior
+
+- You may keep both whitelist and blacklist entries in the same YAML file. Only the top-level keys `whitelist` and `blacklist` are read; any other keys are ignored.
+- If one of the keys is missing, it is treated as empty.
+
 ### Command Line Parameters
 
 Optional parameters (command line):

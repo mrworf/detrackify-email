@@ -12,7 +12,8 @@ services:
       - "9090:9090"
     environment:
       # Required
-      - GUARD_SALT=changeme123  # Change this to a secure salt
+      # Use either CONFIG_FILE (preferred) or GUARD_SALT
+      # - GUARD_SALT=changeme123  # Change this to a secure salt
       
       # Server mode (true for Gunicorn, false for direct Flask)
       - USE_GUNICORN=true
@@ -44,13 +45,15 @@ services:
       # - STRIP_PARAM_PREFIX_2=utm_medium
       # - STRIP_PARAM_PREFIX_3=utm_campaign
     volumes:
+      # Mount unified configuration file (preferred). Entry point will auto-detect /app/config.yml.
+      - ./examples/config_guard_server.yml:/app/config.yml:ro
       # Optional: Mount custom templates
       - ./templates:/app/templates:ro
       # Optional: Mount custom resources
       - ./resources:/app/resources:ro
       # Optional: Persist URL resolution cache
       - ./cache:/app/cache
-    # Command is now handled by the entrypoint script using environment variables
+    # Command is handled by the entrypoint script. No CONFIG_FILE needed; it auto-detects mounted config.
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:9090/guard/health', timeout=5)"]

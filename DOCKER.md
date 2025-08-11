@@ -25,7 +25,14 @@ docker-compose logs -f detrackify-guard
 # Pull the official image
 docker pull ghcr.io/mrworf/detrackify-guard:latest
 
-# Run with basic configuration
+# Run with unified configuration file mounted (preferred). Entry point auto-detects /app/config.yml
+docker run -d \
+  --name detrackify-guard \
+  -p 9090:9090 \
+  -v $(pwd)/examples/config_guard_server.yml:/app/config.yml:ro \
+  ghcr.io/mrworf/detrackify-guard:latest
+
+# Or run with basic inline configuration via env (fallback)
 docker run -d \
   --name detrackify-guard \
   -p 9090:9090 \
@@ -55,7 +62,7 @@ The Docker build automatically excludes development tools during the build proce
 ### Environment Variables
 
 #### Required
-- `GUARD_SALT`: Salt for hash validation (minimum 8 characters, keep secret)
+- `GUARD_SALT`: Salt for hash validation (minimum 8 characters, keep secret) — only required if no config file is found in the container
 
 #### Optional
 - `TIMEOUT`: Seconds before continue button activates (default: 5)
@@ -119,16 +126,19 @@ services:
     container_name: detrackify-guard
     ports:
       - "9090:9090"
-    environment:
-      - GUARD_SALT=changeme123  # Change this!
-      - TIMEOUT=5
-      - PRIVACY=false
-      - RESOLVE=head
-      - STRIP_PARAM_PREFIX=utm_source,utm_medium,utm_campaign
+    # Mount unified configuration file (preferred). Auto-detected by entry point.
     volumes:
+      - ./examples/config_guard_server.yml:/app/config.yml:ro
       - ./templates:/app/templates:ro
       - ./resources:/app/resources:ro
       - ./cache:/app/cache
+    environment:
+      # Fallback to inline variables if you do not mount a config
+      # - GUARD_SALT=changeme123  # Change this!
+      # - TIMEOUT=5
+      # - PRIVACY=false
+      # - RESOLVE=head
+      # - STRIP_PARAM_PREFIX=utm_source,utm_medium,utm_campaign
     restart: unless-stopped
 ```
 
@@ -147,9 +157,13 @@ services:
     container_name: detrackify-guard
     ports:
       - "9090:9090"
+    volumes:
+      - ./examples/config_guard_server.yml:/app/config.yml:ro
+      - ./templates:/app/templates:ro
+      - ./resources:/app/resources:ro
+      - ./cache:/app/cache
     environment:
-      # Required
-      - GUARD_SALT=your-secure-salt-here
+      # No CONFIG_FILE required; entry point auto-detects /app/config.yml
       
       # Server mode (Gunicorn for production)
       - USE_GUNICORN=true
@@ -161,15 +175,11 @@ services:
       - GUNICORN_MAX_REQUESTS=2000
       - GUNICORN_LOG_LEVEL=warning
       
-      # Application configuration
-      - TIMEOUT=5
-      - PRIVACY=true
-      - RESOLVE=head
-      - STRIP_PARAM_PREFIX=utm_source,utm_medium,utm_campaign,fbclid,gclid
-    volumes:
-      - ./templates:/app/templates:ro
-      - ./resources:/app/resources:ro
-      - ./cache:/app/cache
+      # Application configuration (only needed if not using CONFIG_FILE)
+      # - TIMEOUT=5
+      # - PRIVACY=true
+      # - RESOLVE=head
+      # - STRIP_PARAM_PREFIX=utm_source,utm_medium,utm_campaign,fbclid,gclid
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:9090/guard/health', timeout=5)"]
@@ -293,50 +303,6 @@ docker logs -f detrackify-guard
 docker logs --since="2024-01-01T00:00:00" detrackify-guard
 ```
 
-## Troubleshooting
-
-### Common Issues
-
-#### Container Won't Start
-```bash
-# Check if port is already in use
-netstat -tulpn | grep 9090
-
-# Verify environment variables
-docker run --rm -e GUARD_SALT=test ghcr.io/mrworf/detrackify-guard:latest
-```
-
-#### Health Check Failures
-```bash
-# Check container logs
-docker logs detrackify-guard
-
-# Test health endpoint directly
-curl -f http://localhost:9090/guard/health
-```
-
-#### Permission Issues
-```bash
-# Ensure cache directory has proper permissions
-mkdir -p cache
-chmod 755 cache
-
-# Check mounted volume permissions
-docker exec detrackify-guard ls -la /app/cache
-```
-
-### Debug Mode
-Enable debug mode for troubleshooting:
-
-```bash
-docker run -d \
-  --name detrackify-guard-debug \
-  -p 9090:9090 \
-  -e GUARD_SALT=debug_salt \
-  -e DEBUG=true \
-  ghcr.io/mrworf/detrackify-guard:latest
-```
-
 ## Advanced Configuration
 
 ### Custom Templates
@@ -375,7 +341,7 @@ Mount the file:
 Configure URL and sender blocking:
 
 ```yaml
-# blocklist.yml
+# blacklist.yml
 whitelist:
   - 'https://trusted.example.com/logo.png'
   - 'https://cdn.example.org/.*'
