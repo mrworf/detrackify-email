@@ -26,6 +26,13 @@
 
 ## Code Quality Standards
 
+### User found errors
+
+If a user finds an issue which isn't caught by our test suite,
+then create/add a new test which will ensure that the error won't
+be missed going forward. If it makes sense, also add a negative test-case
+for better coverage.
+
 ### Security practices
 - Follow best security practices
 - Input data validation
