@@ -148,6 +148,7 @@ class TestGuardServer(unittest.TestCase):
                 self.assertEqual(context['block_reason'], '')
                 self.assertTrue(context['resolve'])
                 self.assertEqual(context['deny_on_warnings'], ['ssl_certificate', 'connection_error'])
+                self.assertFalse(context['auto_redirect'])
 
     def test_guard_method_post_request(self):
         """Test guard method with POST request."""
@@ -193,13 +194,41 @@ class TestGuardServer(unittest.TestCase):
             with patch('detrackify_guard.render_template') as mock_render:
                 mock_render.return_value = 'var opts = {};'
                 
-                response = client.get('/guard/opts.js', 
+                response = client.get('/guard/opts.js',
                                    headers={'Referer': f'http://localhost/guard/{sha}/{data}'})
-                
+
                 self.assertEqual(response.status_code, 200)
                 self.assertEqual(response.headers['Content-Type'], 'application/javascript')
+                opts = mock_render.call_args[1]['opts']
+                self.assertIn('auto_redirect', opts)
+                self.assertFalse(opts['auto_redirect'])
+
+    def test_auto_redirect_context(self):
+        config = GuardConfig(salt='test-salt', resolve='head', template_dir='templates', auto_redirect=True)
+        server = GuardServer(config)
+        sha, data, _ = self._create_test_payload()
+        with server.app.test_client() as client:
+            with patch('detrackify_guard.render_template') as mock_render:
+                mock_render.return_value = '<html>test</html>'
+                client.get(f'/guard/{sha}/{data}')
+                context = mock_render.call_args[1]
+                self.assertTrue(context['auto_redirect'])
+
+    def test_opts_js_auto_redirect(self):
+        config = GuardConfig(salt='test', resolve='head', template_dir='templates', auto_redirect=True,
+                             deny_on_warnings=['ssl_certificate', 'connection_error'])
+        server = GuardServer(config)
+        payload = {'url': 'https://example.com', 'display': 'Test Link', 'domain': 'example.com'}
+        data = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode()
+        sha = SharedUtils.generate_hash(data, config.salt)
+        with server.app.test_client() as client:
+            with patch('detrackify_guard.render_template') as mock_render:
+                mock_render.return_value = 'var opts = {};'
+                response = client.get('/guard/opts.js', headers={'Referer': f'http://localhost/guard/{sha}/{data}'})
+                opts = mock_render.call_args[1]['opts']
+                self.assertTrue(opts['auto_redirect'])
                 self.assertEqual(response.headers['Cache-Control'], 'no-store')
-                
+
                 mock_render.assert_called_once()
                 call_args = mock_render.call_args
                 opts = call_args[1]['opts']

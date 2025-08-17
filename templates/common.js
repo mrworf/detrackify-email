@@ -3,6 +3,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Check for blocking reason from server-side (now a string)
     var blockReason = opts.block_reason || '';
+
+    // Auto redirect setup
+    var autoRedirect = opts.auto_redirect && opts.resolve && !blockReason;
+    var autoDiv = document.getElementById('auto-redirect');
+    var fullDiv = document.getElementById('full-content');
+    if (autoRedirect) {
+        if (fullDiv) fullDiv.style.display = 'none';
+        if (autoDiv) autoDiv.style.display = 'flex';
+    }
     
     // Handle blocking - if there is a block reason, we'll still allow resolve
     // but show blocking UI after resolution completes (or immediately if resolve is disabled)
@@ -498,7 +507,29 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(function (data) {
             resolvedData = data; // Store for use in warning flow
 
-            
+            if (data.url && data.hash) {
+                var u = document.getElementById('final');
+                var h = document.getElementById('hash');
+                if (u) { u.value = data.url; }
+                if (h) { h.value = data.hash; }
+            }
+
+            if (autoRedirect && data.domains_match && !data.block && !data.warning) {
+                var startField = document.querySelector('input[name="ts"]');
+                if (startField && opts.timeout_ms) {
+                    var startVal = parseFloat(startField.value) || Date.now() / 1000;
+                    startField.value = (startVal - (opts.timeout_ms / 1000)).toString();
+                }
+                var form = document.getElementById('continueForm');
+                if (form) { form.submit(); }
+                return;
+            }
+
+            if (autoRedirect) {
+                if (autoDiv) autoDiv.style.display = 'none';
+                if (fullDiv) fullDiv.style.display = 'flex';
+            }
+
             // Check if a warning should be blocked
             if (data.warning && opts.deny_on_warnings) {
                 var warningType = 'unexpected_error'; // default

@@ -137,7 +137,8 @@ class TestLoadConfigFromYaml(unittest.TestCase):
                 'resolve_cache_file': '/var/cache/resolve.json',
                 'resolve_cache_days': 60,
                 'resolve_cache_max': 8192,
-                'user_agent': 'Custom User Agent String'
+                'user_agent': 'Custom User Agent String',
+                'auto_redirect': True
             }
         }
         
@@ -160,6 +161,7 @@ class TestLoadConfigFromYaml(unittest.TestCase):
             self.assertEqual(config.cache_max, 8192)
             self.assertEqual(config.strip_param_prefixes, ['utm_', 'fbclid', 'gclid', 'msclkid'])
             self.assertEqual(config.user_agent, 'Custom User Agent String')
+            self.assertTrue(config.auto_redirect)
         finally:
             os.unlink(config_path)
 
@@ -187,6 +189,7 @@ class TestGuardConfig(unittest.TestCase):
         self.assertEqual(config.cache_max, 4096)
         self.assertEqual(config.strip_param_prefixes, [])
         self.assertIsNone(config.force_language)
+        self.assertFalse(config.auto_redirect)
 
     def test_guard_config_custom_values(self):
         """
@@ -207,7 +210,8 @@ class TestGuardConfig(unittest.TestCase):
             cache_max=8192,
             strip_param_prefixes=['utm_', 'fbclid'],
             user_agent='Custom Agent',
-            force_language='de'
+            force_language='de',
+            auto_redirect=True
         )
         
         self.assertEqual(config.salt, 'custom-salt')
@@ -222,6 +226,7 @@ class TestGuardConfig(unittest.TestCase):
         self.assertEqual(config.strip_param_prefixes, ['utm_', 'fbclid'])
         self.assertEqual(config.user_agent, 'Custom Agent')
         self.assertEqual(config.force_language, 'de')
+        self.assertTrue(config.auto_redirect)
 
 
 class TestConfigEdgeCases(unittest.TestCase):

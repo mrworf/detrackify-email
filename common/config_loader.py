@@ -29,7 +29,7 @@ ALLOWED_GUARD_TOP = {
     'listen_ip', 'listen_port', 'timeout', 'privacy',
     'resolve', 'resolve_cache_file', 'resolve_cache_days', 'resolve_cache_max',
     'user_agent', 'template_dir', 'resources_dir', 'force_language',
-    'deny_on_warnings',
+    'deny_on_warnings', 'auto_redirect',
 }
 
 

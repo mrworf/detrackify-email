@@ -654,6 +654,7 @@ All configuration options are available as environment variables:
 | `TEMPLATE_DIR` | Directory containing templates | `/app/templates` | `TEMPLATE_DIR=/custom/templates` |
 | `RESOURCES_DIR` | Directory containing additional resources | `/app/resources` | `RESOURCES_DIR=/custom/resources` |
 | `DENY_ON_WARNINGS` | Comma-separated list of warnings to deny access for | `None` | `DENY_ON_WARNINGS=ssl_certificate,connection_error` |
+| `AUTO_REDIRECT` | Automatically redirect if resolved URL matches sender domain | `false` | `AUTO_REDIRECT=true` |
 
 #### Multiple Values
 

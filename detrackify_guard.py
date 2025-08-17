@@ -67,6 +67,7 @@ class GuardServer:
         self.domain_aliases = DomainAliases(config.domain_aliases_file)
         self.blocklist = Blacklist(config.blacklist_file)
         self.deny_on_warnings = config.deny_on_warnings
+        self.auto_redirect = config.auto_redirect
         self.cache = (
             ResolveCache(config.cache_max, config.cache_days, config.cache_file)
             if self.resolve_enabled
@@ -207,6 +208,7 @@ class GuardServer:
             'sender_domain': sender if valid else '',
             'block_reason': block_reason,
             'deny_on_warnings': self.deny_on_warnings,
+            'auto_redirect': self.auto_redirect,
         }
         logging.debug(f'opts_js: sending opts = {opts}')
         resp = make_response(render_template('opts.js', opts=opts))
@@ -492,6 +494,7 @@ class GuardServer:
             'block_reason': block_reason,
             'resolve': self.resolve_enabled,
             'deny_on_warnings': self.deny_on_warnings,
+            'auto_redirect': self.auto_redirect,
         }
         return render_template(template, **context)
 
@@ -530,6 +533,8 @@ def main():
                         help='Path to blacklist YAML file (default: blacklist.yml)')
     parser.add_argument('--deny-on-warnings', action='append', default=None,
                         help='Deny access for specific warnings (e.g., ssl_certificate, connection_error)')
+    parser.add_argument('--auto-redirect', action='store_true',
+                        help='Automatically redirect if resolved link matches sender domain')
     args = parser.parse_args()
 
     # Set logging level based on debug flag
