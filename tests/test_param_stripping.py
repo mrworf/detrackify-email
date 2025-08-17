@@ -223,7 +223,7 @@ class TestParameterStripping(unittest.TestCase):
         from bs4 import BeautifulSoup
         
         # Create a fake image tag with no tracking parameters
-        html = '<img src="https://example.com/image.png?param1=value1&param2=value2" />'
+        html = '<img src="https://example.com/image.png?param1=value1&amp;param2=value2" />'
         soup = BeautifulSoup(html, 'html.parser')
         img_tag = soup.find('img')
         
@@ -275,9 +275,9 @@ class TestParameterStripping(unittest.TestCase):
         html = '''
         <html>
         <body>
-            <img src="https://example.com/image1.png?param1=value1&utm_source=test&param2=value2" width="200" height="150" />
-            <img src="https://example.com/image2.png?param1=value1&param2=value2" width="200" height="150" />
-            <img src="https://example.com/image3.png?fbclid=12345&param1=value1" width="200" height="150" />
+            <img src="https://example.com/image1.png?param1=value1&amp;utm_source=test&amp;param2=value2" width="200" height="150" />
+            <img src="https://example.com/image2.png?param1=value1&amp;param2=value2" width="200" height="150" />
+            <img src="https://example.com/image3.png?fbclid=12345&amp;param1=value1" width="200" height="150" />
         </body>
         </html>
         '''

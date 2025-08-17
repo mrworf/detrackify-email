@@ -210,6 +210,12 @@ document.addEventListener('DOMContentLoaded', function () {
         addUrlTooltip(urlEl);
     }
 
+    // Highlight original link shown during resolution
+    var originalUrlEls = document.getElementsByClassName('original-url');
+    Array.prototype.forEach.call(originalUrlEls, function(el) {
+        el.innerHTML = highlightAsPhishing(el.textContent);
+    });
+
     // Function to add tooltips to all URL elements
     function applyUrlTooltips() {
         // Find all URL elements that might need tooltips
