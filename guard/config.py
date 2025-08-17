@@ -43,6 +43,9 @@ class GuardConfig:
     domain_aliases_file: str = "domain_aliases.yml"
     blacklist_file: str = "blacklist.yml"
     deny_on_warnings: List[str] = field(default_factory=list)
+
+    # Redirect behaviour
+    auto_redirect: bool = False
     
     # Development options (command line only)
     debug: bool = False
@@ -79,6 +82,7 @@ class GuardConfig:
                 domain_aliases_file=domain_aliases_file,
                 blacklist_file=blacklist_file,
                 deny_on_warnings=guard_settings.get('deny_on_warnings', []),
+                auto_redirect=guard_settings.get('auto_redirect', False),
             )
         except FileNotFoundError:
             logging.error("Configuration file not found: %s", config_path)
@@ -130,6 +134,7 @@ class GuardConfig:
             domain_aliases_file=os.getenv('DOMAIN_ALIASES_FILE', 'domain_aliases.yml'),
             blacklist_file=os.getenv('BLACKLIST_FILE', 'blacklist.yml'),
             deny_on_warnings=get_env_list('DENY_ON_WARNINGS'),
+            auto_redirect=get_env_bool('AUTO_REDIRECT', False),
         )
 
     @classmethod
@@ -184,6 +189,8 @@ class GuardConfig:
             config.blacklist_file = args.blacklist_file
         if args.deny_on_warnings is not None:
             config.deny_on_warnings = args.deny_on_warnings
+        if getattr(args, 'auto_redirect', False):
+            config.auto_redirect = True
 
         # Validate required fields
         if not config.salt:
@@ -238,4 +245,6 @@ class GuardConfig:
             'domain_aliases_file': self.domain_aliases_file,
             'blacklist_file': self.blacklist_file,
             'deny_on_warnings': self.deny_on_warnings,
-        } 
+            'auto_redirect': self.auto_redirect,
+        }
+
