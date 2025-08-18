@@ -7,3 +7,4 @@ tests/__pycache__/
 
 # Minified JavaScript files (generated automatically)
 *.min.js
+go_*.py

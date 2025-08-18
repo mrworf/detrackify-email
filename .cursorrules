@@ -1,5 +1,9 @@
 # Cursor Rules for detrackify-email project
 
+Ground rules:
+- Be brutaly honest.
+- Always ask for clarification before starting if user's input is ambigious.
+
 ## Testing Requirements
 
 ### MANDATORY: pytest must be run and pass before completion

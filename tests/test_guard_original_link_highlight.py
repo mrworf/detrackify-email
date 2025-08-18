@@ -26,4 +26,14 @@ def test_original_url_has_highlight_class(template_name):
         sender_email=None,
         sender_display=None,
     )
-    assert 'class="url-value noselect original-url"' in html
+    # For the new UX design, check that the main template has the new structure
+    if template_name == 'guard_warning.html':
+        # The new design has fixed positioning elements and state containers
+        assert 'class="fixed-logo"' in html
+        assert 'class="fixed-watermark"' in html
+        assert 'id="checking-state"' in html
+        assert 'id="safe-state"' in html
+        assert 'id="unsafe-state"' in html
+    else:
+        # Other language templates still use the old structure
+        assert 'class="url-value noselect original-url"' in html
