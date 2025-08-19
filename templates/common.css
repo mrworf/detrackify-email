@@ -1,11 +1,133 @@
-body {font-family: sans-serif;}
-.noselect {user-select: none;}
-.highlight {font-weight: bold;}
-.highlight.bad {color: red;}
-.highlight.good {color: green;}
-.fade {transition: opacity 0.5s;}
-.title {font-size: smaller;}
-.domain-box, .display-box {background-color: #f5f5f5; border: 1px solid #000; padding: 4px 8px; border-radius: 3px; display: inline-block;}
+/* ==============================================
+   DETRACKIFY GUARD - COMMON STYLES
+   ============================================== */
+
+/* Base Styles */
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Utility Classes */
+.noselect {
+    user-select: none;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* ==============================================
+   LAYOUT & CONTAINERS
+   ============================================== */
+
+/* Fixed positioning for logo and watermark */
+.fixed-logo {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    opacity: 0.3;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.fixed-logo img {
+    width: 4vw;
+    height: 4vw;
+    min-width: 32px;
+    min-height: 32px;
+    max-width: 80px;
+    max-height: 80px;
+}
+
+.fixed-watermark {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    opacity: 0.3;
+    z-index: 1000;
+    font-size: 24px;
+    color: #666;
+}
+
+.fixed-watermark a {
+    color: #666;
+    text-decoration: none;
+}
+
+.fixed-watermark a:hover {
+    text-decoration: underline;
+}
+
+/* Center the main content */
+.content-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Main content box */
+.main-box {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 40px 30px;
+    min-height: 200px;
+    width: 80vw;
+    max-width: 80vw;
+    box-sizing: border-box;
+    text-align: center;
+    position: relative;
+}
+
+/* Remove the logo-title from main content since it's now fixed */
+.logo-title {
+    display: none;
+}
+
+/* ==============================================
+   STATUS ICONS & STATES
+   ============================================== */
+
+.status-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* ==============================================
+   PROGRESS BARS & ANIMATIONS
+   ============================================== */
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background-color: #e0e0e0;
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: #007bff;
+    border-radius: 2px;
+    animation: progress-animation 2s infinite;
+}
+
+@keyframes progress-animation {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
 .progress-message {
     color: #666; 
     font-style: italic;
@@ -19,32 +141,113 @@ body {font-family: sans-serif;}
     50% { opacity: 1; }
     100% { opacity: 0.4; }
 }
-.result-message {color: #333; font-weight: bold;}
-.title-message {color: #666; font-size: smaller; margin-top: 5px;}
 
-/* Main container for centered content */
-.content-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 0 20%;
-    box-sizing: border-box;
+/* ==============================================
+   DOMAIN HIGHLIGHTING
+   ============================================== */
+
+.domain-highlight {
+    font-weight: bold;
+    background-color: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
 }
 
-/* Main content box */
-.main-box {
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 40px 30px;
-    min-height: 200px;
-    width: 100%;
-    box-sizing: border-box;
+.safe-domain {
+    color: #28a745;
+    border-color: #28a745;
+    background-color: #d4edda;
+}
+
+.unsafe-domain {
+    color: #dc3545;
+    border-color: #dc3545;
+    background-color: #f8d7da;
+}
+
+.domain-highlight-green {
+    background-color: #d4edda;
+    color: #155724;
+    font-weight: bold;
+    padding: 1px 3px;
+    border-radius: 3px;
+}
+
+.domain-highlight-red {
+    background-color: #f8d7da;
+    color: #721c24;
+    font-weight: bold;
+    padding: 1px 3px;
+    border-radius: 3px;
+}
+
+
+
+/* ==============================================
+   TECHNICAL DETAILS SECTION
+   ============================================== */
+
+.technical-details-toggle {
+    cursor: pointer;
+    user-select: none;
+    padding: 15px 0 0 0;
+    border-top: 1px solid #dee2e6;
+    margin-top: 20px;
     text-align: center;
-    position: relative; /* Required for absolute positioning of child elements */
+    font-size: 14px;
+    color: #6c757d;
+    transition: color 0.2s ease;
 }
+
+.technical-details-toggle:hover {
+    color: #495057;
+}
+
+.technical-details-content {
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 20px;
+    margin-top: 10px;
+    display: none;
+}
+
+.technical-details-content.show {
+    display: block;
+}
+
+.tech-detail-row {
+    display: flex;
+    margin-bottom: 12px;
+    align-items: flex-start;
+}
+
+.tech-detail-label {
+    font-weight: bold;
+    min-width: 120px;
+    color: #495057;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.tech-detail-value {
+    flex: 1;
+    word-break: break-all;
+    user-select: none;
+    font-family: monospace;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.tech-detail-value.selectable {
+    user-select: text;
+    font-family: inherit;
+}
+
+/* ==============================================
+   URL DISPLAY & BOXES
+   ============================================== */
 
 .source-box {
     background-color: #f0f0f0;
@@ -56,116 +259,7 @@ body {font-family: sans-serif;}
     text-align: center;
     overflow: hidden;
 }
-.destination-box {
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 10px;
-    margin: 10px 20px;
-    box-sizing: border-box;
-    text-align: center;
-}
 
-.hint {
-    font-size: 12px;
-    color: #666;
-    margin-top: 10px;
-    text-align: center;
-    font-style: italic;
-}
-
-/* Logo/title positioning */
-.logo-title {
-    font-size: 24px;
-    font-weight: bold;
-    position: relative;
-    text-align: left;
-    top: -30px;
-    left: -20px;
-    z-index: 100;
-    height: 0px;
-    overflow: visible;
-}
-
-/* Left-aligned link boxes */
-.link-box-left {
-    text-align: left;
-}
-
-/* Centered text */
-.text-center {
-    text-align: center;
-}
-
-/* Hidden elements */
-.hidden {
-    display: none;
-}
-
-/* URL transition visualization */
-.url-transition {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin: 20px 0;
-    padding: 15px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    border: 1px solid #e0e0e0;
-}
-
-.url-original, .url-resolved {
-    flex: 1;
-    text-align: center;
-    min-width: 0; /* Allow flex items to shrink below content size */
-    overflow: hidden; /* Ensure content doesn't overflow */
-}
-
-.url-label {
-    display: block;
-    font-size: 12px;
-    color: #666;
-    font-weight: bold;
-    margin-bottom: 5px;
-    text-transform: uppercase;
-}
-
-/* URL display styles - CSS handles truncation naturally */
-.url-value, .result-message, #url {
-    position: relative;
-    display: block;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    cursor: help;
-    word-break: break-all;
-    word-wrap: break-word;
-}
-
-/* URL value specific styling */
-.url-value {
-    font-family: monospace;
-    font-size: 14px;
-    color: #333;
-    padding: 5px;
-    background-color: #f0f0f0;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    margin: 0;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-/* URL arrow */
-.url-arrow {
-    font-size: 24px;
-    color: #666;
-    margin: 0 20px;
-    flex-shrink: 0; /* Prevent arrow from shrinking */
-}
-
-/* Destination box for resolved URLs */
 .destination-box {
     background-color: #ffffff;
     border: 1px solid #ddd;
@@ -177,162 +271,48 @@ body {font-family: sans-serif;}
     width: 100%;
 }
 
-/* Blocked warning box styling */
-.blocked-warning-box {
-    background-color: #fff3cd;
-    border: 1px solid #ffeaa7;
-    border-left: 4px solid #f39c12;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.display-box {
+    background-color: #f5f5f5; 
+    border: 1px solid #000; 
+    padding: 4px 8px; 
+    border-radius: 3px; 
+    display: inline-block;
 }
 
-.blocked-warning-title {
-    font-size: 18px;
-    font-weight: bold;
-    color: #856404;
-    margin: 0 0 10px 0;
-}
 
-.blocked-warning-message {
-    font-size: 16px;
-    color: #856404;
-    margin: 0 0 15px 0;
-    font-weight: 500;
-}
 
-.warning-section {
-    margin: 8px 0;
-}
-
-.warning-section p {
-    margin: 5px 0;
-    color: #856404;
-    line-height: 1.4;
-}
-
-.warning-section strong {
-    color: #856404;
-    font-weight: 600;
-}
-
-/* Phishing icon */
-.phishing-icon {
-    width: 100px;
-    height: 100px;
-    float: left;
-}
-
-/* Error message */
-.error-message {
-    color: red;
-    margin-top: 10px;
-}
-
-/* Blocking messages */
-.block-message {
-    display: flex;
-    align-items: flex-start;
-    background-color: #fff3cd;
-    border: 1px solid #ffeaa7;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.block-icon {
-    font-size: 32px;
-    margin-right: 15px;
-    flex-shrink: 0;
-}
-
-.block-content {
-    flex: 1;
-}
-
-.block-content h3 {
-    margin: 0 0 10px 0;
-    color: #856404;
-    font-size: 18px;
-}
-
-.block-content p {
-    margin: 8px 0;
-    color: #856404;
-    line-height: 1.5;
-}
-
-.block-content strong {
-    color: #856404;
-}
-
-#block-messages {
-    margin: 20px 0;
-}
-
-#blocked-state {
-    text-align: center;
-    margin: 20px 0;
-}
-
-/* Ensure highlighted domains are preserved */
-.url-value .highlight,
-.result-message .highlight,
-#url .highlight {
-    font-weight: bold;
-}
-
-.url-value .highlight.bad,
-.result-message .highlight.bad,
-#url .highlight.bad {
-    color: red;
-}
-
-.url-value .highlight.good,
-.result-message .highlight.good,
-#url .highlight.good {
-    color: green;
-}
-
-/* Custom tooltip styles */
-#url-tooltip {
-    position: absolute;
-    background: #333;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-family: monospace;
-    max-width: 400px;
+/* URL display styles */
+#url {
+    position: relative;
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: help;
+    word-break: break-all;
     word-wrap: break-word;
-    z-index: 1000;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    pointer-events: none;
 }
 
-/* Mobile-specific tooltip adjustments */
-@media (max-width: 768px) {
-    #url-tooltip {
-        max-width: 90vw;
-        font-size: 11px;
-        padding: 10px 14px;
-        border-radius: 6px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-    
-    /* Make URLs more touch-friendly on mobile */
-    .url-value, 
-    .result-message, 
-    #url,
-    .source-box {
-        padding: 8px 0;
-        min-height: 24px;
-    }
+.arrow-down {
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 20px solid #666;
+    margin: 20px auto;
 }
 
-/* Large button */
+/* Ensure highlighted domains are preserved for phishing */
+#url .domain-highlight-red {
+    color: #721c24;
+    font-weight: bold;
+}
+
+/* ==============================================
+   BUTTONS & INTERACTIONS
+   ============================================== */
+
 .button-large {
     font-size: 1.5em;
     padding: 20px 40px;
@@ -345,7 +325,6 @@ body {font-family: sans-serif;}
     overflow: hidden;
 }
 
-/* Button progress bar */
 .button-progress {
     position: absolute;
     top: 0;
@@ -387,7 +366,6 @@ body {font-family: sans-serif;}
     display: none !important;
 }
 
-/* Button spinner for redirect */
 .button-spinner {
     display: inline-block;
     width: 20px;
@@ -399,28 +377,6 @@ body {font-family: sans-serif;}
     margin-right: 10px;
 }
 
-/* Link display box */
-.link-box {
-    background-color: #ffffff;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 10px;
-    margin: 20px 0;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-/* Arrow between boxes */
-.arrow-down {
-    width: 0;
-    height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-top: 20px solid #666;
-    margin: 20px auto;
-}
-
-/* Spinner animation */
 .spinner {
     width: 30px;
     height: 30px;
@@ -436,7 +392,10 @@ body {font-family: sans-serif;}
     100% { transform: rotate(360deg); }
 }
 
-/* Modal Dialog Styles */
+/* ==============================================
+   MODAL DIALOGS
+   ============================================== */
+
 .modal {
     position: fixed;
     top: 0;
@@ -512,8 +471,88 @@ body {font-family: sans-serif;}
     background-color: #c82333;
 }
 
-/* Mobile responsive modal */
+/* ==============================================
+   WARNING & MODAL SECTIONS
+   ============================================== */
+
+.warning-section {
+    margin: 8px 0;
+}
+
+.warning-section p {
+    margin: 5px 0;
+    color: #856404;
+    line-height: 1.4;
+}
+
+.warning-section strong {
+    color: #856404;
+    font-weight: 600;
+}
+
+/* ==============================================
+   TOOLTIPS
+   ============================================== */
+
+#url-tooltip {
+    position: absolute;
+    background: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: monospace;
+    max-width: 400px;
+    word-wrap: break-word;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    pointer-events: none;
+}
+
+/* ==============================================
+   MISCELLANEOUS
+   ============================================== */
+
+.hint {
+    font-size: 12px;
+    color: #666;
+    margin-top: 10px;
+    text-align: center;
+    font-style: italic;
+}
+
+.fade {
+    transition: opacity 0.5s;
+}
+
+/* ==============================================
+   MOBILE RESPONSIVE
+   ============================================== */
+
 @media (max-width: 768px) {
+    .content-container {
+        padding: 10px;
+    }
+    
+    .main-box {
+        width: 95vw;
+        max-width: 95vw;
+        padding: 20px 15px;
+    }
+    
+    #url-tooltip {
+        max-width: 90vw;
+        font-size: 11px;
+        padding: 10px 14px;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    
+    #url {
+        padding: 8px 0;
+        min-height: 24px;
+    }
+    
     .modal-content {
         width: 95%;
         margin: 10px;
@@ -528,16 +567,6 @@ body {font-family: sans-serif;}
     .modal-header h3 {
         font-size: 18px;
     }
-}
+    
 
-/* URL display box */
-.url-box {
-    background-color: #ffffff;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 10px;
-    margin: 20px 0;
-    width: 100%;
-    box-sizing: border-box;
-    word-break: break-all;
 }

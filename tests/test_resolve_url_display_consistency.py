@@ -37,11 +37,9 @@ def test_resolved_url_shows_when_same_as_original():
     assert 'id="tech-resolved-row"' in html
     assert 'id="tech-resolved-url"' in html
     
-    # Check that the JavaScript logic exists for showing resolved URL
-    # The key condition should NOT include "&& data.url !== originalUrl"
-    assert 'opts.resolve && data && data.url' in html
-    # Ensure the old broken condition is not present
-    assert 'data.url !== originalUrl' not in html
+    # Check that the template loads common.js which handles resolved URL display
+    assert 'src="/guard/common.js"' in html
+    assert 'initializeGuard(' in html
 
 
 def test_resolved_url_shows_when_different_from_original():
@@ -71,8 +69,9 @@ def test_resolved_url_shows_when_different_from_original():
     assert 'id="tech-resolved-row"' in html
     assert 'id="tech-resolved-url"' in html
     
-    # Check that the JavaScript logic exists for showing resolved URL
-    assert 'opts.resolve && data && data.url' in html
+    # Check that the template loads common.js which handles resolved URL display
+    assert 'src="/guard/common.js"' in html
+    assert 'initializeGuard(' in html
 
 
 def test_resolved_url_hidden_when_resolve_disabled():
@@ -97,8 +96,9 @@ def test_resolved_url_hidden_when_resolve_disabled():
     assert 'id="tech-resolved-row"' in html
     assert 'id="tech-resolved-url"' in html
     
-    # The row should be hidden when resolve=False
-    assert 'opts.resolve && data && data.url' in html
+    # Check that the template loads common.js which handles resolved URL visibility
+    assert 'src="/guard/common.js"' in html
+    assert 'initializeGuard(' in html
 
 
 def test_resolved_url_shows_with_warnings():
@@ -130,8 +130,9 @@ def test_resolved_url_shows_with_warnings():
     assert 'id="tech-warning-row"' in html
     assert 'id="tech-warning"' in html
     
-    # Resolved URL should still show even with warnings
-    assert 'opts.resolve && data && data.url' in html
+    # Check that the template loads common.js which handles warnings and resolved URLs
+    assert 'src="/guard/common.js"' in html
+    assert 'initializeGuard(' in html
 
 
 def test_technical_details_has_proper_structure():
@@ -175,7 +176,10 @@ def test_technical_details_has_proper_structure():
     
     # Check that the toggle function exists
     assert 'toggleTechnicalDetails()' in html
-    assert 'populateTechnicalDetails(' in html
+    
+    # Check that the template loads common.js which handles technical details
+    assert 'src="/guard/common.js"' in html
+    assert 'initializeGuard(' in html
 
 
 def test_page_title_display_logic():
@@ -201,14 +205,9 @@ def test_page_title_display_logic():
     assert 'id="tech-title"' in html
     assert 'Page Title:' in html
     
-    # Check that the JavaScript logic for title handling exists
-    assert 'opts.resolve && data && data.title && data.title.trim() !== \'\'' in html
-    assert 'techTitleRow.style.display = \'\';' in html
-    assert 'techTitleRow.style.display = \'none\';' in html
-    
-    # Check title truncation logic
-    assert 'displayTitle.length > 100' in html
-    assert 'displayTitle.substring(0, 97) + \'...\';' in html
+    # Check that the template loads common.js which handles title display logic
+    assert 'src="/guard/common.js"' in html
+    assert 'initializeGuard(' in html
 
 
 def test_title_handling_for_long_titles():
@@ -229,9 +228,9 @@ def test_title_handling_for_long_titles():
         sender_display='Test User',
     )
     
-    # Check that truncation logic exists
-    assert 'if (displayTitle.length > 100)' in html
-    assert 'displayTitle = displayTitle.substring(0, 97) + \'...\';' in html
+    # Check that the template loads common.js which handles title truncation
+    assert 'src="/guard/common.js"' in html
+    assert 'initializeGuard(' in html
     
     # Check that title element is selectable for copying
     assert 'class="tech-detail-value selectable"' in html

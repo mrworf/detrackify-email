@@ -4,192 +4,10 @@
 <meta charset="utf-8">
 <title>Detrackify Guard</title>
 <link rel="stylesheet" href="/guard/common.css">
+<script src="/guard/common.js"></script>
 <script src="/guard/opts.js"></script>
 
-<style>
-/* Fixed positioning for logo and watermark */
-.fixed-logo {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  opacity: 0.3;
-  z-index: 1000;
-  pointer-events: none;
-}
-
-.fixed-logo img {
-  width: 4vw;
-  height: 4vw;
-  min-width: 32px;
-  min-height: 32px;
-  max-width: 80px;
-  max-height: 80px;
-}
-
-.fixed-watermark {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  opacity: 0.3;
-  z-index: 1000;
-  font-size: 24px;
-  color: #666;
-}
-
-.fixed-watermark a {
-  color: #666;
-  text-decoration: none;
-}
-
-.fixed-watermark a:hover {
-  text-decoration: underline;
-}
-
-/* Center the main content */
-.content-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-/* Override main-box width to be 80% of screen */
-.main-box {
-  width: 80vw;
-  max-width: 80vw;
-}
-
-/* Remove the logo-title from main content since it's now fixed */
-.logo-title {
-  display: none;
-}
-
-/* Status icons */
-.status-icon {
-  font-size: 48px;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-/* Progress bar styling */
-.progress-bar {
-  width: 100%;
-  height: 4px;
-  background-color: #e0e0e0;
-  border-radius: 2px;
-  overflow: hidden;
-  margin: 20px 0;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background-color: #007bff;
-  border-radius: 2px;
-  animation: progress-animation 2s infinite;
-}
-
-@keyframes progress-animation {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-/* Domain highlighting */
-.domain-highlight {
-  font-weight: bold;
-  background-color: #f8f9fa;
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid #dee2e6;
-}
-
-.safe-domain {
-  color: #28a745;
-  border-color: #28a745;
-  background-color: #d4edda;
-}
-
-.unsafe-domain {
-  color: #dc3545;
-  border-color: #dc3545;
-  background-color: #f8d7da;
-}
-
-/* Technical details section */
-.technical-details-toggle {
-  cursor: pointer;
-  user-select: none;
-  padding: 15px 0 0 0;
-  border-top: 1px solid #dee2e6;
-  margin-top: 20px;
-  text-align: center;
-  font-size: 14px;
-  color: #6c757d;
-  transition: color 0.2s ease;
-}
-
-.technical-details-toggle:hover {
-  color: #495057;
-}
-
-.technical-details-content {
-  background-color: #ffffff;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  padding: 20px;
-  margin-top: 10px;
-  display: none;
-}
-
-.technical-details-content.show {
-  display: block;
-}
-
-.tech-detail-row {
-  display: flex;
-  margin-bottom: 12px;
-  align-items: flex-start;
-}
-
-.tech-detail-label {
-  font-weight: bold;
-  min-width: 120px;
-  color: #495057;
-  margin-right: 15px;
-  flex-shrink: 0;
-}
-
-.tech-detail-value {
-  flex: 1;
-  word-break: break-all;
-  user-select: none;
-  font-family: monospace;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.tech-detail-value.selectable {
-  user-select: text;
-  font-family: inherit;
-}
-
-.domain-highlight-green {
-  background-color: #d4edda;
-  color: #155724;
-  font-weight: bold;
-  padding: 1px 3px;
-  border-radius: 3px;
-}
-
-.domain-highlight-red {
-  background-color: #f8d7da;
-  color: #721c24;
-  font-weight: bold;
-  padding: 1px 3px;
-  border-radius: 3px;
-}
-</style>
+<!-- All common styles are now in common.css -->
 </head>
 <body>
 <!-- Fixed logo and watermark -->
@@ -200,16 +18,7 @@
   <a href="https://github.com/mrworf/detrackify-email">Detrackify</a>
 </div>
 
-<!-- Auto redirect (checking) screen -->
-<div id="auto-redirect" class="content-container" style="display:none;">
-  <div class="main-box">
-    <div class="status-icon">🔍</div>
-    <h1>Checking this link for your safety</h1>
-    <div class="progress-bar">
-      <div class="progress-bar-fill"></div>
-    </div>
-  </div>
-</div>
+
 
 <!-- Main content -->
 <div id="full-content" class="content-container">
@@ -246,16 +55,11 @@
       <p>The administrator has blocked access to this link due to security concerns.</p>
     </div>
     
-    <!-- Phishing state (fish emoji) -->
+    <!-- Phishing state (warning triangle) -->
     <div id="phishing-state" class="hidden">
-      <div class="status-icon">🐟</div>
-      <h1>This appears to be a phishing attempt</h1>
-      {% if sender_display %}
-      <p>The email claims to be from <span class="domain-highlight">{{ sender_display }}</span> but the email address is <span class="domain-highlight unsafe-domain">{{ sender_email }}</span>.</p>
-      {% endif %}
-      <p>The link says <span class="display-box">{{ display }}</span> and will take you to:</p>
-      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
-      <p>Be careful - this link and email seems to be a phishing attempt.</p>
+      <div class="status-icon">❌</div>
+      <h1>This link may be a phishing attempt</h1>
+      <p>The sender's name <span class="domain-highlight" id="phishing-sender-display"></span> doesn't relate to the email address <span class="domain-highlight" id="phishing-sender-email"></span> or the link destination <span class="domain-highlight" id="phishing-link-domain"></span></p>
     </div>
     
     {% else %}
@@ -273,14 +77,9 @@
     </div>
     
     <div id="non-resolve-phishing" class="hidden">
-      <div class="status-icon">🐟</div>
-      <h1>This appears to be a phishing attempt</h1>
-      {% if sender_display %}
-      <p>The email claims to be from <span class="domain-highlight">{{ sender_display }}</span> but the email address is <span class="domain-highlight unsafe-domain">{{ sender_email }}</span>.</p>
-      {% endif %}
-      <p>The link says <span class="display-box">{{ display }}</span> and will take you to:</p>
-      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
-      <p>Be careful - this link and email seems to be a phishing attempt.</p>
+      <div class="status-icon">❌</div>
+      <h1>This link may be a phishing attempt</h1>
+      <p>The sender's name <span class="domain-highlight" id="non-resolve-phishing-sender-display"></span> doesn't relate to the email address <span class="domain-highlight" id="non-resolve-phishing-sender-email"></span> or the link destination <span class="domain-highlight" id="non-resolve-phishing-link-domain"></span></p>
     </div>
     
     <div id="non-resolve-blocked" class="hidden">
@@ -367,6 +166,12 @@
 
 <!-- Warning Definitions -->
 <script>
+// ==============================================================================
+// LANGUAGE-SPECIFIC WARNING DEFINITIONS - ENGLISH
+// These definitions provide user-friendly explanations for different warning
+// types. Each language template should have its own version of this object
+// with translations appropriate for that language.
+// ==============================================================================
 const WARNING_DEFINITIONS = {
   'ssl_certificate': {
     header: '⚠️ Security Certificate Warning',
@@ -424,723 +229,53 @@ const WARNING_DEFINITIONS = {
   }
 };
 
-// JavaScript UI Strings - for internationalization
+// ==============================================================================
+// LANGUAGE-SPECIFIC UI STRINGS - ENGLISH
+// These strings provide all user-facing text for the JavaScript UI.
+// Each language template should have its own version of this object
+// with translations appropriate for that language.
+// ==============================================================================
 const JS_STRINGS = {
-  // Error messages
-  error_resolving_link: 'Error resolving link',
-  connection_timed_out: 'Connection timed out',
-  link_not_found: 'Link not found',
-  invalid_link_info: 'Invalid link information',
-  internal_error: 'Internal error',
-  
-  // Warning messages
-  could_not_verify_timeout: 'Could not verify the final destination due to a timeout',
-  could_not_verify: 'Could not verify the final destination',
-  could_not_verify_invalid: 'Could not verify the final destination due to invalid link information',
-  could_not_verify_server: 'Could not verify the final destination due to a server error',
-  
-  // Fallback warning text
-  warning_generic: '⚠️ Warning',
-  unknown_warning: 'An unknown warning occurred',
-  what_this_means: 'What this means',
-  issue_verifying_link: 'We encountered an issue while verifying this link.',
-  what_you_should_do: 'What you should do',
-  proceed_with_caution: 'Proceed with caution if you trust the source of this link.',
-  
-  // Error state text
-  could_not_verify_destination: 'Could not verify the final destination',
-  
   // Button and redirecting text
   button_continue: 'Continue anyway (not recommended)',
   button_continue_safe: 'Go to website',
   redirecting_generic: 'Redirecting...',
-  redirecting_final: 'Redirecting to final destination...',
-  
-  // Blocked warning text
-  access_blocked: 'Access to this link has been blocked'
+  redirecting_final: 'Redirecting to final destination...'
 };
 
-// Multi-part TLD list for proper domain matching
-const MULTI_PART_TLDS = [
-  'co.uk', 'com.au', 'gov.uk', 'org.uk', 'net.uk', 'ac.uk', 'edu.au', 
-  'gov.au', 'com.br', 'org.br', 'co.in', 'net.in', 'org.in', 'co.za',
-  'org.za', 'net.za', 'co.jp', 'or.jp', 'ne.jp', 'ac.jp', 'go.jp'
-];
+// Domain utility functions are now in common.js
 
-// Helper function to extract domain from URL
-function extractDomainFromUrl(url) {
-  try {
-    const match = url.match(/https?:\/\/([^\/]+)/i);
-    if (match) {
-      return match[1].split(':')[0].toLowerCase().trim();
-    }
-  } catch (e) {
-    // Ignore errors
-  }
-  return null;
-}
+// Highlighting functions are now in common.js
 
-// Extract effective domain for TLD-based matching (last 2+ components)
-function extractEffectiveDomain(domain) {
-  if (!domain) return null;
-  
-  const parts = domain.toLowerCase().split('.');
-  if (parts.length < 2) return null;
-  
-  // Check if this domain uses a multi-part TLD
-  for (const multiTld of MULTI_PART_TLDS) {
-    if (domain.endsWith('.' + multiTld)) {
-      // For multi-part TLDs, we need at least 3 components total
-      if (parts.length >= 3) {
-        return parts.slice(-3).join('.');
-      }
-      return domain; // If less than 3 parts, use the whole domain
-    }
-  }
-  
-  // For regular TLDs, use last 2 components
-  return parts.slice(-2).join('.');
-}
-
-// Check if two domains match using TLD-based rules
-function domainsMatch(domain1, domain2) {
-  if (!domain1 || !domain2) return false;
-  
-  const effective1 = extractEffectiveDomain(domain1);
-  const effective2 = extractEffectiveDomain(domain2);
-  
-  return effective1 === effective2;
-}
-
-// Helper function to extract domain from email
-function extractDomainFromEmail(email) {
-  try {
-    if (email && email.includes('@')) {
-      return email.split('@')[1].toLowerCase().trim();
-    }
-  } catch (e) {
-    // Ignore errors
-  }
-  return null;
-}
-
-// Highlight sender email domain based on new matching logic
-function highlightSenderEmail(email, displayName, senderDomain, originalUrl, resolvedUrl) {
-  if (!email) return 'Unknown';
-  
-  const emailDomain = extractDomainFromEmail(email);
-  if (!emailDomain) return email; // No domain to highlight
-  
-  // Determine highlighting based on the rules
-  let highlightClass = 'domain-highlight-red'; // Default to red
-  
-  if (senderDomain) {
-    if (resolvedUrl) {
-      // Rule 2: If sender and resolve link domains match, highlight green
-      const resolvedDomain = extractDomainFromUrl(resolvedUrl);
-      if (resolvedDomain && domainsMatch(senderDomain, resolvedDomain)) {
-        highlightClass = 'domain-highlight-green';
-      }
-    } else {
-      // Rule 1: If sender and original link domains match, highlight green
-      const originalDomain = extractDomainFromUrl(originalUrl);
-      if (originalDomain && domainsMatch(senderDomain, originalDomain)) {
-        highlightClass = 'domain-highlight-green';
-      }
-    }
-  }
-  
-  // Escape HTML in email and display name
-  const escapedEmail = email.replace(/[&<>"']/g, function(match) {
-    return {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    }[match];
-  });
-  
-  const escapedDisplay = displayName ? displayName.replace(/[&<>"']/g, function(match) {
-    return {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    }[match];
-  }) : '';
-  
-  // Highlight the domain part of the email
-  const domainRegex = new RegExp('@(' + emailDomain.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'i');
-  const highlightedEmail = escapedEmail.replace(domainRegex, '@<span class="' + highlightClass + '">$1</span>');
-  
-  // Format with display name if available
-  if (escapedDisplay) {
-    return escapedDisplay + ' (' + highlightedEmail + ')';
-  } else {
-    return highlightedEmail;
-  }
-}
-
-// Show the appropriate state based on the scenario
-function showState(stateId, domains) {
-  // Hide all states
-  const states = ['checking-state', 'safe-state', 'unsafe-state', 'blocked-state', 'phishing-state',
-                  'non-resolve-safe', 'non-resolve-unsafe', 'non-resolve-phishing', 'non-resolve-blocked'];
-  states.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.add('hidden');
-  });
-  
-  // Show the requested state
-  const stateEl = document.getElementById(stateId);
-  if (stateEl) {
-    stateEl.classList.remove('hidden');
-    
-    // Show/hide technical details based on state
-    const techDetailsSection = document.getElementById('technical-details-section');
-    const techDetailsContent = document.getElementById('technical-details');
-    
-    // Handle button and technical details visibility based on state
-    const form = document.getElementById('continueForm');
-    
-    if (stateId === 'checking-state') {
-      // Hide form and technical details during checking/resolving
-      if (form) form.style.display = 'none';
-      if (techDetailsSection) techDetailsSection.style.display = 'none';
-      if (techDetailsContent) techDetailsContent.style.display = 'none';
-    } else if (stateId === 'blocked-state' || stateId === 'non-resolve-blocked') {
-      // Hide form for blocked states, show technical details
-      if (form) form.style.display = 'none';
-      if (techDetailsSection) techDetailsSection.style.display = '';
-      // Reset content display and keep it hidden by default (will be shown when user clicks)
-      if (techDetailsContent) {
-        techDetailsContent.style.display = ''; // Clear inline style
-        techDetailsContent.classList.remove('show'); // Remove show class
-      }
-      // Reset arrow and text
-      const arrow = document.getElementById('tech-details-arrow');
-      if (arrow) arrow.textContent = '▶';
-      if (techDetailsSection) {
-        techDetailsSection.innerHTML = techDetailsSection.innerHTML.replace('Hide Details', 'Show Details');
-      }
-    } else {
-      // Show form and technical details for all other states (safe, unsafe, phishing)
-      if (form) form.style.display = '';
-      if (techDetailsSection) techDetailsSection.style.display = '';
-      // Reset content display and keep it hidden by default (will be shown when user clicks)
-      if (techDetailsContent) {
-        techDetailsContent.style.display = ''; // Clear inline style
-        techDetailsContent.classList.remove('show'); // Remove show class
-      }
-      // Reset arrow and text
-      const arrow = document.getElementById('tech-details-arrow');
-      if (arrow) arrow.textContent = '▶';
-      if (techDetailsSection) {
-        techDetailsSection.innerHTML = techDetailsSection.innerHTML.replace('Hide Details', 'Show Details');
-      }
-    }
-    
-    // Populate domain information if provided
-    if (domains) {
-      if (domains.safeDomain) {
-        const safeDomainEl = document.getElementById('safe-domain') || document.getElementById('non-resolve-safe-domain');
-        if (safeDomainEl) safeDomainEl.textContent = domains.safeDomain;
-      }
-      if (domains.senderDomain) {
-        const senderDomainEl = document.getElementById('sender-domain') || document.getElementById('non-resolve-sender-domain');
-        if (senderDomainEl) senderDomainEl.textContent = domains.senderDomain;
-      }
-      if (domains.unsafeDomain) {
-        const unsafeDomainEl = document.getElementById('unsafe-domain') || document.getElementById('non-resolve-unsafe-domain');
-        if (unsafeDomainEl) unsafeDomainEl.textContent = domains.unsafeDomain;
-      }
-    }
-  }
-}
-
-// Toggle technical details section
-function toggleTechnicalDetails() {
-  const content = document.getElementById('technical-details');
-  const arrow = document.getElementById('tech-details-arrow');
-  const toggle = document.querySelector('.technical-details-toggle');
-  
-  if (content && arrow && toggle) {
-    if (content.classList.contains('show')) {
-      content.classList.remove('show');
-      arrow.textContent = '▶';
-      toggle.innerHTML = toggle.innerHTML.replace('Hide Details', 'Show Details');
-    } else {
-      content.classList.add('show');
-      arrow.textContent = '▼';
-      toggle.innerHTML = toggle.innerHTML.replace('Show Details', 'Hide Details');
-    }
-  }
-}
-
-// Populate technical details
-function populateTechnicalDetails(data) {
-  const opts = window.guardOpts || {};
-  
-  // Get elements
-  const techSender = document.getElementById('tech-sender');
-  const techLinkName = document.getElementById('tech-link-name');
-  const techOriginalUrl = document.getElementById('tech-original-url');
-  const techResolvedUrl = document.getElementById('tech-resolved-url');
-  const techTitle = document.getElementById('tech-title');
-  const techWarning = document.getElementById('tech-warning');
-  const techBlockReason = document.getElementById('tech-block-reason');
-  const techOriginalRow = document.getElementById('tech-original-row');
-  const techResolvedRow = document.getElementById('tech-resolved-row');
-  const techTitleRow = document.getElementById('tech-title-row');
-  const techWarningRow = document.getElementById('tech-warning-row');
-  const techBlockReasonRow = document.getElementById('tech-block-reason-row');
-  const techOriginalLabel = document.getElementById('tech-original-label');
-  
-  // Get URLs for highlighting logic
-  const originalUrl = '{{ url | default("", true) }}' || opts.url || '';
-  const resolvedUrl = data ? data.url : null;
-  
-  // Populate sender - use template variables if available, fallback to opts
-  if (techSender) {
-    // Try to get from template variables first
-    const senderEmail = '{{ sender_email | default("", true) }}';
-    const senderDisplay = '{{ sender_display | default("", true) }}';
-    const actualEmail = senderEmail && senderEmail !== '' ? senderEmail : opts.sender_email;
-    const actualDisplay = senderDisplay && senderDisplay !== '' ? senderDisplay : opts.sender_display;
-    
-    if (actualEmail) {
-      techSender.innerHTML = highlightSenderEmail(actualEmail, actualDisplay, opts.sender_domain, originalUrl, resolvedUrl);
-    } else {
-      techSender.textContent = 'Unknown';
-    }
-  }
-  
-  // Populate link name - use template variable if available
-  if (techLinkName) {
-    const displayText = '{{ display | default("", true) }}';
-    if (displayText && displayText !== '') {
-      techLinkName.textContent = displayText;
-    } else {
-      techLinkName.textContent = opts.display || 'Unknown';
-    }
-  }
-  
-  // Handle original URL label based on resolve mode
-  if (techOriginalLabel) {
-    techOriginalLabel.textContent = opts.resolve ? 'Original Link:' : 'Link:';
-  }
-  
-  // Populate original URL with domain highlighting
-  if (techOriginalUrl) {
-    techOriginalUrl.innerHTML = highlightUrlDomains(originalUrl, opts.sender_domain, resolvedUrl, true);
-  }
-  
-  // Handle resolved URL (only show if resolve mode is enabled)
-  if (techResolvedRow) {
-    if (opts.resolve && data && data.url) {
-      techResolvedRow.style.display = '';
-      if (techResolvedUrl) {
-        techResolvedUrl.innerHTML = highlightUrlDomains(data.url, opts.sender_domain, resolvedUrl, false);
-      }
-    } else {
-      techResolvedRow.style.display = 'none';
-    }
-  }
-  
-  // Handle page title (only show if resolve mode is enabled and there's a title)
-  if (techTitleRow && techTitle) {
-    if (opts.resolve && data && data.title && data.title.trim() !== '') {
-      techTitleRow.style.display = '';
-      // Truncate very long titles for better display
-      let displayTitle = data.title.trim();
-      if (displayTitle.length > 100) {
-        displayTitle = displayTitle.substring(0, 97) + '...';
-      }
-      techTitle.textContent = displayTitle;
-    } else {
-      techTitleRow.style.display = 'none';
-    }
-  }
-  
-  // Handle warning (only show if there's a warning)
-  if (techWarningRow && techWarning) {
-    if (data && data.warning) {
-      techWarningRow.style.display = '';
-      // Parse warning format: \"type:message\"
-      let warningType = 'unexpected_error';
-      if (data.warning.includes(':')) {
-        warningType = data.warning.split(':', 2)[0];
-      }
-      
-      // Get friendly warning message from WARNING_DEFINITIONS
-      const warningDef = WARNING_DEFINITIONS[warningType];
-      if (warningDef) {
-        techWarning.textContent = warningDef.header || warningType;
-      } else {
-        techWarning.textContent = warningType;
-      }
-    } else {
-      techWarningRow.style.display = 'none';
-    }
-  }
-  
-  // Handle block reason (show if there's block info from either source)
-  if (techBlockReasonRow && techBlockReason) {
-    // Check for block reason from resolve response
-    let blockReason = null;
-    if (data && data.block) {
-      blockReason = data.block;
-    }
-    // Also check for initial block reason from opts
-    if (!blockReason && opts.block_reason) {
-      blockReason = opts.block_reason;
-    }
-    
-    if (blockReason && blockReason.trim() !== '') {
-      techBlockReasonRow.style.display = '';
-      techBlockReason.textContent = blockReason;
-    } else {
-      techBlockReasonRow.style.display = 'none';
-    }
-  }
-}
-
-// Highlight domains in URLs based on new matching logic
-function highlightUrlDomains(url, senderDomain, resolvedUrl, isOriginalUrl) {
-  if (!url) return '';
-  
-  const urlDomain = extractDomainFromUrl(url);
-  
-  // Escape HTML in the URL
-  const escapedUrl = url.replace(/[&<>"']/g, function(match) {
-    return {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    }[match];
-  });
-  
-  if (!urlDomain) return escapedUrl;
-  
-  // Determine highlighting based on the rules
-  let highlightClass = '';
-  
-  if (!senderDomain) {
-    // No sender domain, treat as no match
-    highlightClass = 'domain-highlight-red';
-  } else if (resolvedUrl && isOriginalUrl) {
-    // Rule 2: We have a resolved URL, and this is the original URL
-    // Check if sender matches resolved domain
-    const resolvedDomain = extractDomainFromUrl(resolvedUrl);
-    if (resolvedDomain && domainsMatch(senderDomain, resolvedDomain)) {
-      // Sender matches resolved, so don't highlight original (return plain)
-      return escapedUrl;
-    } else {
-      // Sender doesn't match resolved, highlight original as red
-      highlightClass = 'domain-highlight-red';
-    }
-  } else if (resolvedUrl && !isOriginalUrl) {
-    // Rule 2: This is the resolved URL
-    if (domainsMatch(senderDomain, urlDomain)) {
-      highlightClass = 'domain-highlight-green';
-    } else {
-      highlightClass = 'domain-highlight-red';
-    }
-  } else {
-    // Rule 1: No resolved URL, this is original URL
-    if (domainsMatch(senderDomain, urlDomain)) {
-      highlightClass = 'domain-highlight-green';
-    } else {
-      highlightClass = 'domain-highlight-red';
-    }
-  }
-  
-  // Replace domain in URL with highlighted version
-  const escapedDomain = urlDomain.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const domainRegex = new RegExp('(https?:\\/\\/)(' + escapedDomain + ')', 'i');
-  return escapedUrl.replace(domainRegex, '$1<span class="' + highlightClass + '">$2</span>');
-}
+// State management and technical details functions are now in common.js
 </script>
 
 <script>
-// New UX Logic
+// ==============================================================================
+// TEMPLATE-SPECIFIC INITIALIZATION
+// This section uses the common JavaScript functions but provides template-specific
+// data and language strings for proper initialization.
+// ==============================================================================
+
 document.addEventListener('DOMContentLoaded', function () {
-  var opts = window.guardOpts || {};
+  // Prepare template-specific data for the common initialization function
+  const templateData = {
+    url: '{{ url | default("", true) }}',
+    sender_email: '{{ sender_email | default("", true) }}',
+    sender_display: '{{ sender_display | default("", true) }}',
+    display: '{{ display | default("", true) }}',
+    block_reason: '{{ block_reason | default("", true) }}'
+  };
   
-  // Check for blocking reason from server-side
-  var blockReason = opts.block_reason || '';
+
   
-  // Check if this is a phishing case
-  if (blockReason === 'phishy') {
-    if (opts.resolve) {
-      showState('phishing-state');
-    } else {
-      showState('non-resolve-phishing');
-    }
-    setupButton(false); // unsafe case
-    return;
-  }
+  // Make template data globally available for phishing detection
+  window.templateData = templateData;
   
-  // Check if there's an initial block - if so, never resolve and show blocked state immediately
-  if (blockReason && typeof blockReason === 'string' && blockReason.trim().length > 0) {
-    if (opts.resolve) {
-      showState('blocked-state');
-    } else {
-      showState('non-resolve-blocked');
-    }
-    // Populate technical details even for blocked links (but no resolve data)
-    populateTechnicalDetails(null);
-    return;
-  }
-  
-  if (opts.resolve) {
-    // Auto redirect setup
-    var autoRedirect = opts.auto_redirect && !blockReason;
-    var autoDiv = document.getElementById('auto-redirect');
-    var fullDiv = document.getElementById('full-content');
-    
-    if (autoRedirect) {
-      if (fullDiv) fullDiv.style.display = 'none';
-      if (autoDiv) autoDiv.style.display = 'flex';
-    } else {
-      showState('checking-state');
-    }
-    
-    handleResolveMode();
-  } else {
-    // Non-resolve mode - compare domains immediately
-    handleNonResolveMode();
-  }
+  // Initialize the guard system using common functions
+  // All core functionality is now handled by common.js
+  initializeGuard(window.guardOpts, JS_STRINGS, WARNING_DEFINITIONS, templateData);
 });
-
-function handleNonResolveMode() {
-  var opts = window.guardOpts || {};
-  
-  // Extract domains for comparison
-  var urlDomain = extractDomainFromUrl(opts.url || window.location.search);
-  var senderDomain = opts.sender_domain;
-  
-  if (urlDomain && senderDomain) {
-    // Simple domain comparison (the backend handles alias logic in resolve mode)
-    var domainsMatch = urlDomain === senderDomain;
-    
-    if (domainsMatch) {
-      showState('non-resolve-safe', { safeDomain: senderDomain });
-      setupButton(true); // safe case
-    } else {
-      showState('non-resolve-unsafe', { 
-        senderDomain: senderDomain, 
-        unsafeDomain: urlDomain 
-      });
-      setupButton(false); // unsafe case
-    }
-  } else {
-    // If we can't determine domains, show unsafe
-    showState('non-resolve-unsafe', { 
-      senderDomain: senderDomain || 'unknown', 
-      unsafeDomain: urlDomain || 'unknown' 
-    });
-    setupButton(false);
-  }
-  
-  // Populate technical details for non-resolve mode
-  populateTechnicalDetails(null);
-}
-
-function handleResolveMode() {
-  var opts = window.guardOpts || {};
-  var blockReason = opts.block_reason || '';
-  
-  var controller = new AbortController();
-  var timer = setTimeout(function () { controller.abort(); }, (opts.timeout_ms || 0) + 10000);
-  
-  // Minimum display time for checking state
-  var minDisplayTime = 1000;
-  var resolveStartTime = Date.now();
-  
-  fetch('/guard/resolve', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sha: opts.sha, data: opts.data }),
-    signal: controller.signal
-  })
-  .then(function (r) {
-    if (!r.ok) {
-      var ct = r.headers.get('content-type') || '';
-      if (ct.indexOf('application/json') === 0) {
-        return r.json().then(function (j) {
-          throw { status: r.status, message: j.error || '' };
-        });
-      }
-      throw { status: r.status };
-    }
-    return r.json();
-  })
-  .then(function (data) {
-    // Store resolved URL data
-    if (data.url && data.hash) {
-      var u = document.getElementById('final');
-      var h = document.getElementById('hash');
-      if (u) u.value = data.url;
-      if (h) h.value = data.hash;
-    }
-    
-    // Check for auto redirect
-    if (opts.auto_redirect && data.domains_match && !data.block && !data.warning) {
-      var startField = document.querySelector('input[name="ts"]');
-      if (startField && opts.timeout_ms) {
-        var startVal = parseFloat(startField.value) || Date.now() / 1000;
-        startField.value = (startVal - (opts.timeout_ms / 1000)).toString();
-      }
-      var form = document.getElementById('continueForm');
-      if (form) form.submit();
-      return;
-    }
-    
-    // Show full content if auto redirect was on
-    if (opts.auto_redirect) {
-      var autoDiv = document.getElementById('auto-redirect');
-      var fullDiv = document.getElementById('full-content');
-      if (autoDiv) autoDiv.style.display = 'none';
-      if (fullDiv) fullDiv.style.display = 'flex';
-    }
-    
-    // Calculate remaining time to meet minimum display requirement
-    var elapsed = Date.now() - resolveStartTime;
-    var remainingTime = Math.max(0, minDisplayTime - elapsed);
-    
-    setTimeout(function() {
-      // Handle different resolution outcomes
-      if (data.block) {
-        showState('blocked-state');
-      } else if (blockReason && typeof blockReason === 'string' && blockReason.trim().length > 0) {
-        // Original block reason
-        showState('blocked-state');
-      } else if (data.warning && opts.deny_on_warnings) {
-        var warningType = 'unexpected_error';
-        if (data.warning.includes(':')) {
-          warningType = data.warning.split(':', 2)[0];
-        }
-        
-        if (opts.deny_on_warnings.includes(warningType)) {
-          showState('blocked-state');
-          return;
-        }
-      }
-      
-      // Show warning modal if needed (but not blocking)
-      if (data.warning && !(opts.deny_on_warnings && opts.deny_on_warnings.includes(data.warning.split(':', 2)[0]))) {
-        // Handle non-blocking warnings - for now, continue with normal flow
-        // Could show a modal here if needed
-      }
-      
-      // Extract resolved domain
-      var resolvedDomain = extractDomainFromUrl(data.url);
-      var senderDomain = opts.sender_domain;
-      
-      // Use backend's domain match result
-      if (data.domains_match) {
-        showState('safe-state', { safeDomain: resolvedDomain || senderDomain });
-        setupButton(true); // safe case
-      } else {
-        showState('unsafe-state', { 
-          senderDomain: senderDomain, 
-          unsafeDomain: resolvedDomain 
-        });
-        setupButton(false); // unsafe case
-      }
-      
-      // Populate technical details
-      populateTechnicalDetails(data);
-    }, remainingTime);
-  })
-  .catch(function (err) {
-    // Handle errors by showing unsafe state
-    var elapsed = Date.now() - resolveStartTime;
-    var remainingTime = Math.max(0, minDisplayTime - elapsed);
-    
-    setTimeout(function() {
-      var senderDomain = opts.sender_domain;
-      var urlDomain = extractDomainFromUrl(opts.url);
-      
-      showState('unsafe-state', { 
-        senderDomain: senderDomain, 
-        unsafeDomain: urlDomain || 'unknown' 
-      });
-      setupButton(false); // unsafe case due to error
-      
-      // Populate technical details for error case
-      populateTechnicalDetails(null);
-    }, remainingTime);
-  })
-  .finally(function () {
-    clearTimeout(timer);
-  });
-}
-
-function setupButton(isSafe) {
-  var button = document.getElementById('cont');
-  var buttonText = document.getElementById('button-text');
-  var redirectingText = document.getElementById('redirecting-text');
-  
-  if (buttonText) {
-    buttonText.textContent = isSafe ? JS_STRINGS.button_continue_safe : JS_STRINGS.button_continue;
-  }
-  if (redirectingText) {
-    redirectingText.textContent = isSafe ? JS_STRINGS.redirecting_final : JS_STRINGS.redirecting_generic;
-  }
-  
-  if (button) {
-    button.style.display = '';
-    button.disabled = true;
-    
-    // Handle button click to show redirecting state
-    button.addEventListener('click', function() {
-      button.style.display = 'none';
-      var redirectingState = document.getElementById('redirecting-state');
-      if (redirectingState) redirectingState.classList.remove('hidden');
-    });
-    
-    // Start progress bar
-    startProgressBar(window.guardOpts?.timeout_ms || 2000);
-  }
-}
-
-function hideForm() {
-  var form = document.getElementById('continueForm');
-  if (form) form.style.display = 'none';
-}
-
-// Progress bar function (simplified)
-function startProgressBar(duration) {
-  var button = document.getElementById('cont');
-  var progressBar = document.getElementById('button-progress');
-  
-  if (button && progressBar) {
-    var startTime = Date.now();
-    
-    var updateProgress = function() {
-      var elapsed = Date.now() - startTime;
-      var progress = Math.min(elapsed / duration, 1);
-      var remainingWidth = (1 - progress) * 100;
-      
-      progressBar.style.width = remainingWidth + '%';
-      
-      if (progress < 1) {
-        requestAnimationFrame(updateProgress);
-      } else {
-        button.disabled = false;
-        progressBar.style.display = 'none';
-      }
-    };
-    
-    requestAnimationFrame(updateProgress);
-  }
-}
 </script>
 
 </body>

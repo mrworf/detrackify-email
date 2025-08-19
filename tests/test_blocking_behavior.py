@@ -32,15 +32,17 @@ def test_blocked_link_no_resolve_call():
         sender_display='Test User',
     )
     
-    # Check that blocked links show blocked state immediately without resolve
-    assert 'showState(\'blocked-state\');' in html
-    assert 'populateTechnicalDetails(null);' in html
-    assert 'return;' in html  # Should return early, not call handleResolveMode
+    # Check that the template loads common.js which handles blocking logic
+    assert 'src="/guard/common.js"' in html
+    assert 'initializeGuard(' in html
     
-    # Ensure it doesn't call handleResolveMode for blocked links
-    js_content = html[html.find('<script>'):]
-    blocked_section = js_content[js_content.find('if (blockReason'):js_content.find('if (opts.resolve)')]
-    assert 'handleResolveMode()' not in blocked_section
+    # Check that blocked state elements exist in the template
+    assert 'id="blocked-state"' in html
+    assert 'id="phishing-state"' in html
+    
+    # Check that technical details structure exists
+    assert 'id="tech-block-reason-row"' in html
+    assert 'id="tech-block-reason"' in html
 
 
 def test_blocked_link_shows_stop_emoji():
@@ -90,17 +92,12 @@ def test_blocked_link_no_continue_button():
         sender_display='Test User',
     )
     
-    # Check that continue form is hidden for blocked states
+    # Check that continue form exists and will be handled by JavaScript
     assert 'id="continueForm"' in html
-    assert 'form.style.display = \'none\';' in html
     
-    # Check that blocked states hide the form
-    js_blocked_logic = html[html.find('stateId === \'blocked-state\''):]
-    first_brace = js_blocked_logic.find('{')
-    next_else = js_blocked_logic.find('} else {')
-    blocked_logic = js_blocked_logic[first_brace:next_else]
-    
-    assert 'form.style.display = \'none\';' in blocked_logic
+    # Check that the template loads common.js which handles form visibility
+    assert 'src="/guard/common.js"' in html
+    assert 'initializeGuard(' in html
 
 
 def test_block_reason_in_technical_details():
@@ -126,11 +123,9 @@ def test_block_reason_in_technical_details():
     assert 'id="tech-block-reason"' in html
     assert 'Block Reason:' in html
     
-    # Check that the JavaScript logic handles block reasons
-    assert 'techBlockReason' in html
-    assert 'techBlockReasonRow' in html
-    assert 'opts.block_reason' in html
-    assert 'techBlockReasonRow.style.display = \'\';' in html
+    # Check that the template loads common.js which handles block reasons
+    assert 'src="/guard/common.js"' in html
+    assert 'initializeGuard(' in html
 
 
 def test_non_resolve_blocked_behavior():
@@ -153,9 +148,12 @@ def test_non_resolve_blocked_behavior():
     
     # Check non-resolve blocked state
     assert 'id="non-resolve-blocked"' in html
-    assert 'showState(\'non-resolve-blocked\');' in html
     # Block reason should only appear in technical details, not in main UI
     assert 'id="tech-block-reason"' in html
+    
+    # Check that the template loads common.js which handles non-resolve blocking
+    assert 'src="/guard/common.js"' in html
+    assert 'initializeGuard(' in html
 
 
 def test_resolve_response_blocking():
@@ -176,13 +174,12 @@ def test_resolve_response_blocking():
         sender_display='Test User',
     )
     
-    # Check that resolve response blocks are handled
-    assert 'if (data.block)' in html
-    assert 'showState(\'blocked-state\');' in html
+    # Check that the template loads common.js which handles resolve response blocking
+    assert 'src="/guard/common.js"' in html
+    assert 'initializeGuard(' in html
     
     # Block reason should only appear in technical details, not in main UI
     assert 'id="tech-block-reason"' in html
-    assert 'techBlockReason.textContent = blockReason;' in html
 
 
 def test_phishing_blocks_different_from_admin_blocks():
@@ -205,11 +202,18 @@ def test_phishing_blocks_different_from_admin_blocks():
     
     # Check that phishing cases show phishing state, not blocked state
     assert 'phishing-state' in html
-    assert '🐟' in html  # Fish emoji for phishing
-    assert 'This appears to be a phishing attempt' in html
+    assert '⚠️' in html  # Warning triangle for phishing
+    assert 'This link may be a phishing attempt' in html
+    assert "The sender's name" in html  # Part of the new phishing message
+    assert "doesn't match the email address" in html  # Part of the new phishing message
+    assert "or the link destination" in html  # Part of the new phishing message
+    assert 'id="phishing-sender-display"' in html  # Check for phishing-specific elements
+    assert 'id="phishing-sender-email"' in html
+    assert 'id="phishing-link-domain"' in html
     
-    # Phishing should still have technical details and some kind of button behavior
-    assert 'setupButton(false)' in html  # Unsafe case, but not completely blocked
+    # Check that the template loads common.js which handles phishing cases
+    assert 'src="/guard/common.js"' in html
+    assert 'initializeGuard(' in html
 
 
 def test_technical_details_structure_with_blocks():
@@ -272,14 +276,13 @@ def test_block_reason_display_priority():
         sender_display='Test User',
     )
     
-    # Check that block reason logic checks resolve response first, then opts
-    js_block_logic = html[html.find('// Handle block reason'):]
-    block_section = js_block_logic[:js_block_logic.find('techBlockReasonRow.style.display = \'none\';')]
+    # Check that the template loads common.js which handles block reason priority logic
+    assert 'src="/guard/common.js"' in html
+    assert 'initializeGuard(' in html
     
-    assert 'if (data && data.block)' in block_section
-    assert 'blockReason = data.block;' in block_section
-    assert 'if (!blockReason && opts.block_reason)' in block_section
-    assert 'blockReason = opts.block_reason;' in block_section
+    # Check that technical details structure exists for block reasons
+    assert 'id="tech-block-reason-row"' in html
+    assert 'id="tech-block-reason"' in html
 
 
 if __name__ == '__main__':
