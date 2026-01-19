@@ -421,7 +421,9 @@ more data and could trigger tracking mechanisms on the remote server.
 The resolved link replaces the progress message and is highlighted just like the
 original URL. If the final destination shares the same domain as the sender then
 the highlight is shown in green and the continue button will open this resolved
-link.
+link. When the resolved URL differs from the original link in the email, an
+option under **Details** allows the user to choose the original link instead;
+the continue delay still applies in both cases.
 Options for the countdown and resolution are served through `/guard/opts.js`
 so `/guard/common.js` can be cached efficiently.
 If the resolution fails the `/resolve` endpoint returns an error message along

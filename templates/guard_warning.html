@@ -124,6 +124,11 @@
         <div class="tech-detail-label">Resolved Link:</div>
         <div class="tech-detail-value" id="tech-resolved-url"></div>
       </div>
+      <div class="tech-detail-row" id="tech-link-choice-row" style="display:none;">
+        <div class="tech-detail-value">
+          <label><input type="checkbox" id="use-original-checkbox"> <span id="use-original-label"></span></label>
+        </div>
+      </div>
       <div class="tech-detail-row" id="tech-title-row">
         <div class="tech-detail-label">Page Title:</div>
         <div class="tech-detail-value selectable" id="tech-title"></div>
@@ -240,7 +245,10 @@ const JS_STRINGS = {
   button_continue: 'Continue anyway (not recommended)',
   button_continue_safe: 'Go to website',
   redirecting_generic: 'Redirecting...',
-  redirecting_final: 'Redirecting to final destination...'
+  redirecting_final: 'Redirecting to final destination...',
+  tech_details_show: 'Show Details',
+  tech_details_hide: 'Hide Details',
+  use_original_label: 'Use the original link from the email.'
 };
 
 // Domain utility functions are now in common.js

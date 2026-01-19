@@ -299,8 +299,11 @@ function showState(stateId, domains) {
 function setTechnicalDetailsToggleState(isOpen) {
   const arrow = document.getElementById('tech-details-arrow');
   const textEl = document.getElementById('tech-details-toggle-text');
+  const s = (window.guardOpts && window.guardOpts.jsStrings) || {};
+  const hideStr = s.tech_details_hide || 'Hide Details';
+  const showStr = s.tech_details_show || 'Show Details';
   if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
-  if (textEl) textEl.textContent = isOpen ? 'Hide Details' : 'Show Details';
+  if (textEl) textEl.textContent = isOpen ? hideStr : showStr;
 }
 
 function toggleTechnicalDetails() {
@@ -367,11 +370,20 @@ function populateTechnicalDetails(data, opts, templateData, warningDefinitions) 
   
   // Handle visibility and special cases
   handleTechnicalDetailsVisibility(opts, data);
-  
+
   // Handle original URL label based on resolve mode
   const techOriginalLabel = document.getElementById('tech-original-label');
   if (techOriginalLabel) {
     techOriginalLabel.textContent = opts.resolve ? 'Original Link:' : 'Link:';
+  }
+
+  // Link-choice row: set checkbox label and ensure unchecked when original differs from resolved
+  if (opts.resolve && data && data.original_url) {
+    const jsStrings = opts.jsStrings || (window.guardOpts && window.guardOpts.jsStrings) || {};
+    const labelEl = document.getElementById('use-original-label');
+    const cb = document.getElementById('use-original-checkbox');
+    if (labelEl) labelEl.textContent = jsStrings.use_original_label || 'Use the original link from the email.';
+    if (cb) cb.checked = false;
   }
 }
 
@@ -400,7 +412,8 @@ function handleTechnicalDetailsVisibility(opts, data) {
     ['tech-resolved-row', function() { return opts.resolve && data && data.url; }],
     ['tech-title-row', function() { return opts.resolve && data && data.title; }],
     ['tech-warning-row', function() { return data && data.warning; }],
-    ['tech-block-reason-row', function() { return ((data && data.block) || opts.block_reason || '').trim() !== ''; }]
+    ['tech-block-reason-row', function() { return ((data && data.block) || opts.block_reason || '').trim() !== ''; }],
+    ['tech-link-choice-row', function() { return opts.resolve && data && data.original_url; }]
   ];
   ROW_VISIBILITY.forEach(function(entry) {
     const id = entry[0];
@@ -496,6 +509,7 @@ function handleNonResolveMode(opts, warningDefinitions) {
   // Extract domains for comparison
   var urlDomain = extractDomainFromUrl(opts.url || window.location.search);
   var senderDomain = opts.sender_domain;
+  var s = opts.jsStrings || {};
   
   if (urlDomain && senderDomain) {
     // Simple domain comparison using the new domain matching logic
@@ -503,13 +517,13 @@ function handleNonResolveMode(opts, warningDefinitions) {
     
     if (domainsMatchResult) {
       showState('non-resolve-safe', { safeDomain: senderDomain });
-      setupButtonImmediate(true);
+      setupButtonImmediate(true, s);
     } else {
       showState('non-resolve-unsafe', { 
         senderDomain: senderDomain, 
         unsafeDomain: urlDomain 
       });
-      setupButton(false);
+      setupButton(false, s);
     }
   } else {
     // If we can't determine domains, show unsafe
@@ -517,17 +531,18 @@ function handleNonResolveMode(opts, warningDefinitions) {
       senderDomain: senderDomain || 'unknown', 
       unsafeDomain: urlDomain || 'unknown' 
     });
-    setupButton(false);
+    setupButton(false, s);
   }
   
   // Populate technical details for non-resolve mode
   populateTechnicalDetails(null, opts, window.templateData || {});
 }
 
-function handleResolveMode(opts, jsStrings, warningDefinitions) {
+function handleResolveMode(opts, warningDefinitions) {
   // Get template data and block reason early
   const templateData = window.templateData || {};
   var blockReason = templateData.block_reason || opts.block_reason || '';
+  var s = opts.jsStrings || {};
   
   var controller = new AbortController();
   var timer = setTimeout(function () { controller.abort(); }, (opts.timeout_ms || 0) + 10000);
@@ -562,7 +577,12 @@ function handleResolveMode(opts, jsStrings, warningDefinitions) {
       if (u) u.value = data.url;
       if (h) h.value = data.hash;
     }
-    
+    if (data.original_url && data.original_hash) {
+      window.guardOriginalOption = { url: data.original_url, hash: data.original_hash };
+    } else {
+      window.guardOriginalOption = null;
+    }
+
     // Check for auto redirect before minimum display time
     if (opts.auto_redirect && data.domains_match && !data.block && !data.warning) {
       var startField = document.querySelector('input[name="ts"]');
@@ -623,17 +643,17 @@ function handleResolveMode(opts, jsStrings, warningDefinitions) {
           opts.sender_domain
         );
         showState('phishing-state', phishingDomains);
-        setupButton(false, jsStrings);
+        setupButton(false, s);
       } else if (data.domains_match) {
         // Use backend's domain match result - safe link, enable immediately
         showState('safe-state', { safeDomain: resolvedDomain || senderDomain });
-        setupButtonImmediate(true, jsStrings);
+        setupButtonImmediate(true, s);
       } else {
         showState('unsafe-state', { 
           senderDomain: senderDomain, 
           unsafeDomain: resolvedDomain 
         });
-        setupButton(false, jsStrings);
+        setupButton(false, s);
       }
       
       // Populate technical details
@@ -641,10 +661,11 @@ function handleResolveMode(opts, jsStrings, warningDefinitions) {
     }, remainingTime);
   })
   .catch(function (err) {
+    window.guardOriginalOption = null;
     // Handle errors by showing unsafe state
     var elapsed = Date.now() - resolveStartTime;
     var remainingTime = Math.max(0, minDisplayTime - elapsed);
-    
+
     setTimeout(function() {
       var senderDomain = opts.sender_domain;
       var urlDomain = extractDomainFromUrl(opts.url);
@@ -653,7 +674,7 @@ function handleResolveMode(opts, jsStrings, warningDefinitions) {
         senderDomain: senderDomain, 
         unsafeDomain: urlDomain || 'unknown' 
       });
-      setupButton(false, jsStrings);
+      setupButton(false, s);
       
       // Populate technical details for error case
       populateTechnicalDetails(null, opts, window.templateData || {}, warningDefinitions);
@@ -674,7 +695,8 @@ function initializeGuard(opts, jsStrings, warningDefinitions, templateData) {
   jsStrings = jsStrings || {};
   warningDefinitions = warningDefinitions || {};
   templateData = templateData || {};
-  
+  opts.jsStrings = jsStrings;
+
   // Check for blocking reason from server-side or template data
   var blockReason = templateData.block_reason || opts.block_reason || '';
   
@@ -683,7 +705,7 @@ function initializeGuard(opts, jsStrings, warningDefinitions, templateData) {
     if (opts.resolve) {
       // For resolve mode, still resolve the link but show phishing warning
       showState('checking-state');
-      handleResolveMode(opts, jsStrings, warningDefinitions);
+      handleResolveMode(opts, warningDefinitions);
       return;
     } else {
       // For non-resolve mode, show phishing warning immediately
@@ -695,7 +717,7 @@ function initializeGuard(opts, jsStrings, warningDefinitions, templateData) {
         opts.sender_domain
       );
       showState('non-resolve-phishing', phishingDomains);
-      setupButton(false, jsStrings);
+      setupButton(false, opts.jsStrings);
       populateTechnicalDetails(null, opts, templateData, warningDefinitions);
       return;
     }
@@ -716,13 +738,28 @@ function initializeGuard(opts, jsStrings, warningDefinitions, templateData) {
   if (opts.resolve) {
     // Always show checking state initially
     showState('checking-state');
-    
-    handleResolveMode(opts, jsStrings, warningDefinitions);
+
+    handleResolveMode(opts, warningDefinitions);
   } else {
     // Non-resolve mode - compare domains immediately
     handleNonResolveMode(opts, warningDefinitions);
   }
-  
+
+  // Form submit: when "use original" is checked, swap #final and #hash before submit
+  var form = document.getElementById('continueForm');
+  if (form) {
+    form.addEventListener('submit', function() {
+      var opt = window.guardOriginalOption;
+      var cb = document.getElementById('use-original-checkbox');
+      var finalEl = document.getElementById('final');
+      var hashEl = document.getElementById('hash');
+      if (opt && cb && cb.checked && finalEl && hashEl) {
+        finalEl.value = opt.url;
+        hashEl.value = opt.hash;
+      }
+    });
+  }
+
   // Initialize URL highlighting for existing elements
   var urlEl = document.getElementById('url');
   if (urlEl) {

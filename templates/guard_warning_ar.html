@@ -5,115 +5,144 @@
 <meta charset="utf-8">
 <title>Detrackify Guard</title>
 <link rel="stylesheet" href="/guard/common.css">
-<script src="/guard/opts.js"></script>
 <script src="/guard/common.js"></script>
+<script src="/guard/opts.js"></script>
+
+<!-- All common styles are now in common.css -->
 </head>
 <body>
-<div class="content-container">
-  <div class="main-box">
-    <div class="logo-title">
-      <a href="https://github.com/mrworf/detrackify-email" class="noselect">Detrackify</a>
-    </div>
-    <div class="link-box link-box-left">
-      <img src="/resource/phishing.png" alt="Phishing" class="phishing-icon">
+<!-- Fixed logo and watermark -->
+<div class="fixed-logo">
+  <img src="/resource/phishing.png" alt="Detrackify Logo">
+</div>
+<div class="fixed-watermark">
+  <a href="https://github.com/mrworf/detrackify-email">Detrackify</a>
+</div>
 
-      <p>يبدو أن هذا الرابط محاولة تصيد احتيالي - حيث يحاول شخص ما خداعك من خلال التظاهر بأنه مصدر موثوق. تماماً كما يستخدم الصيد الطعم لاصطياد الفريسة، يستخدم التصيد الاحتيالي روابط خادعة لالتقاط المعلومات الحساسة.</p>
-      <p>لحمايتك، نعرض لك الوجهة الفعلية لهذا الرابط، والتي تختلف عما تم تقديمه. هذه الشفافية تساعدك على اتخاذ قرار مستنير قبل المتابعة.</p>
-    </div>
-    {% if block_reason == 'phishy' %}
-    <div class="link-box link-box-left">
-      {% if sender_display %}
-      <p class="text-center">البريد الإلكتروني يدعي أنه من <span class="domain-box">{{ sender_display }}</span> لكن عنوان البريد الإلكتروني هو <span class="domain-box">{{ sender_email }}</span>. </p>
-      {% endif %}
-      <p class="text-center">الرابط يقول <span class="display-box">{{ display }}</span> وسيأخذك إلى:</p>
-      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
-      <p class="hint">كن حذراً - هذا الرابط والبريد الإلكتروني يبدوان كمحاولة تصيد احتيالي.</p>
-    </div>
-    {% else %}
-    <div class="link-box link-box-left">
-      {% if sender_email and sender_display %}
-      <p class="text-center">الرابط الذي نقرت عليه قال <span class="display-box">{{ display }}</span> وجاء من <span class="domain-box">{{ sender_display }} ({{ sender_email }})</span> لكن النقر عليه سيفتح الصفحة التالية:</p>
-      {% elif sender_email %}
-      <p class="text-center">الرابط الذي نقرت عليه قال <span class="display-box">{{ display }}</span> وجاء من <span class="domain-box">{{ sender_email }}</span> لكن النقر عليه سيفتح الصفحة التالية:</p>
-      {% else %}
-      <p class="text-center">الرابط الذي نقرت عليه قال <span class="display-box">{{ display }}</span> وجاء من <span class="domain-box">{{ domain }}</span> لكن النقر عليه سيفتح الصفحة التالية:</p>
-      {% endif %}
-      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
-      <p class="hint">لاحظ النطاق المختلف المظلل باللون الأحمر</p>
-    </div>
-    {% endif %}
+
+
+<!-- Main content -->
+<div id="full-content" class="content-container">
+  <div class="main-box">
+    
+    <!-- Resolve mode: Checking state -->
     {% if resolve %}
-    <div class="spinner" id="resolve-spinner"></div>
-    <div class="link-box link-box-left">
-      <p class="noselect progress-message" id="progress">حل الوجهة النهائية، يرجى الانتظار...</p>
-      
-      <!-- URL matches domain (green) -->
-      <div id="url-match" class="hidden">
-        <div class="url-transition">
-          <div class="url-original">
-            <span class="url-label">الرابط الأصلي:</span>
-            <span class="url-value noselect original-url">{{ url }}</span>
-          </div>
-          <div class="url-arrow">→</div>
-          <div class="url-resolved">
-            <span class="url-label">الوجهة النهائية:</span>
-            <div class="destination-box">
-              <p class="noselect title-message hidden" id="title-match"></p>
-              <p class="noselect result-message" id="result-match"></p>
-            </div>
-          </div>
-        </div>
-        <p class="hint">الوجهة النهائية تطابق نطاق المرسل - هذا يبدو آمناً.</p>
+    <div id="checking-state">
+      <div class="status-icon">🔍</div>
+      <h1>جاري التحقق من هذا الرابط لأمانك</h1>
+      <div class="progress-bar">
+        <div class="progress-bar-fill"></div>
       </div>
-      
-      <!-- URL doesn't match domain (red) -->
-      <div id="url-mismatch" class="hidden">
-        <div class="url-transition">
-          <div class="url-original">
-            <span class="url-label">الرابط الأصلي:</span>
-            <span class="url-value noselect original-url">{{ url }}</span>
-          </div>
-          <div class="url-arrow">→</div>
-          <div class="url-resolved">
-            <span class="url-label">الوجهة النهائية:</span>
-            <div class="destination-box">
-              <p class="noselect title-message hidden" id="title-mismatch"></p>
-              <p class="noselect result-message" id="result-mismatch"></p>
-            </div>
-          </div>
-        </div>
-        <p class="hint">الوجهة النهائية تختلف عن نطاق المرسل - تابع بحذر.</p>
-      </div>
-      
-      <!-- Blocked warning state -->
-      <div id="url-blocked-warning" class="hidden">
-        <div class="blocked-warning-box">
-          <p class="noselect blocked-warning-title" id="blocked-warning-title"></p>
-          <p class="noselect blocked-warning-message" id="blocked-warning-message"></p>
-          <div class="warning-section">
-            <p><strong id="blocked-warning-meaning-header"></strong>: <span id="blocked-warning-meaning-content"></span></p>
-          </div>
-          <p id="blocked-warning-details" class="hidden">
-            <a id="blocked-warning-link" href="#" target="_blank" rel="noopener noreferrer">اعرف المزيد</a>
-          </p>
-        </div>
-        <p class="hint">قام المسؤول بحظر الوصول إلى هذا الرابط بسبب مخاوف أمنية.</p>
-      </div>
-      <div id="error" class="error-message"></div>
+    </div>
+    
+    <!-- Safe state (green check) -->
+    <div id="safe-state" class="hidden">
+      <div class="status-icon">✅</div>
+      <h1>يبدو هذا الرابط آمناً</h1>
+      <p>المرسل والرابط يذهبان إلى <span class="domain-highlight safe-domain" id="safe-domain"></span></p>
+    </div>
+    
+    <!-- Unsafe state (yellow triangle) -->
+    <div id="unsafe-state" class="hidden">
+      <div class="status-icon">⚠️</div>
+      <h1>قد يكون هذا الرابط غير آمن</h1>
+      <p>البريد الإلكتروني من <span class="domain-highlight" id="sender-domain"></span> لكن الرابط يؤدي في الواقع إلى <span class="domain-highlight unsafe-domain" id="unsafe-domain"></span></p>
+    </div>
+    
+    <!-- Blocked state (stop sign) -->
+    <div id="blocked-state" class="hidden">
+      <div class="status-icon">🛑</div>
+      <h1>تم حظر هذا الرابط</h1>
+      <p>قام المسؤول بحظر الوصول إلى هذا الرابط بسبب مخاوف أمنية.</p>
+    </div>
+    
+    <!-- Phishing state (warning triangle) -->
+    <div id="phishing-state" class="hidden">
+      <div class="status-icon">❌</div>
+      <h1>قد يكون هذا الرابط محاولة تصيد احتيالي</h1>
+      <p>اسم المرسل <span class="domain-highlight" id="phishing-sender-display"></span> لا يرتبط بعنوان البريد الإلكتروني <span class="domain-highlight" id="phishing-sender-email"></span> أو وجهة الرابط <span class="domain-highlight" id="phishing-link-domain"></span></p>
+    </div>
+    
+    {% else %}
+    <!-- Non-resolve mode states -->
+    <div id="non-resolve-safe" class="hidden">
+      <div class="status-icon">✅</div>
+      <h1>يبدو هذا الرابط آمناً</h1>
+      <p>المرسل والرابط يذهبان إلى <span class="domain-highlight safe-domain" id="non-resolve-safe-domain"></span></p>
+    </div>
+    
+    <div id="non-resolve-unsafe" class="hidden">
+      <div class="status-icon">⚠️</div>
+      <h1>قد يكون هذا الرابط غير آمن</h1>
+      <p>البريد الإلكتروني من <span class="domain-highlight" id="non-resolve-sender-domain"></span> لكن الرابط يؤدي إلى <span class="domain-highlight unsafe-domain" id="non-resolve-unsafe-domain"></span></p>
+    </div>
+    
+    <div id="non-resolve-phishing" class="hidden">
+      <div class="status-icon">❌</div>
+      <h1>قد يكون هذا الرابط محاولة تصيد احتيالي</h1>
+      <p>اسم المرسل <span class="domain-highlight" id="non-resolve-phishing-sender-display"></span> لا يرتبط بعنوان البريد الإلكتروني <span class="domain-highlight" id="non-resolve-phishing-sender-email"></span> أو وجهة الرابط <span class="domain-highlight" id="non-resolve-phishing-link-domain"></span></p>
+    </div>
+    
+    <div id="non-resolve-blocked" class="hidden">
+      <div class="status-icon">🛑</div>
+      <h1>تم حظر هذا الرابط</h1>
+      <p>قام المسؤول بحظر الوصول إلى هذا الرابط بسبب مخاوف أمنية.</p>
     </div>
     {% endif %}
+    
+    <!-- Form (hidden for blocked states) -->
     <form method="post" action="{% if resolve %}/guard/go{% endif %}" autocomplete="off" id="continueForm">
       <input type="hidden" name="ts" value="{{ ts }}">
       {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
       <button id="cont" class="button-large" disabled>
         <div class="button-progress" id="button-progress"></div>
-        <span id="button-text">نعم، أفهم وأريد المتابعة</span>
+        <span id="button-text">الانتقال إلى الموقع</span>
       </button>
       <div id="redirecting-state" class="hidden">
         <div class="button-spinner"></div>
         <span id="redirecting-text">إعادة توجيه...</span>
       </div>
     </form>
+    
+    <!-- Technical details section (shared across all states) -->
+    <div class="technical-details-toggle" id="technical-details-section" onclick="toggleTechnicalDetails()">
+      <span id="tech-details-arrow">▶</span> <span id="tech-details-toggle-text">عرض التفاصيل</span>
+    </div>
+    <div class="technical-details-content" id="technical-details">
+      <div class="tech-detail-row">
+        <div class="tech-detail-label">المرسل:</div>
+        <div class="tech-detail-value selectable" id="tech-sender"></div>
+      </div>
+      <div class="tech-detail-row">
+        <div class="tech-detail-label">اسم الرابط:</div>
+        <div class="tech-detail-value selectable" id="tech-link-name"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-original-row">
+        <div class="tech-detail-label" id="tech-original-label">الرابط الأصلي:</div>
+        <div class="tech-detail-value" id="tech-original-url"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-resolved-row">
+        <div class="tech-detail-label">الرابط المحلل:</div>
+        <div class="tech-detail-value" id="tech-resolved-url"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-link-choice-row" style="display:none;">
+        <div class="tech-detail-value">
+          <label><input type="checkbox" id="use-original-checkbox"> <span id="use-original-label"></span></label>
+        </div>
+      </div>
+      <div class="tech-detail-row" id="tech-title-row">
+        <div class="tech-detail-label">عنوان الصفحة:</div>
+        <div class="tech-detail-value selectable" id="tech-title"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-warning-row">
+        <div class="tech-detail-label">التحذير:</div>
+        <div class="tech-detail-value selectable" id="tech-warning"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-block-reason-row">
+        <div class="tech-detail-label">سبب الحظر:</div>
+        <div class="tech-detail-value selectable" id="tech-block-reason"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -143,6 +172,9 @@
 
 <!-- Warning Definitions -->
 <script>
+// ==============================================================================
+// LANGUAGE-SPECIFIC WARNING DEFINITIONS - ARABIC
+// ==============================================================================
 const WARNING_DEFINITIONS = {
   'ssl_certificate': {
     header: '⚠️ تحذير شهادة الأمان',
@@ -200,41 +232,38 @@ const WARNING_DEFINITIONS = {
   }
 };
 
-// JavaScript UI Strings - for internationalization
+// ==============================================================================
+// LANGUAGE-SPECIFIC UI STRINGS - ARABIC
+// ==============================================================================
 const JS_STRINGS = {
-  // Error messages
-  error_resolving_link: 'خطأ في حل الرابط',
-  connection_timed_out: 'انتهت مهلة الاتصال',
-  link_not_found: 'لم يتم العثور على الرابط',
-  invalid_link_info: 'معلومات رابط غير صالحة',
-  internal_error: 'خطأ داخلي',
-  
-  // Warning messages
-  could_not_verify_timeout: 'لا يمكن التحقق من الوجهة النهائية بسبب انتهاء المهلة',
-  could_not_verify: 'لا يمكن التحقق من الوجهة النهائية',
-  could_not_verify_invalid: 'لا يمكن التحقق من الوجهة النهائية بسبب معلومات رابط غير صالحة',
-  could_not_verify_server: 'لا يمكن التحقق من الوجهة النهائية بسبب خطأ في الخادم',
-  
-  // Fallback warning text
-  warning_generic: '⚠️ تحذير',
-  unknown_warning: 'حدث تحذير غير معروف',
-  what_this_means: 'ما يعنيه هذا',
-  issue_verifying_link: 'واجهنا مشكلة عند التحقق من هذا الرابط.',
-  what_you_should_do: 'ما يجب عليك فعله',
-  proceed_with_caution: 'تابع بحذر إذا كنت تثق بمصدر هذا الرابط.',
-  
-  // Error state text
-  could_not_verify_destination: 'لا يمكن التحقق من الوجهة النهائية',
-  
-  // Button and redirecting text
-  button_continue: 'نعم، أفهم وأريد المتابعة',
-  button_continue_final: 'المتابعة إلى الوجهة النهائية',
+  button_continue: 'تابع على أي حال (غير موصى به)',
+  button_continue_safe: 'الانتقال إلى الموقع',
   redirecting_generic: 'إعادة توجيه...',
   redirecting_final: 'إعادة توجيه إلى الوجهة النهائية...',
-  
-  // Blocked warning text
-  access_blocked: 'تم حظر الوصول إلى هذا الرابط'
+  tech_details_show: 'عرض التفاصيل',
+  tech_details_hide: 'إخفاء التفاصيل',
+  use_original_label: 'استخدم الرابط الأصلي من البريد الإلكتروني.'
 };
+</script>
+
+<script>
+// ==============================================================================
+// TEMPLATE-SPECIFIC INITIALIZATION
+// ==============================================================================
+
+document.addEventListener('DOMContentLoaded', function () {
+  const templateData = {
+    url: '{{ url | default("", true) }}',
+    sender_email: '{{ sender_email | default("", true) }}',
+    sender_display: '{{ sender_display | default("", true) }}',
+    display: '{{ display | default("", true) }}',
+    block_reason: '{{ block_reason | default("", true) }}'
+  };
+  
+  window.templateData = templateData;
+  
+  initializeGuard(window.guardOpts, JS_STRINGS, WARNING_DEFINITIONS, templateData);
+});
 </script>
 
 </body>

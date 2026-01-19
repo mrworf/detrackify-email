@@ -5,115 +5,144 @@
 <meta charset="utf-8">
 <title>Detrackify Guard</title>
 <link rel="stylesheet" href="/guard/common.css">
-<script src="/guard/opts.js"></script>
 <script src="/guard/common.js"></script>
+<script src="/guard/opts.js"></script>
+
+<!-- All common styles are now in common.css -->
 </head>
 <body>
-<div class="content-container">
-  <div class="main-box">
-    <div class="logo-title">
-      <a href="https://github.com/mrworf/detrackify-email" class="noselect">Detrackify</a>
-    </div>
-    <div class="link-box link-box-left">
-      <img src="/resource/phishing.png" alt="Phishing" class="phishing-icon">
+<!-- Fixed logo and watermark -->
+<div class="fixed-logo">
+  <img src="/resource/phishing.png" alt="Detrackify Logo">
+</div>
+<div class="fixed-watermark">
+  <a href="https://github.com/mrworf/detrackify-email">Detrackify</a>
+</div>
 
-      <p>Denna länk verkar vara ett försök till phishing - där någon försöker lura dig genom att utge sig för att vara en betrodd källa. Precis som fiske använder beten för att fånga byte, använder phishing vilseledande länkar för att fånga känslig information.</p>
-      <p>För att skydda dig visar vi dig den faktiska destinationen för denna länk, som skiljer sig från vad som presenterades. Denna transparens hjälper dig att fatta ett informerat beslut innan du fortsätter.</p>
-    </div>
-    {% if block_reason == 'phishy' %}
-    <div class="link-box link-box-left">
-      {% if sender_display %}
-      <p class="text-center">E-postmeddelandet påstår sig vara från <span class="domain-box">{{ sender_display }}</span> men e-postadressen är <span class="domain-box">{{ sender_email }}</span>. </p>
-      {% endif %}
-      <p class="text-center">Länken säger <span class="display-box">{{ display }}</span> och kommer att ta dig till:</p>
-      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
-      <p class="hint">Var försiktig - denna länk och e-post verkar vara ett phishing-försök.</p>
-    </div>
-    {% else %}
-    <div class="link-box link-box-left">
-      {% if sender_email and sender_display %}
-      <p class="text-center">Länken du klickade på sa <span class="display-box">{{ display }}</span> och kom från <span class="domain-box">{{ sender_display }} ({{ sender_email }})</span> men att klicka på den kommer att öppna följande sida:</p>
-      {% elif sender_email %}
-      <p class="text-center">Länken du klickade på sa <span class="display-box">{{ display }}</span> och kom från <span class="domain-box">{{ sender_email }}</span> men att klicka på den kommer att öppna följande sida:</p>
-      {% else %}
-      <p class="text-center">Länken du klickade på sa <span class="display-box">{{ display }}</span> och kom från <span class="domain-box">{{ domain }}</span> men att klicka på den kommer att öppna följande sida:</p>
-      {% endif %}
-      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
-      <p class="hint">notera den olika domänen markerad i rött</p>
-    </div>
-    {% endif %}
+
+
+<!-- Main content -->
+<div id="full-content" class="content-container">
+  <div class="main-box">
+    
+    <!-- Resolve mode: Checking state -->
     {% if resolve %}
-    <div class="spinner" id="resolve-spinner"></div>
-    <div class="link-box link-box-left">
-      <p class="noselect progress-message" id="progress">Löser slutdestination, vänta...</p>
-      
-      <!-- URL matches domain (green) -->
-      <div id="url-match" class="hidden">
-        <div class="url-transition">
-          <div class="url-original">
-            <span class="url-label">Original länk:</span>
-            <span class="url-value noselect original-url">{{ url }}</span>
-          </div>
-          <div class="url-arrow">→</div>
-          <div class="url-resolved">
-            <span class="url-label">Slutdestination:</span>
-            <div class="destination-box">
-              <p class="noselect title-message hidden" id="title-match"></p>
-              <p class="noselect result-message" id="result-match"></p>
-            </div>
-          </div>
-        </div>
-        <p class="hint">Slutdestinationen matchar avsändarens domän - detta verkar vara säkert.</p>
+    <div id="checking-state">
+      <div class="status-icon">🔍</div>
+      <h1>Kontrollerar denna länk för din säkerhet</h1>
+      <div class="progress-bar">
+        <div class="progress-bar-fill"></div>
       </div>
-      
-      <!-- URL doesn't match domain (red) -->
-      <div id="url-mismatch" class="hidden">
-        <div class="url-transition">
-          <div class="url-original">
-            <span class="url-label">Original länk:</span>
-            <span class="url-value noselect original-url">{{ url }}</span>
-          </div>
-          <div class="url-arrow">→</div>
-          <div class="url-resolved">
-            <span class="url-label">Slutdestination:</span>
-            <div class="destination-box">
-              <p class="noselect title-message hidden" id="title-mismatch"></p>
-              <p class="noselect result-message" id="result-mismatch"></p>
-            </div>
-          </div>
-        </div>
-        <p class="hint">Slutdestinationen skiljer sig från avsändarens domän - fortsätt med försiktighet.</p>
-      </div>
-      
-      <!-- Blocked warning state -->
-      <div id="url-blocked-warning" class="hidden">
-        <div class="blocked-warning-box">
-          <p class="noselect blocked-warning-title" id="blocked-warning-title"></p>
-          <p class="noselect blocked-warning-message" id="blocked-warning-message"></p>
-          <div class="warning-section">
-            <p><strong id="blocked-warning-meaning-header"></strong>: <span id="blocked-warning-meaning-content"></span></p>
-          </div>
-          <p id="blocked-warning-details" class="hidden">
-            <a id="blocked-warning-link" href="#" target="_blank" rel="noopener noreferrer">Läs mer</a>
-          </p>
-        </div>
-        <p class="hint">Administratören har blockerat åtkomst till denna länk på grund av säkerhetsproblem.</p>
-      </div>
-      <div id="error" class="error-message"></div>
+    </div>
+    
+    <!-- Safe state (green check) -->
+    <div id="safe-state" class="hidden">
+      <div class="status-icon">✅</div>
+      <h1>Denna länk verkar säker</h1>
+      <p>Avsändaren och länken går båda till <span class="domain-highlight safe-domain" id="safe-domain"></span></p>
+    </div>
+    
+    <!-- Unsafe state (yellow triangle) -->
+    <div id="unsafe-state" class="hidden">
+      <div class="status-icon">⚠️</div>
+      <h1>Denna länk kan vara osäker</h1>
+      <p>E-postmeddelandet är från <span class="domain-highlight" id="sender-domain"></span> men länken går faktiskt till <span class="domain-highlight unsafe-domain" id="unsafe-domain"></span></p>
+    </div>
+    
+    <!-- Blocked state (stop sign) -->
+    <div id="blocked-state" class="hidden">
+      <div class="status-icon">🛑</div>
+      <h1>Denna länk har blockerats</h1>
+      <p>Administratören har blockerat åtkomst till denna länk på grund av säkerhetsproblem.</p>
+    </div>
+    
+    <!-- Phishing state (warning triangle) -->
+    <div id="phishing-state" class="hidden">
+      <div class="status-icon">❌</div>
+      <h1>Denna länk kan vara ett phishing-försök</h1>
+      <p>Avsändarens namn <span class="domain-highlight" id="phishing-sender-display"></span> har ingen koppling till e-postadressen <span class="domain-highlight" id="phishing-sender-email"></span> eller länkens destination <span class="domain-highlight" id="phishing-link-domain"></span></p>
+    </div>
+    
+    {% else %}
+    <!-- Non-resolve mode states -->
+    <div id="non-resolve-safe" class="hidden">
+      <div class="status-icon">✅</div>
+      <h1>Denna länk verkar säker</h1>
+      <p>Avsändaren och länken går båda till <span class="domain-highlight safe-domain" id="non-resolve-safe-domain"></span></p>
+    </div>
+    
+    <div id="non-resolve-unsafe" class="hidden">
+      <div class="status-icon">⚠️</div>
+      <h1>Denna länk kan vara osäker</h1>
+      <p>E-postmeddelandet är från <span class="domain-highlight" id="non-resolve-sender-domain"></span> men länken går till <span class="domain-highlight unsafe-domain" id="non-resolve-unsafe-domain"></span></p>
+    </div>
+    
+    <div id="non-resolve-phishing" class="hidden">
+      <div class="status-icon">❌</div>
+      <h1>Denna länk kan vara ett phishing-försök</h1>
+      <p>Avsändarens namn <span class="domain-highlight" id="non-resolve-phishing-sender-display"></span> har ingen koppling till e-postadressen <span class="domain-highlight" id="non-resolve-phishing-sender-email"></span> eller länkens destination <span class="domain-highlight" id="non-resolve-phishing-link-domain"></span></p>
+    </div>
+    
+    <div id="non-resolve-blocked" class="hidden">
+      <div class="status-icon">🛑</div>
+      <h1>Denna länk har blockerats</h1>
+      <p>Administratören har blockerat åtkomst till denna länk på grund av säkerhetsproblem.</p>
     </div>
     {% endif %}
+    
+    <!-- Form (hidden for blocked states) -->
     <form method="post" action="{% if resolve %}/guard/go{% endif %}" autocomplete="off" id="continueForm">
       <input type="hidden" name="ts" value="{{ ts }}">
       {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
       <button id="cont" class="button-large" disabled>
         <div class="button-progress" id="button-progress"></div>
-        <span id="button-text">Ja, jag förstår och vill fortsätta</span>
+        <span id="button-text">Gå till webbplats</span>
       </button>
       <div id="redirecting-state" class="hidden">
         <div class="button-spinner"></div>
         <span id="redirecting-text">Omdirigerar...</span>
       </div>
     </form>
+    
+    <!-- Technical details section (shared across all states) -->
+    <div class="technical-details-toggle" id="technical-details-section" onclick="toggleTechnicalDetails()">
+      <span id="tech-details-arrow">▶</span> <span id="tech-details-toggle-text">Visa detaljer</span>
+    </div>
+    <div class="technical-details-content" id="technical-details">
+      <div class="tech-detail-row">
+        <div class="tech-detail-label">Avsändare:</div>
+        <div class="tech-detail-value selectable" id="tech-sender"></div>
+      </div>
+      <div class="tech-detail-row">
+        <div class="tech-detail-label">Länknamn:</div>
+        <div class="tech-detail-value selectable" id="tech-link-name"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-original-row">
+        <div class="tech-detail-label" id="tech-original-label">Original länk:</div>
+        <div class="tech-detail-value" id="tech-original-url"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-resolved-row">
+        <div class="tech-detail-label">Löst länk:</div>
+        <div class="tech-detail-value" id="tech-resolved-url"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-link-choice-row" style="display:none;">
+        <div class="tech-detail-value">
+          <label><input type="checkbox" id="use-original-checkbox"> <span id="use-original-label"></span></label>
+        </div>
+      </div>
+      <div class="tech-detail-row" id="tech-title-row">
+        <div class="tech-detail-label">Sidtitel:</div>
+        <div class="tech-detail-value selectable" id="tech-title"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-warning-row">
+        <div class="tech-detail-label">Varning:</div>
+        <div class="tech-detail-value selectable" id="tech-warning"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-block-reason-row">
+        <div class="tech-detail-label">Blockeringsskäl:</div>
+        <div class="tech-detail-value selectable" id="tech-block-reason"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -143,6 +172,9 @@
 
 <!-- Warning Definitions -->
 <script>
+// ==============================================================================
+// LANGUAGE-SPECIFIC WARNING DEFINITIONS - SWEDISH
+// ==============================================================================
 const WARNING_DEFINITIONS = {
   'ssl_certificate': {
     header: '⚠️ Säkerhetscertifikat Varning',
@@ -200,42 +232,39 @@ const WARNING_DEFINITIONS = {
   }
 };
 
-// JavaScript UI Strings - for internationalization
+// ==============================================================================
+// LANGUAGE-SPECIFIC UI STRINGS - SWEDISH
+// ==============================================================================
 const JS_STRINGS = {
-  // Error messages
-  error_resolving_link: 'Fel vid lösning av länk',
-  connection_timed_out: 'Anslutning timeout',
-  link_not_found: 'Länk hittades inte',
-  invalid_link_info: 'Ogiltig länkinformation',
-  internal_error: 'Internt fel',
-  
-  // Warning messages
-  could_not_verify_timeout: 'Kunde inte verifiera slutdestinationen på grund av timeout',
-  could_not_verify: 'Kunde inte verifiera slutdestinationen',
-  could_not_verify_invalid: 'Kunde inte verifiera slutdestinationen på grund av ogiltig länkinformation',
-  could_not_verify_server: 'Kunde inte verifiera slutdestinationen på grund av serverfel',
-  
-  // Fallback warning text
-  warning_generic: '⚠️ Varning',
-  unknown_warning: 'En okänd varning inträffade',
-  what_this_means: 'Vad detta betyder',
-  issue_verifying_link: 'Vi stötte på ett problem när vi verifierade denna länk.',
-  what_you_should_do: 'Vad du ska göra',
-  proceed_with_caution: 'Fortsätt med försiktighet om du litar på källan till denna länk.',
-  
-  // Error state text
-  could_not_verify_destination: 'Kunde inte verifiera slutdestinationen',
-  
-  // Button and redirecting text
-  button_continue: 'Ja, jag förstår och vill fortsätta',
-  button_continue_final: 'Fortsätt till slutdestination',
+  button_continue: 'Fortsätt ändå (rekommenderas inte)',
+  button_continue_safe: 'Gå till webbplats',
   redirecting_generic: 'Omdirigerar...',
   redirecting_final: 'Omdirigerar till slutdestination...',
-  
-  // Blocked warning text
-  access_blocked: 'Åtkomst till denna länk har blockerats'
+  tech_details_show: 'Visa detaljer',
+  tech_details_hide: 'Dölj detaljer',
+  use_original_label: 'Använd originallänken från e-postmeddelandet.'
 };
 </script>
 
+<script>
+// ==============================================================================
+// TEMPLATE-SPECIFIC INITIALIZATION
+// ==============================================================================
+
+document.addEventListener('DOMContentLoaded', function () {
+  const templateData = {
+    url: '{{ url | default("", true) }}',
+    sender_email: '{{ sender_email | default("", true) }}',
+    sender_display: '{{ sender_display | default("", true) }}',
+    display: '{{ display | default("", true) }}',
+    block_reason: '{{ block_reason | default("", true) }}'
+  };
+  
+  window.templateData = templateData;
+  
+  initializeGuard(window.guardOpts, JS_STRINGS, WARNING_DEFINITIONS, templateData);
+});
+</script>
+
 </body>
-</html> 
+</html>

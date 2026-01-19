@@ -382,12 +382,20 @@ class GuardServer:
             logging.debug(f'Domain match check: {url_domain} vs {sender_domain} = {domains_match}')
         
         result_sha = SharedUtils.generate_hash(url, self.salt)
+        original_normalized = SharedUtils.strip_query_parameters(
+            info.get('url', ''), self.strip_prefixes
+        )
         response_data = {
-            'url': url, 
-            'hash': result_sha, 
+            'url': url,
+            'hash': result_sha,
             'title': title,
             'domains_match': domains_match
         }
+        if original_normalized and original_normalized != url:
+            response_data['original_url'] = original_normalized
+            response_data['original_hash'] = SharedUtils.generate_hash(
+                original_normalized, self.salt
+            )
         if block_reason:
             response_data['block'] = block_reason
         if resolution_warning:

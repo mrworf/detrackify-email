@@ -310,6 +310,59 @@ class TestGuardServer(unittest.TestCase):
                 self.assertEqual(result['title'], 'Resolved Title')
                 self.assertIn('domains_match', result)  # This uses the info variable
 
+    def test_resolve_returns_original_url_and_hash_when_different(self):
+        """Resolve returns original_url and original_hash when resolved URL differs from original."""
+        sha, data, _ = self._create_test_payload(url='https://example.com')
+        with patch.object(self.server.cache, 'get') as mock_get:
+            mock_get.return_value = {
+                'url': 'https://resolved-example.com',
+                'title': 'Resolved',
+                'warning': None
+            }
+            with self.server.app.test_client() as client:
+                response = client.post('/guard/resolve', json={'sha': sha, 'data': data})
+                self.assertEqual(response.status_code, 200)
+                result = json.loads(response.data)
+                self.assertIn('original_url', result)
+                self.assertIn('original_hash', result)
+                self.assertEqual(result['original_url'], 'https://example.com')
+                expected_hash = SharedUtils.generate_hash(
+                    'https://example.com', self.config.salt
+                )
+                self.assertEqual(result['original_hash'], expected_hash)
+
+    def test_resolve_omits_original_url_and_hash_when_same(self):
+        """Resolve omits original_url and original_hash when resolved URL equals original."""
+        sha, data, _ = self._create_test_payload(url='https://example.com')
+        with patch.object(self.server.cache, 'get') as mock_get:
+            mock_get.return_value = {
+                'url': 'https://example.com',
+                'title': 'Same',
+                'warning': None
+            }
+            with self.server.app.test_client() as client:
+                response = client.post('/guard/resolve', json={'sha': sha, 'data': data})
+                self.assertEqual(response.status_code, 200)
+                result = json.loads(response.data)
+                self.assertNotIn('original_url', result)
+                self.assertNotIn('original_hash', result)
+
+    def test_go_accepts_original_url_and_hash(self):
+        """go accepts url=original_url and sha=original_hash and redirects to original."""
+        original_url = 'https://original.example.com/path'
+        original_hash = SharedUtils.generate_hash(original_url, self.config.salt)
+        with self.server.app.test_client() as client:
+            with patch('detrackify_guard.redirect') as mock_redirect:
+                mock_response = MagicMock()
+                mock_response.headers = {}
+                mock_redirect.return_value = mock_response
+                response = client.post(
+                    '/guard/go',
+                    data={'url': original_url, 'sha': original_hash, 'ts': '1234567890.0'}
+                )
+                self.assertEqual(response.status_code, 200)
+                mock_redirect.assert_called_once_with(original_url, code=302)
+
     def test_go_method(self):
         """Test go method."""
         url = 'https://example.com'
@@ -346,15 +399,18 @@ class TestGuardServer(unittest.TestCase):
             self.assertTrue('timestamp' in result)
 
     def test_common_js_method(self):
-        """Test common_js method."""
+        """Test common_js method (serves common.min.js when it exists, else common.js)."""
         with self.server.app.test_client() as client:
             with patch('detrackify_guard.send_from_directory') as mock_send:
                 mock_send.return_value = 'var common = {};'
-                
+
                 response = client.get('/guard/common.js')
-                
+
                 self.assertEqual(response.status_code, 200)
-                mock_send.assert_called_once_with('templates', 'common.js', max_age=86400)
+                mock_send.assert_called_once()
+                self.assertEqual(mock_send.call_args[0][0], 'templates')
+                self.assertIn(mock_send.call_args[0][1], ('common.min.js', 'common.js'))
+                self.assertEqual(mock_send.call_args[1].get('max_age'), 86400)
 
     def test_common_css_method(self):
         """Test common_css method."""

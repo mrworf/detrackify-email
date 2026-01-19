@@ -5,117 +5,144 @@
 <meta charset="utf-8">
 <title>Detrackify Guard</title>
 <link rel="stylesheet" href="/guard/common.css">
-<script src="/guard/opts.js"></script>
 <script src="/guard/common.js"></script>
+<script src="/guard/opts.js"></script>
+
+<!-- All common styles are now in common.css -->
 </head>
 <body>
-<div class="content-container">
-  <div class="main-box">
-    <div class="logo-title">
-      <a href="https://github.com/mrworf/detrackify-email" class="noselect">Detrackify</a>
-    </div>
-    <div class="link-box link-box-left">
-      <img src="/resource/phishing.png" alt="Phishing" class="phishing-icon">
+<!-- Fixed logo and watermark -->
+<div class="fixed-logo">
+  <img src="/resource/phishing.png" alt="Detrackify Logo">
+</div>
+<div class="fixed-watermark">
+  <a href="https://github.com/mrworf/detrackify-email">Detrackify</a>
+</div>
 
-      <p>Ce lien semble être une tentative de phishing - où quelqu'un essaie de vous tromper en se faisant passer pour une source de confiance. Tout comme la pêche utilise des appâts pour attraper des proies, le phishing utilise des liens trompeurs pour capturer des informations sensibles.</p>
-      <p>Pour vous protéger, nous vous montrons la destination réelle de ce lien, qui diffère de ce qui a été présenté. Cette transparence vous aide à prendre une décision éclairée avant de continuer.</p>
-    </div>
-    {% if block_reason == 'phishy' %}
-    <div class="link-box link-box-left">
-      {% if sender_display %}
-      <p class="text-center">L'e-mail prétend provenir de <span class="domain-box">{{ sender_display }}</span> mais l'adresse e-mail est <span class="domain-box">{{ sender_email }}</span>. </p>
-      {% endif %}
-      <p class="text-center">Le lien dit <span class="display-box">{{ display }}</span> et vous mènera à :</p>
-      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
-      <p class="hint">Soyez prudent - ce lien et cet e-mail semblent être une tentative de phishing.</p>
-    </div>
-    {% else %}
-    <div class="link-box link-box-left">
-      {% if sender_email and sender_display %}
-      <p class="text-center">Le lien sur lequel vous avez cliqué disait <span class="display-box">{{ display }}</span> et venait de <span class="domain-box">{{ sender_display }} ({{ sender_email }})</span> mais cliquer dessus ouvrira la page suivante :</p>
-      {% elif sender_email %}
-      <p class="text-center">Le lien sur lequel vous avez cliqué disait <span class="display-box">{{ display }}</span> et venait de <span class="domain-box">{{ sender_email }}</span> mais cliquer dessus ouvrira la page suivante :</p>
-      {% else %}
-      <p class="text-center">Le lien sur lequel vous avez cliqué disait <span class="display-box">{{ display }}</span> et venait de <span class="domain-box">{{ domain }}</span> mais cliquer dessus ouvrira la page suivante :</p>
-      {% endif %}
-      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
-      <p class="hint">notez le domaine différent mis en évidence en rouge</p>
-    </div>
-    {% endif %}
+
+
+<!-- Main content -->
+<div id="full-content" class="content-container">
+  <div class="main-box">
+    
+    <!-- Resolve mode: Checking state -->
     {% if resolve %}
-    <div class="spinner" id="resolve-spinner"></div>
-    <div class="link-box link-box-left">
-      <p class="noselect progress-message" id="progress">Résolution de la destination finale, veuillez patienter...</p>
-      
-      <!-- URL matches domain (green) -->
-      <div id="url-match" class="hidden">
-        <div class="url-transition">
-          <div class="url-original">
-            <span class="url-label">Lien original :</span>
-            <span class="url-value noselect original-url">{{ url }}</span>
-          </div>
-          <div class="url-arrow">→</div>
-          <div class="url-resolved">
-            <span class="url-label">Destination finale :</span>
-            <div class="destination-box">
-              <p class="noselect title-message hidden" id="title-match"></p>
-              <p class="noselect result-message" id="result-match"></p>
-            </div>
-          </div>
-        </div>
-        <p class="hint">La destination finale correspond au domaine de l'expéditeur - cela semble sûr.</p>
+    <div id="checking-state">
+      <div class="status-icon">🔍</div>
+      <h1>Vérification de ce lien pour votre sécurité</h1>
+      <div class="progress-bar">
+        <div class="progress-bar-fill"></div>
       </div>
-      
-      <!-- URL doesn't match domain (red) -->
-      <div id="url-mismatch" class="hidden">
-        <div class="url-transition">
-          <div class="url-original">
-            <span class="url-label">Lien original :</span>
-            <span class="url-value noselect original-url">{{ url }}</span>
-          </div>
-          <div class="url-arrow">→</div>
-          <div class="url-resolved">
-            <span class="url-label">Destination finale :</span>
-            <div class="destination-box">
-              <p class="noselect title-message hidden" id="title-mismatch"></p>
-              <p class="noselect result-message" id="result-mismatch"></p>
-            </div>
-          </div>
-        </div>
-        <p class="hint">La destination finale diffère du domaine de l'expéditeur - procédez avec prudence.</p>
-      </div>
-      
-      <!-- Blocked warning state -->
-      <div id="url-blocked-warning" class="hidden">
-        <div class="blocked-warning-box">
-          <p class="noselect blocked-warning-title" id="blocked-warning-title"></p>
-          <div class="warning-section">
-            <p><strong id="blocked-warning-meaning-header"></strong>: <span id="blocked-warning-meaning-content"></span></p>
-          </div>
-          <div class="warning-section">
-            <p><strong id="blocked-warning-action-header"></strong>: <span id="blocked-warning-action-content"></span></p>
-          </div>
-          <p id="blocked-warning-details" class="hidden">
-            <a id="blocked-warning-link" href="#" target="_blank" rel="noopener noreferrer">En savoir plus</a>
-          </p>
-        </div>
-        <p class="hint">L'administrateur a bloqué l'accès à ce lien en raison de préoccupations de sécurité.</p>
-      </div>
-      <div id="error" class="error-message"></div>
+    </div>
+    
+    <!-- Safe state (green check) -->
+    <div id="safe-state" class="hidden">
+      <div class="status-icon">✅</div>
+      <h1>Ce lien semble sûr</h1>
+      <p>L'expéditeur et le lien mènent tous deux à <span class="domain-highlight safe-domain" id="safe-domain"></span></p>
+    </div>
+    
+    <!-- Unsafe state (yellow triangle) -->
+    <div id="unsafe-state" class="hidden">
+      <div class="status-icon">⚠️</div>
+      <h1>Ce lien peut être dangereux</h1>
+      <p>L'e-mail provient de <span class="domain-highlight" id="sender-domain"></span> mais le lien mène en réalité à <span class="domain-highlight unsafe-domain" id="unsafe-domain"></span></p>
+    </div>
+    
+    <!-- Blocked state (stop sign) -->
+    <div id="blocked-state" class="hidden">
+      <div class="status-icon">🛑</div>
+      <h1>Ce lien a été bloqué</h1>
+      <p>L'administrateur a bloqué l'accès à ce lien en raison de préoccupations de sécurité.</p>
+    </div>
+    
+    <!-- Phishing state (warning triangle) -->
+    <div id="phishing-state" class="hidden">
+      <div class="status-icon">❌</div>
+      <h1>Ce lien peut être une tentative de phishing</h1>
+      <p>Le nom de l'expéditeur <span class="domain-highlight" id="phishing-sender-display"></span> ne correspond pas à l'adresse e-mail <span class="domain-highlight" id="phishing-sender-email"></span> ni à la destination du lien <span class="domain-highlight" id="phishing-link-domain"></span></p>
+    </div>
+    
+    {% else %}
+    <!-- Non-resolve mode states -->
+    <div id="non-resolve-safe" class="hidden">
+      <div class="status-icon">✅</div>
+      <h1>Ce lien semble sûr</h1>
+      <p>L'expéditeur et le lien mènent tous deux à <span class="domain-highlight safe-domain" id="non-resolve-safe-domain"></span></p>
+    </div>
+    
+    <div id="non-resolve-unsafe" class="hidden">
+      <div class="status-icon">⚠️</div>
+      <h1>Ce lien peut être dangereux</h1>
+      <p>L'e-mail provient de <span class="domain-highlight" id="non-resolve-sender-domain"></span> mais le lien mène à <span class="domain-highlight unsafe-domain" id="non-resolve-unsafe-domain"></span></p>
+    </div>
+    
+    <div id="non-resolve-phishing" class="hidden">
+      <div class="status-icon">❌</div>
+      <h1>Ce lien peut être une tentative de phishing</h1>
+      <p>Le nom de l'expéditeur <span class="domain-highlight" id="non-resolve-phishing-sender-display"></span> ne correspond pas à l'adresse e-mail <span class="domain-highlight" id="non-resolve-phishing-sender-email"></span> ni à la destination du lien <span class="domain-highlight" id="non-resolve-phishing-link-domain"></span></p>
+    </div>
+    
+    <div id="non-resolve-blocked" class="hidden">
+      <div class="status-icon">🛑</div>
+      <h1>Ce lien a été bloqué</h1>
+      <p>L'administrateur a bloqué l'accès à ce lien en raison de préoccupations de sécurité.</p>
     </div>
     {% endif %}
+    
+    <!-- Form (hidden for blocked states) -->
     <form method="post" action="{% if resolve %}/guard/go{% endif %}" autocomplete="off" id="continueForm">
       <input type="hidden" name="ts" value="{{ ts }}">
       {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
       <button id="cont" class="button-large" disabled>
         <div class="button-progress" id="button-progress"></div>
-        <span id="button-text">Oui, je comprends et je veux continuer</span>
+        <span id="button-text">Aller au site web</span>
       </button>
       <div id="redirecting-state" class="hidden">
         <div class="button-spinner"></div>
         <span id="redirecting-text">Redirection...</span>
       </div>
     </form>
+    
+    <!-- Technical details section (shared across all states) -->
+    <div class="technical-details-toggle" id="technical-details-section" onclick="toggleTechnicalDetails()">
+      <span id="tech-details-arrow">▶</span> <span id="tech-details-toggle-text">Afficher les détails</span>
+    </div>
+    <div class="technical-details-content" id="technical-details">
+      <div class="tech-detail-row">
+        <div class="tech-detail-label">Expéditeur :</div>
+        <div class="tech-detail-value selectable" id="tech-sender"></div>
+      </div>
+      <div class="tech-detail-row">
+        <div class="tech-detail-label">Nom du lien :</div>
+        <div class="tech-detail-value selectable" id="tech-link-name"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-original-row">
+        <div class="tech-detail-label" id="tech-original-label">Lien original :</div>
+        <div class="tech-detail-value" id="tech-original-url"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-resolved-row">
+        <div class="tech-detail-label">Lien résolu :</div>
+        <div class="tech-detail-value" id="tech-resolved-url"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-link-choice-row" style="display:none;">
+        <div class="tech-detail-value">
+          <label><input type="checkbox" id="use-original-checkbox"> <span id="use-original-label"></span></label>
+        </div>
+      </div>
+      <div class="tech-detail-row" id="tech-title-row">
+        <div class="tech-detail-label">Titre de la page :</div>
+        <div class="tech-detail-value selectable" id="tech-title"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-warning-row">
+        <div class="tech-detail-label">Avertissement :</div>
+        <div class="tech-detail-value selectable" id="tech-warning"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-block-reason-row">
+        <div class="tech-detail-label">Motif du blocage :</div>
+        <div class="tech-detail-value selectable" id="tech-block-reason"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -145,6 +172,9 @@
 
 <!-- Warning Definitions -->
 <script>
+// ==============================================================================
+// LANGUAGE-SPECIFIC WARNING DEFINITIONS - FRENCH
+// ==============================================================================
 const WARNING_DEFINITIONS = {
   'ssl_certificate': {
     header: '⚠️ Avertissement de certificat de sécurité',
@@ -202,41 +232,38 @@ const WARNING_DEFINITIONS = {
   }
 };
 
-// JavaScript UI Strings - for internationalization
+// ==============================================================================
+// LANGUAGE-SPECIFIC UI STRINGS - FRENCH
+// ==============================================================================
 const JS_STRINGS = {
-  // Error messages
-  error_resolving_link: 'Erreur lors de la résolution du lien',
-  connection_timed_out: 'Délai d\'attente de connexion dépassé',
-  link_not_found: 'Lien non trouvé',
-  invalid_link_info: 'Informations de lien invalides',
-  internal_error: 'Erreur interne',
-  
-  // Warning messages
-  could_not_verify_timeout: 'Impossible de vérifier la destination finale en raison d\'un délai d\'attente',
-  could_not_verify: 'Impossible de vérifier la destination finale',
-  could_not_verify_invalid: 'Impossible de vérifier la destination finale en raison d\'informations de lien invalides',
-  could_not_verify_server: 'Impossible de vérifier la destination finale en raison d\'une erreur de serveur',
-  
-  // Fallback warning text
-  warning_generic: '⚠️ Avertissement',
-  unknown_warning: 'Un avertissement inconnu s\'est produit',
-  what_this_means: 'Ce que cela signifie',
-  issue_verifying_link: 'Nous avons rencontré un problème lors de la vérification de ce lien.',
-  what_you_should_do: 'Ce que vous devez faire',
-  proceed_with_caution: 'Procédez avec prudence si vous faites confiance à la source de ce lien.',
-  
-  // Error state text
-  could_not_verify_destination: 'Impossible de vérifier la destination finale',
-  
-  // Button and redirecting text
-  button_continue: 'Oui, je comprends et je veux continuer',
-  button_continue_final: 'Continuer vers la destination finale',
+  button_continue: 'Continuer quand même (non recommandé)',
+  button_continue_safe: 'Aller au site web',
   redirecting_generic: 'Redirection...',
   redirecting_final: 'Redirection vers la destination finale...',
-  
-  // Blocked warning text
-  access_blocked: 'L\'accès à ce lien a été bloqué'
+  tech_details_show: 'Afficher les détails',
+  tech_details_hide: 'Masquer les détails',
+  use_original_label: 'Utiliser le lien original de l\'e-mail.'
 };
+</script>
+
+<script>
+// ==============================================================================
+// TEMPLATE-SPECIFIC INITIALIZATION
+// ==============================================================================
+
+document.addEventListener('DOMContentLoaded', function () {
+  const templateData = {
+    url: '{{ url | default("", true) }}',
+    sender_email: '{{ sender_email | default("", true) }}',
+    sender_display: '{{ sender_display | default("", true) }}',
+    display: '{{ display | default("", true) }}',
+    block_reason: '{{ block_reason | default("", true) }}'
+  };
+  
+  window.templateData = templateData;
+  
+  initializeGuard(window.guardOpts, JS_STRINGS, WARNING_DEFINITIONS, templateData);
+});
 </script>
 
 </body>

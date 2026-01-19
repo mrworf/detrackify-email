@@ -5,115 +5,144 @@
 <meta charset="utf-8">
 <title>Detrackify Guard</title>
 <link rel="stylesheet" href="/guard/common.css">
-<script src="/guard/opts.js"></script>
 <script src="/guard/common.js"></script>
+<script src="/guard/opts.js"></script>
+
+<!-- All common styles are now in common.css -->
 </head>
 <body>
-<div class="content-container">
-  <div class="main-box">
-    <div class="logo-title">
-      <a href="https://github.com/mrworf/detrackify-email" class="noselect">Detrackify</a>
-    </div>
-    <div class="link-box link-box-left">
-      <img src="/resource/phishing.png" alt="Phishing" class="phishing-icon">
+<!-- Fixed logo and watermark -->
+<div class="fixed-logo">
+  <img src="/resource/phishing.png" alt="Detrackify Logo">
+</div>
+<div class="fixed-watermark">
+  <a href="https://github.com/mrworf/detrackify-email">Detrackify</a>
+</div>
 
-      <p>此链接似乎是钓鱼尝试 - 有人试图通过冒充可信来源来欺骗您。就像钓鱼使用诱饵来捕获猎物一样，网络钓鱼使用欺骗性链接来捕获敏感信息。</p>
-      <p>为了保护您，我们向您显示此链接的实际目标，这与所呈现的内容不同。这种透明度帮助您在继续之前做出明智的决定。</p>
-    </div>
-    {% if block_reason == 'phishy' %}
-    <div class="link-box link-box-left">
-      {% if sender_display %}
-      <p class="text-center">邮件声称来自 <span class="domain-box">{{ sender_display }}</span> 但邮件地址是 <span class="domain-box">{{ sender_email }}</span>。 </p>
-      {% endif %}
-      <p class="text-center">链接显示 <span class="display-box">{{ display }}</span> 并将带您到：</p>
-      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
-      <p class="hint">请小心 - 此链接和邮件似乎是钓鱼尝试。</p>
-    </div>
-    {% else %}
-    <div class="link-box link-box-left">
-      {% if sender_email and sender_display %}
-      <p class="text-center">您点击的链接显示 <span class="display-box">{{ display }}</span> 并来自 <span class="domain-box">{{ sender_display }} ({{ sender_email }})</span> 但点击它将打开以下页面：</p>
-      {% elif sender_email %}
-      <p class="text-center">您点击的链接显示 <span class="display-box">{{ display }}</span> 并来自 <span class="domain-box">{{ sender_email }}</span> 但点击它将打开以下页面：</p>
-      {% else %}
-      <p class="text-center">您点击的链接显示 <span class="display-box">{{ display }}</span> 并来自 <span class="domain-box">{{ domain }}</span> 但点击它将打开以下页面：</p>
-      {% endif %}
-      <p class="noselect source-box"><span id="url">{{ url }}</span></p>
-      <p class="hint">注意以红色突出显示的不同域名</p>
-    </div>
-    {% endif %}
+
+
+<!-- Main content -->
+<div id="full-content" class="content-container">
+  <div class="main-box">
+    
+    <!-- Resolve mode: Checking state -->
     {% if resolve %}
-    <div class="spinner" id="resolve-spinner"></div>
-    <div class="link-box link-box-left">
-      <p class="noselect progress-message" id="progress">正在解析最终目标，请稍候...</p>
-      
-      <!-- URL matches domain (green) -->
-      <div id="url-match" class="hidden">
-        <div class="url-transition">
-          <div class="url-original">
-            <span class="url-label">原始链接：</span>
-            <span class="url-value noselect original-url">{{ url }}</span>
-          </div>
-          <div class="url-arrow">→</div>
-          <div class="url-resolved">
-            <span class="url-label">最终目标：</span>
-            <div class="destination-box">
-              <p class="noselect title-message hidden" id="title-match"></p>
-              <p class="noselect result-message" id="result-match"></p>
-            </div>
-          </div>
-        </div>
-        <p class="hint">最终目标与发件人的域名匹配 - 这似乎是安全的。</p>
+    <div id="checking-state">
+      <div class="status-icon">🔍</div>
+      <h1>正在检查此链接以确保您的安全</h1>
+      <div class="progress-bar">
+        <div class="progress-bar-fill"></div>
       </div>
-      
-      <!-- URL doesn't match domain (red) -->
-      <div id="url-mismatch" class="hidden">
-        <div class="url-transition">
-          <div class="url-original">
-            <span class="url-label">原始链接：</span>
-            <span class="url-value noselect original-url">{{ url }}</span>
-          </div>
-          <div class="url-arrow">→</div>
-          <div class="url-resolved">
-            <span class="url-label">最终目标：</span>
-            <div class="destination-box">
-              <p class="noselect title-message hidden" id="title-mismatch"></p>
-              <p class="noselect result-message" id="result-mismatch"></p>
-            </div>
-          </div>
-        </div>
-        <p class="hint">最终目标与发件人的域名不同 - 请谨慎继续。</p>
-      </div>
-      
-      <!-- Blocked warning state -->
-      <div id="url-blocked-warning" class="hidden">
-        <div class="blocked-warning-box">
-          <p class="noselect blocked-warning-title" id="blocked-warning-title"></p>
-          <p class="noselect blocked-warning-message" id="blocked-warning-message"></p>
-          <div class="warning-section">
-            <p><strong id="blocked-warning-meaning-header"></strong>: <span id="blocked-warning-meaning-content"></span></p>
-          </div>
-          <p id="blocked-warning-details" class="hidden">
-            <a id="blocked-warning-link" href="#" target="_blank" rel="noopener noreferrer">了解更多</a>
-          </p>
-        </div>
-        <p class="hint">管理员出于安全考虑已阻止访问此链接。</p>
-      </div>
-      <div id="error" class="error-message"></div>
+    </div>
+    
+    <!-- Safe state (green check) -->
+    <div id="safe-state" class="hidden">
+      <div class="status-icon">✅</div>
+      <h1>此链接看起来安全</h1>
+      <p>发件人和链接均指向 <span class="domain-highlight safe-domain" id="safe-domain"></span></p>
+    </div>
+    
+    <!-- Unsafe state (yellow triangle) -->
+    <div id="unsafe-state" class="hidden">
+      <div class="status-icon">⚠️</div>
+      <h1>此链接可能不安全</h1>
+      <p>邮件来自 <span class="domain-highlight" id="sender-domain"></span>，但链接实际指向 <span class="domain-highlight unsafe-domain" id="unsafe-domain"></span></p>
+    </div>
+    
+    <!-- Blocked state (stop sign) -->
+    <div id="blocked-state" class="hidden">
+      <div class="status-icon">🛑</div>
+      <h1>此链接已被阻止</h1>
+      <p>管理员出于安全考虑已阻止访问此链接。</p>
+    </div>
+    
+    <!-- Phishing state (warning triangle) -->
+    <div id="phishing-state" class="hidden">
+      <div class="status-icon">❌</div>
+      <h1>此链接可能是钓鱼尝试</h1>
+      <p>发件人姓名 <span class="domain-highlight" id="phishing-sender-display"></span> 与电子邮件地址 <span class="domain-highlight" id="phishing-sender-email"></span> 或链接目标 <span class="domain-highlight" id="phishing-link-domain"></span> 无关</p>
+    </div>
+    
+    {% else %}
+    <!-- Non-resolve mode states -->
+    <div id="non-resolve-safe" class="hidden">
+      <div class="status-icon">✅</div>
+      <h1>此链接看起来安全</h1>
+      <p>发件人和链接均指向 <span class="domain-highlight safe-domain" id="non-resolve-safe-domain"></span></p>
+    </div>
+    
+    <div id="non-resolve-unsafe" class="hidden">
+      <div class="status-icon">⚠️</div>
+      <h1>此链接可能不安全</h1>
+      <p>邮件来自 <span class="domain-highlight" id="non-resolve-sender-domain"></span>，但链接指向 <span class="domain-highlight unsafe-domain" id="non-resolve-unsafe-domain"></span></p>
+    </div>
+    
+    <div id="non-resolve-phishing" class="hidden">
+      <div class="status-icon">❌</div>
+      <h1>此链接可能是钓鱼尝试</h1>
+      <p>发件人姓名 <span class="domain-highlight" id="non-resolve-phishing-sender-display"></span> 与电子邮件地址 <span class="domain-highlight" id="non-resolve-phishing-sender-email"></span> 或链接目标 <span class="domain-highlight" id="non-resolve-phishing-link-domain"></span> 无关</p>
+    </div>
+    
+    <div id="non-resolve-blocked" class="hidden">
+      <div class="status-icon">🛑</div>
+      <h1>此链接已被阻止</h1>
+      <p>管理员出于安全考虑已阻止访问此链接。</p>
     </div>
     {% endif %}
+    
+    <!-- Form (hidden for blocked states) -->
     <form method="post" action="{% if resolve %}/guard/go{% endif %}" autocomplete="off" id="continueForm">
       <input type="hidden" name="ts" value="{{ ts }}">
       {% if resolve %}<input type="hidden" name="url" id="final"><input type="hidden" name="sha" id="hash">{% endif %}
       <button id="cont" class="button-large" disabled>
         <div class="button-progress" id="button-progress"></div>
-        <span id="button-text">是的，我理解并想要继续</span>
+        <span id="button-text">访问网站</span>
       </button>
       <div id="redirecting-state" class="hidden">
         <div class="button-spinner"></div>
         <span id="redirecting-text">正在重定向...</span>
       </div>
     </form>
+    
+    <!-- Technical details section (shared across all states) -->
+    <div class="technical-details-toggle" id="technical-details-section" onclick="toggleTechnicalDetails()">
+      <span id="tech-details-arrow">▶</span> <span id="tech-details-toggle-text">显示详情</span>
+    </div>
+    <div class="technical-details-content" id="technical-details">
+      <div class="tech-detail-row">
+        <div class="tech-detail-label">发件人：</div>
+        <div class="tech-detail-value selectable" id="tech-sender"></div>
+      </div>
+      <div class="tech-detail-row">
+        <div class="tech-detail-label">链接名称：</div>
+        <div class="tech-detail-value selectable" id="tech-link-name"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-original-row">
+        <div class="tech-detail-label" id="tech-original-label">原始链接：</div>
+        <div class="tech-detail-value" id="tech-original-url"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-resolved-row">
+        <div class="tech-detail-label">解析后的链接：</div>
+        <div class="tech-detail-value" id="tech-resolved-url"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-link-choice-row" style="display:none;">
+        <div class="tech-detail-value">
+          <label><input type="checkbox" id="use-original-checkbox"> <span id="use-original-label"></span></label>
+        </div>
+      </div>
+      <div class="tech-detail-row" id="tech-title-row">
+        <div class="tech-detail-label">页面标题：</div>
+        <div class="tech-detail-value selectable" id="tech-title"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-warning-row">
+        <div class="tech-detail-label">警告：</div>
+        <div class="tech-detail-value selectable" id="tech-warning"></div>
+      </div>
+      <div class="tech-detail-row" id="tech-block-reason-row">
+        <div class="tech-detail-label">阻止原因：</div>
+        <div class="tech-detail-value selectable" id="tech-block-reason"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -143,6 +172,9 @@
 
 <!-- Warning Definitions -->
 <script>
+// ==============================================================================
+// LANGUAGE-SPECIFIC WARNING DEFINITIONS - CHINESE
+// ==============================================================================
 const WARNING_DEFINITIONS = {
   'ssl_certificate': {
     header: '⚠️ 安全证书警告',
@@ -200,41 +232,38 @@ const WARNING_DEFINITIONS = {
   }
 };
 
-// JavaScript UI Strings - for internationalization
+// ==============================================================================
+// LANGUAGE-SPECIFIC UI STRINGS - CHINESE
+// ==============================================================================
 const JS_STRINGS = {
-  // Error messages
-  error_resolving_link: '解析链接时出错',
-  connection_timed_out: '连接超时',
-  link_not_found: '未找到链接',
-  invalid_link_info: '无效的链接信息',
-  internal_error: '内部错误',
-  
-  // Warning messages
-  could_not_verify_timeout: '由于超时无法验证最终目标',
-  could_not_verify: '无法验证最终目标',
-  could_not_verify_invalid: '由于无效的链接信息无法验证最终目标',
-  could_not_verify_server: '由于服务器错误无法验证最终目标',
-  
-  // Fallback warning text
-  warning_generic: '⚠️ 警告',
-  unknown_warning: '发生未知警告',
-  what_this_means: '这意味着什么',
-  issue_verifying_link: '我们在验证此链接时遇到问题。',
-  what_you_should_do: '您应该做什么',
-  proceed_with_caution: '如果您信任此链接的来源，请谨慎继续。',
-  
-  // Error state text
-  could_not_verify_destination: '无法验证最终目标',
-  
-  // Button and redirecting text
-  button_continue: '是的，我理解并想要继续',
-  button_continue_final: '继续到最终目标',
+  button_continue: '仍然继续（不推荐）',
+  button_continue_safe: '访问网站',
   redirecting_generic: '正在重定向...',
   redirecting_final: '正在重定向到最终目标...',
-  
-  // Blocked warning text
-  access_blocked: '此链接的访问已被阻止'
+  tech_details_show: '显示详情',
+  tech_details_hide: '隐藏详情',
+  use_original_label: '使用电子邮件中的原始链接。'
 };
+</script>
+
+<script>
+// ==============================================================================
+// TEMPLATE-SPECIFIC INITIALIZATION
+// ==============================================================================
+
+document.addEventListener('DOMContentLoaded', function () {
+  const templateData = {
+    url: '{{ url | default("", true) }}',
+    sender_email: '{{ sender_email | default("", true) }}',
+    sender_display: '{{ sender_display | default("", true) }}',
+    display: '{{ display | default("", true) }}',
+    block_reason: '{{ block_reason | default("", true) }}'
+  };
+  
+  window.templateData = templateData;
+  
+  initializeGuard(window.guardOpts, JS_STRINGS, WARNING_DEFINITIONS, templateData);
+});
 </script>
 
 </body>
