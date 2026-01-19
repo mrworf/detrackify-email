@@ -224,6 +224,19 @@ function showState(stateId, domains) {
     if (el) el.classList.add('hidden');
   });
   
+  // Stop progress bar animation when transitioning away from checking state
+  // or when showing safe state
+  if (stateId === 'safe-state' || stateId === 'non-resolve-safe') {
+    const checkingState = document.getElementById('checking-state');
+    if (checkingState) {
+      const progressBarFill = checkingState.querySelector('.progress-bar-fill');
+      if (progressBarFill) {
+        // Stop the CSS animation by removing the animation property
+        progressBarFill.style.animation = 'none';
+      }
+    }
+  }
+  
   // Show the requested state
   const stateEl = document.getElementById(stateId);
   if (stateEl) {
@@ -472,14 +485,54 @@ function setupButton(isSafe, jsStrings) {
     button.disabled = true;
     
     // Handle button click to show redirecting state
-    button.addEventListener('click', function() {
+    // Use onclick to avoid event listener accumulation
+    button.onclick = function() {
       button.style.display = 'none';
       const redirectingState = document.getElementById('redirecting-state');
       if (redirectingState) redirectingState.classList.remove('hidden');
-    });
+    };
     
     // Start progress bar
     startProgressBar(window.guardOpts?.timeout_ms || 2000);
+  }
+}
+
+// Setup button immediately for safe links (no progress bar delay)
+function setupButtonImmediate(isSafe, jsStrings) {
+  jsStrings = jsStrings || {};
+  const button = document.getElementById('cont');
+  const buttonText = document.getElementById('button-text');
+  const redirectingText = document.getElementById('redirecting-text');
+  const progressBar = document.getElementById('button-progress');
+  
+  if (buttonText) {
+    buttonText.textContent = isSafe ? 
+      (jsStrings.button_continue_safe || 'Go to website') : 
+      (jsStrings.button_continue || 'Continue anyway (not recommended)');
+  }
+  if (redirectingText) {
+    redirectingText.textContent = isSafe ? 
+      (jsStrings.redirecting_final || 'Redirecting to final destination...') : 
+      (jsStrings.redirecting_generic || 'Redirecting...');
+  }
+  
+  if (button) {
+    button.style.display = '';
+    button.disabled = false; // Immediately enable button
+    
+    // Hide progress bar if it exists
+    if (progressBar) {
+      progressBar.style.display = 'none';
+      progressBar.style.width = '0%';
+    }
+    
+    // Handle button click to show redirecting state
+    // Use onclick to avoid event listener accumulation
+    button.onclick = function() {
+      button.style.display = 'none';
+      const redirectingState = document.getElementById('redirecting-state');
+      if (redirectingState) redirectingState.classList.remove('hidden');
+    };
   }
 }
 
@@ -525,7 +578,7 @@ function handleNonResolveMode(opts) {
     
     if (domainsMatchResult) {
       showState('non-resolve-safe', { safeDomain: senderDomain });
-      setupButton(true);
+      setupButtonImmediate(true);
     } else {
       showState('non-resolve-unsafe', { 
         senderDomain: senderDomain, 
@@ -543,7 +596,7 @@ function handleNonResolveMode(opts) {
   }
   
   // Populate technical details for non-resolve mode
-  populateTechnicalDetails(null, opts, {});
+  populateTechnicalDetails(null, opts, window.templateData || {});
 }
 
 function handleResolveMode(opts, jsStrings, warningDefinitions) {
@@ -597,9 +650,16 @@ function handleResolveMode(opts, jsStrings, warningDefinitions) {
       return;
     }
     
-    // Calculate remaining time to meet minimum display requirement
+    // Check if this is a safe link (domains match, no block, no blocking warning)
+    // Safe links should be shown immediately without delay
+    var hasBlockingWarning = data.warning && opts.deny_on_warnings && 
+                             opts.deny_on_warnings.includes(parseWarningType(data.warning));
+    var isSafeLink = data.domains_match && !data.block && !hasBlockingWarning && 
+                     (!blockReason || typeof blockReason !== 'string' || blockReason.trim().length === 0);
+    
+    // Calculate remaining time to meet minimum display requirement (only for non-safe links)
     var elapsed = Date.now() - resolveStartTime;
-    var remainingTime = Math.max(0, minDisplayTime - elapsed);
+    var remainingTime = isSafeLink ? 0 : Math.max(0, minDisplayTime - elapsed);
     
     setTimeout(function() {
       // Handle different resolution outcomes
@@ -640,9 +700,9 @@ function handleResolveMode(opts, jsStrings, warningDefinitions) {
         showState('phishing-state', phishingDomains);
         setupButton(false, jsStrings);
       } else if (data.domains_match) {
-        // Use backend's domain match result
+        // Use backend's domain match result - safe link, enable immediately
         showState('safe-state', { safeDomain: resolvedDomain || senderDomain });
-        setupButton(true, jsStrings);
+        setupButtonImmediate(true, jsStrings);
       } else {
         showState('unsafe-state', { 
           senderDomain: senderDomain, 
@@ -652,7 +712,7 @@ function handleResolveMode(opts, jsStrings, warningDefinitions) {
       }
       
       // Populate technical details
-      populateTechnicalDetails(data, opts, {});
+      populateTechnicalDetails(data, opts, window.templateData || {});
     }, remainingTime);
   })
   .catch(function (err) {
@@ -671,7 +731,7 @@ function handleResolveMode(opts, jsStrings, warningDefinitions) {
       setupButton(false, jsStrings);
       
       // Populate technical details for error case
-      populateTechnicalDetails(null, opts, {});
+      populateTechnicalDetails(null, opts, window.templateData || {});
     }, remainingTime);
   })
   .finally(function () {
