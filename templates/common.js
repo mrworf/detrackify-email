@@ -89,6 +89,10 @@ function escapeHtml(text) {
   });
 }
 
+function escapeOrUnknown(val) {
+  return val ? escapeHtml(val) : 'Unknown';
+}
+
 // Unified function to determine domain highlighting class based on matching rules
 function getDomainHighlightClass(targetDomain, senderDomain, originalUrl, resolvedUrl) {
   if (!targetDomain || !senderDomain) {
@@ -125,25 +129,10 @@ function preparePhishingDomains(senderEmail, senderDisplay, originalUrl, resolve
   const linkUrl = resolvedUrl || originalUrl;
   const linkDomain = extractDomainFromUrl(linkUrl);
   
-  // Create plain sender display name (no highlighting for phishing)
-  const plainSenderDisplay = senderDisplay ? 
-    escapeHtml(senderDisplay) : 
-    'Unknown';
-  
-  // Create plain sender email (no highlighting for phishing)
-  const plainSenderEmail = senderEmail ? 
-    escapeHtml(senderEmail) : 
-    'Unknown';
-  
-  // Create plain link domain (no highlighting for phishing)
-  const plainLinkDomain = linkDomain ? 
-    escapeHtml(linkDomain) : 
-    'Unknown';
-  
   return {
-    phishingSenderDisplay: plainSenderDisplay,
-    phishingSenderEmail: plainSenderEmail,
-    phishingLinkDomain: plainLinkDomain
+    phishingSenderDisplay: escapeOrUnknown(senderDisplay),
+    phishingSenderEmail: escapeOrUnknown(senderEmail),
+    phishingLinkDomain: escapeOrUnknown(linkDomain)
   };
 }
 
@@ -258,23 +247,16 @@ function showState(stateId, domains) {
       // Hide form for blocked states, show technical details
       if (form) form.style.display = 'none';
       if (techDetailsSection) techDetailsSection.style.display = '';
-      // Reset content display and keep it hidden by default (will be shown when user clicks)
-      if (techDetailsContent) {
-        techDetailsContent.style.display = ''; // Clear inline style
-        techDetailsContent.classList.remove('show'); // Remove show class
-      }
-      // Reset arrow and text
-      resetTechnicalDetailsToggle();
     } else {
       // Show form and technical details for all other states (safe, unsafe, phishing)
       if (form) form.style.display = '';
       if (techDetailsSection) techDetailsSection.style.display = '';
-      // Reset content display and keep it hidden by default (will be shown when user clicks)
+    }
+    if (stateId !== 'checking-state') {
       if (techDetailsContent) {
-        techDetailsContent.style.display = ''; // Clear inline style
-        techDetailsContent.classList.remove('show'); // Remove show class
+        techDetailsContent.style.display = '';
+        techDetailsContent.classList.remove('show');
       }
-      // Reset arrow and text
       resetTechnicalDetailsToggle();
     }
     
@@ -314,39 +296,38 @@ function showState(stateId, domains) {
    TECHNICAL DETAILS FUNCTIONS
    ============================================== */
 
-// Toggle technical details section
+function setTechnicalDetailsToggleState(isOpen) {
+  const arrow = document.getElementById('tech-details-arrow');
+  const textEl = document.getElementById('tech-details-toggle-text');
+  if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
+  if (textEl) textEl.textContent = isOpen ? 'Hide Details' : 'Show Details';
+}
+
 function toggleTechnicalDetails() {
   const content = document.getElementById('technical-details');
   const arrow = document.getElementById('tech-details-arrow');
-  const toggle = document.querySelector('.technical-details-toggle');
+  const textEl = document.getElementById('tech-details-toggle-text');
   
-  if (content && arrow && toggle) {
+  if (content && arrow && textEl) {
     if (content.classList.contains('show')) {
       content.classList.remove('show');
-      arrow.textContent = '▶';
-      toggle.innerHTML = toggle.innerHTML.replace('Hide Details', 'Show Details');
+      setTechnicalDetailsToggleState(false);
     } else {
       content.classList.add('show');
-      arrow.textContent = '▼';
-      toggle.innerHTML = toggle.innerHTML.replace('Show Details', 'Hide Details');
+      setTechnicalDetailsToggleState(true);
     }
   }
 }
 
-// Reset technical details toggle to default state
 function resetTechnicalDetailsToggle() {
-  const arrow = document.getElementById('tech-details-arrow');
-  const techDetailsSection = document.getElementById('technical-details-section');
-  if (arrow) arrow.textContent = '▶';
-  if (techDetailsSection) {
-    techDetailsSection.innerHTML = techDetailsSection.innerHTML.replace('Hide Details', 'Show Details');
-  }
+  setTechnicalDetailsToggleState(false);
 }
 
 // Generic populate technical details function
-function populateTechnicalDetails(data, opts, templateData) {
+function populateTechnicalDetails(data, opts, templateData, warningDefinitions) {
   opts = opts || {};
   templateData = templateData || {};
+  warningDefinitions = warningDefinitions || {};
   
   // Get URLs for highlighting logic
   const originalUrl = templateData.url || opts.url || '';
@@ -372,8 +353,8 @@ function populateTechnicalDetails(data, opts, templateData) {
     })() : '',
     'tech-warning': (data && data.warning) ? (() => {
       const warningType = parseWarningType(data.warning);
-      if (typeof WARNING_DEFINITIONS !== 'undefined' && WARNING_DEFINITIONS[warningType]) {
-        const warningDef = WARNING_DEFINITIONS[warningType];
+      const warningDef = warningDefinitions[warningType];
+      if (warningDef) {
         return escapeHtml(warningDef.header || warningType);
       }
       return escapeHtml(warningType);
@@ -415,46 +396,18 @@ function updateTechnicalDetails(techDetailsMap) {
 
 // Handle visibility of technical detail rows
 function handleTechnicalDetailsVisibility(opts, data) {
-  // Handle resolved URL row visibility
-  const techResolvedRow = document.getElementById('tech-resolved-row');
-  if (techResolvedRow) {
-    if (opts.resolve && data && data.url) {
-      techResolvedRow.style.display = '';
-    } else {
-      techResolvedRow.style.display = 'none';
-    }
-  }
-  
-  // Handle page title row visibility
-  const techTitleRow = document.getElementById('tech-title-row');
-  if (techTitleRow) {
-    if (opts.resolve && data && data.title) {
-      techTitleRow.style.display = '';
-    } else {
-      techTitleRow.style.display = 'none';
-    }
-  }
-  
-  // Handle warning row visibility
-  const techWarningRow = document.getElementById('tech-warning-row');
-  if (techWarningRow) {
-    if (data && data.warning) {
-      techWarningRow.style.display = '';
-    } else {
-      techWarningRow.style.display = 'none';
-    }
-  }
-  
-  // Handle block reason row visibility
-  const techBlockReasonRow = document.getElementById('tech-block-reason-row');
-  if (techBlockReasonRow) {
-    const blockReason = (data && data.block) || opts.block_reason || '';
-    if (blockReason.trim() !== '') {
-      techBlockReasonRow.style.display = '';
-    } else {
-      techBlockReasonRow.style.display = 'none';
-    }
-  }
+  const ROW_VISIBILITY = [
+    ['tech-resolved-row', function() { return opts.resolve && data && data.url; }],
+    ['tech-title-row', function() { return opts.resolve && data && data.title; }],
+    ['tech-warning-row', function() { return data && data.warning; }],
+    ['tech-block-reason-row', function() { return ((data && data.block) || opts.block_reason || '').trim() !== ''; }]
+  ];
+  ROW_VISIBILITY.forEach(function(entry) {
+    const id = entry[0];
+    const cond = entry[1];
+    const row = document.getElementById(id);
+    if (row) row.style.display = cond() ? '' : 'none';
+  });
 }
 
 
@@ -463,77 +416,49 @@ function handleTechnicalDetailsVisibility(opts, data) {
    BUTTON & PROGRESS BAR FUNCTIONS
    ============================================== */
 
-function setupButton(isSafe, jsStrings) {
+function setupButtonCore(isSafe, jsStrings, immediate) {
   jsStrings = jsStrings || {};
   const button = document.getElementById('cont');
   const buttonText = document.getElementById('button-text');
   const redirectingText = document.getElementById('redirecting-text');
   
   if (buttonText) {
-    buttonText.textContent = isSafe ? 
-      (jsStrings.button_continue_safe || 'Go to website') : 
+    buttonText.textContent = isSafe ?
+      (jsStrings.button_continue_safe || 'Go to website') :
       (jsStrings.button_continue || 'Continue anyway (not recommended)');
   }
   if (redirectingText) {
-    redirectingText.textContent = isSafe ? 
-      (jsStrings.redirecting_final || 'Redirecting to final destination...') : 
+    redirectingText.textContent = isSafe ?
+      (jsStrings.redirecting_final || 'Redirecting to final destination...') :
       (jsStrings.redirecting_generic || 'Redirecting...');
   }
   
   if (button) {
     button.style.display = '';
-    button.disabled = true;
-    
-    // Handle button click to show redirecting state
-    // Use onclick to avoid event listener accumulation
+    button.disabled = !immediate;
+    if (immediate) {
+      const progressBar = document.getElementById('button-progress');
+      if (progressBar) {
+        progressBar.style.display = 'none';
+        progressBar.style.width = '0%';
+      }
+    } else {
+      startProgressBar((window.guardOpts && window.guardOpts.timeout_ms) || 2000);
+    }
     button.onclick = function() {
       button.style.display = 'none';
       const redirectingState = document.getElementById('redirecting-state');
       if (redirectingState) redirectingState.classList.remove('hidden');
     };
-    
-    // Start progress bar
-    startProgressBar(window.guardOpts?.timeout_ms || 2000);
   }
 }
 
-// Setup button immediately for safe links (no progress bar delay)
+function setupButton(isSafe, jsStrings) {
+  setupButtonCore(isSafe, jsStrings, false);
+}
+
 function setupButtonImmediate(isSafe, jsStrings) {
-  jsStrings = jsStrings || {};
-  const button = document.getElementById('cont');
-  const buttonText = document.getElementById('button-text');
-  const redirectingText = document.getElementById('redirecting-text');
-  const progressBar = document.getElementById('button-progress');
-  
-  if (buttonText) {
-    buttonText.textContent = isSafe ? 
-      (jsStrings.button_continue_safe || 'Go to website') : 
-      (jsStrings.button_continue || 'Continue anyway (not recommended)');
-  }
-  if (redirectingText) {
-    redirectingText.textContent = isSafe ? 
-      (jsStrings.redirecting_final || 'Redirecting to final destination...') : 
-      (jsStrings.redirecting_generic || 'Redirecting...');
-  }
-  
-  if (button) {
-    button.style.display = '';
-    button.disabled = false; // Immediately enable button
-    
-    // Hide progress bar if it exists
-    if (progressBar) {
-      progressBar.style.display = 'none';
-      progressBar.style.width = '0%';
-    }
-    
-    // Handle button click to show redirecting state
-    // Use onclick to avoid event listener accumulation
-    button.onclick = function() {
-      button.style.display = 'none';
-      const redirectingState = document.getElementById('redirecting-state');
-      if (redirectingState) redirectingState.classList.remove('hidden');
-    };
-  }
+  setupButtonCore(isSafe, jsStrings, true);
 }
 
 // Progress bar function
@@ -567,7 +492,7 @@ function startProgressBar(duration) {
    RESOLVE MODE FUNCTIONS
    ============================================== */
 
-function handleNonResolveMode(opts) {
+function handleNonResolveMode(opts, warningDefinitions) {
   // Extract domains for comparison
   var urlDomain = extractDomainFromUrl(opts.url || window.location.search);
   var senderDomain = opts.sender_domain;
@@ -712,7 +637,7 @@ function handleResolveMode(opts, jsStrings, warningDefinitions) {
       }
       
       // Populate technical details
-      populateTechnicalDetails(data, opts, window.templateData || {});
+      populateTechnicalDetails(data, opts, window.templateData || {}, warningDefinitions);
     }, remainingTime);
   })
   .catch(function (err) {
@@ -731,7 +656,7 @@ function handleResolveMode(opts, jsStrings, warningDefinitions) {
       setupButton(false, jsStrings);
       
       // Populate technical details for error case
-      populateTechnicalDetails(null, opts, window.templateData || {});
+      populateTechnicalDetails(null, opts, window.templateData || {}, warningDefinitions);
     }, remainingTime);
   })
   .finally(function () {
@@ -771,7 +696,7 @@ function initializeGuard(opts, jsStrings, warningDefinitions, templateData) {
       );
       showState('non-resolve-phishing', phishingDomains);
       setupButton(false, jsStrings);
-      populateTechnicalDetails(null, opts, templateData);
+      populateTechnicalDetails(null, opts, templateData, warningDefinitions);
       return;
     }
   }
@@ -784,7 +709,7 @@ function initializeGuard(opts, jsStrings, warningDefinitions, templateData) {
       showState('non-resolve-blocked');
     }
     // Populate technical details even for blocked links (but no resolve data)
-    populateTechnicalDetails(null, opts, templateData);
+    populateTechnicalDetails(null, opts, templateData, warningDefinitions);
     return;
   }
   
@@ -795,7 +720,7 @@ function initializeGuard(opts, jsStrings, warningDefinitions, templateData) {
     handleResolveMode(opts, jsStrings, warningDefinitions);
   } else {
     // Non-resolve mode - compare domains immediately
-    handleNonResolveMode(opts);
+    handleNonResolveMode(opts, warningDefinitions);
   }
   
   // Initialize URL highlighting for existing elements
