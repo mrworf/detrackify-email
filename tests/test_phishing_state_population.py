@@ -48,7 +48,7 @@ def test_phishing_state_elements_populated():
     # Check that the phishing state is properly structured
     assert 'This link may be a phishing attempt' in html
     assert "The sender's name" in html
-    assert "doesn't match the email address" in html
+    assert "doesn't relate to the email address" in html
     assert "or the link destination" in html
 
 

@@ -205,7 +205,7 @@ def test_phishing_blocks_different_from_admin_blocks():
     assert '⚠️' in html  # Warning triangle for phishing
     assert 'This link may be a phishing attempt' in html
     assert "The sender's name" in html  # Part of the new phishing message
-    assert "doesn't match the email address" in html  # Part of the new phishing message
+    assert "doesn't relate to the email address" in html  # Part of the new phishing message
     assert "or the link destination" in html  # Part of the new phishing message
     assert 'id="phishing-sender-display"' in html  # Check for phishing-specific elements
     assert 'id="phishing-sender-email"' in html
