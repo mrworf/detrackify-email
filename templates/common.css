@@ -229,6 +229,7 @@ body {
     color: #495057;
     margin-right: 15px;
     flex-shrink: 0;
+    text-align: right;
 }
 
 .tech-detail-value {
@@ -238,10 +239,19 @@ body {
     font-family: monospace;
     font-size: 13px;
     line-height: 1.4;
+    text-align: left;
 }
 
 .tech-detail-value.selectable {
     user-select: text;
+    font-family: inherit;
+}
+
+.tech-link-choice-row {
+    margin-top: -6px;
+}
+
+.tech-link-choice-row .tech-detail-value {
     font-family: inherit;
 }
 
