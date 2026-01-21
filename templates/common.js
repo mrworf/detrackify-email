@@ -447,6 +447,7 @@ function setupButtonCore(isSafe, jsStrings, immediate) {
   }
   
   if (button) {
+    button.classList.remove('cont-safe', 'cont-unsafe');
     button.style.display = '';
     button.disabled = !immediate;
     if (immediate) {
@@ -455,8 +456,9 @@ function setupButtonCore(isSafe, jsStrings, immediate) {
         progressBar.style.display = 'none';
         progressBar.style.width = '0%';
       }
+      button.classList.add(isSafe ? 'cont-safe' : 'cont-unsafe');
     } else {
-      startProgressBar((window.guardOpts && window.guardOpts.timeout_ms) || 2000);
+      startProgressBar((window.guardOpts && window.guardOpts.timeout_ms) || 2000, isSafe);
     }
     button.onclick = function() {
       button.style.display = 'none';
@@ -475,28 +477,31 @@ function setupButtonImmediate(isSafe, jsStrings) {
 }
 
 // Progress bar function
-function startProgressBar(duration) {
+function startProgressBar(duration, isSafe) {
   var button = document.getElementById('cont');
   var progressBar = document.getElementById('button-progress');
-  
+
   if (button && progressBar) {
     var startTime = Date.now();
-    
+
     var updateProgress = function() {
       var elapsed = Date.now() - startTime;
       var progress = Math.min(elapsed / duration, 1);
       var remainingWidth = (1 - progress) * 100;
-      
+
       progressBar.style.width = remainingWidth + '%';
-      
+
       if (progress < 1) {
         requestAnimationFrame(updateProgress);
       } else {
         button.disabled = false;
         progressBar.style.display = 'none';
+        if (isSafe !== undefined && button) {
+          button.classList.add(isSafe ? 'cont-safe' : 'cont-unsafe');
+        }
       }
     };
-    
+
     requestAnimationFrame(updateProgress);
   }
 }

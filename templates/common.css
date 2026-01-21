@@ -359,6 +359,29 @@ body {
     cursor: not-allowed;
 }
 
+/* -------- Button state colors: comment out this block to disable --------
+   - .cont-unsafe: "Continue anyway (not recommended)" -> red
+   - .cont-safe: "Go to website" (safe) -> blue
+   - no .cont-* (determining or before resolve): gray (default .button-large)
+   Tweak the values below to change colors.
+   -------- */
+#cont.cont-unsafe {
+    background-color: #dc3545;
+    border-color: #c82333;
+    color: #fff;
+}
+#cont.cont-unsafe:hover {
+    background-color: #c82333;
+}
+#cont.cont-safe {
+    background-color: #7cb342;
+    border-color: #6d9c3b;
+    color: #fff;
+}
+#cont.cont-safe:hover {
+    background-color: #91d14c;
+}
+
 /* Redirecting state */
 #redirecting-state {
     display: flex;
