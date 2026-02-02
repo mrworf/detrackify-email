@@ -175,6 +175,29 @@ class SharedUtils:
         return urllib.parse.urlunsplit(parts)
     
     @staticmethod
+    def normalize_url_for_comparison(url: str) -> str:
+        """
+        Normalize URL for comparison by removing trailing slashes and trailing question marks.
+        
+        Browsers and servers treat these URLs as equivalent:
+        - https://example.com/ == https://example.com
+        - https://example.com? == https://example.com
+        - https://example.com/? == https://example.com
+        
+        Args:
+            url: URL string to normalize
+            
+        Returns:
+            Normalized URL string
+        """
+        if not url:
+            return url
+        
+        # Remove trailing question mark and trailing slash
+        # rstrip('/?') removes both / and ? from the end
+        return url.rstrip('/?')
+    
+    @staticmethod
     def extract_url_info(url: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
         """Extract scheme, domain, and path from URL. Only supports http/https."""
         if not url:
@@ -195,8 +218,13 @@ class SharedUtils:
     # ============================================================================
     
     @staticmethod
-    def decode_base64(content: bytes, charset: str = 'utf-8') -> str:
-        """Decode Base64 content to string using the specified charset."""
+    def decode_base64(content, charset: str = 'utf-8') -> str:
+        """
+        Decode Base64 content to string using the specified charset.
+        
+        Accepts both bytes and strings (base64.b64decode handles both).
+        Automatically strips whitespace including newlines.
+        """
         try:
             return base64.b64decode(content).decode(charset)
         except UnicodeDecodeError:
@@ -212,8 +240,18 @@ class SharedUtils:
     
     @staticmethod
     def encode_base64(content: str) -> str:
-        """Encode string content to Base64."""
-        return base64.b64encode(content.encode('utf-8')).decode('utf-8')
+        """
+        Encode string content to Base64 with email formatting.
+        
+        Formats base64 content according to RFC 2045:
+        - Wraps lines at 76 characters
+        - Adds trailing \\n\\n for MTA compatibility
+        """
+        encoded = base64.b64encode(content.encode('utf-8')).decode('utf-8')
+        # Wrap at 76 characters per line (RFC 2045 standard)
+        wrapped = '\n'.join(encoded[i:i+76] for i in range(0, len(encoded), 76))
+        # Add trailing newlines that MTAs expect
+        return wrapped + '\n\n'
     
     @staticmethod
     def generate_hash(data: str, salt: str) -> str:

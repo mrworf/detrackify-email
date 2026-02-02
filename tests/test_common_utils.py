@@ -56,6 +56,28 @@ class TestSharedUtilsEncoding(unittest.TestCase):
             encoded = SharedUtils.encode_base64(original)
             decoded = SharedUtils.decode_base64(encoded, 'utf-8')
             self.assertEqual(decoded, original)
+    
+    def test_encode_base64_email_formatting(self):
+        """Test that base64 encoding includes proper email formatting (76-char lines and trailing \\n\\n)."""
+        # Test with content that will produce base64 longer than 76 characters
+        content = 'a' * 100  # This will produce base64 longer than 76 chars
+        encoded = SharedUtils.encode_base64(content)
+        
+        # Verify it ends with \n\n
+        self.assertTrue(encoded.endswith('\n\n'), 
+                       f"Base64 should end with \\n\\n, got: {repr(encoded[-10:])}")
+        
+        # Verify lines are wrapped at 76 characters (except possibly the last line)
+        lines = encoded.rstrip('\n').split('\n')
+        for i, line in enumerate(lines[:-1]):  # All lines except the last should be <= 76 chars
+            self.assertLessEqual(len(line), 76, 
+                               f"Line {i} exceeds 76 characters: {len(line)} chars")
+        
+        # Verify we can still decode it correctly (base64.b64decode handles strings and whitespace)
+        # Note: decode_base64 expects bytes, but base64.b64decode accepts strings too
+        decoded = SharedUtils.decode_base64(encoded.encode('utf-8'), 'utf-8')
+        self.assertEqual(decoded, content)
+    
     def test_decode_base64_with_charset(self):
         test_cases = [
             ('SGVsbG8sIFdvcmxkIQ==', 'utf-8', 'Hello, World!'),
@@ -184,6 +206,37 @@ class TestSharedUtilsURLProcessing(unittest.TestCase):
             # Should return the original URL without modification
             result = SharedUtils.strip_query_parameters(url, ["utm_"])
             self.assertEqual(result, url)
+
+    def test_normalize_url_for_comparison(self):
+        """Test URL normalization for comparison."""
+        # Test trailing slash removal
+        self.assertEqual(SharedUtils.normalize_url_for_comparison('https://example.com/'), 'https://example.com')
+        self.assertEqual(SharedUtils.normalize_url_for_comparison('https://example.com/path/'), 'https://example.com/path')
+        
+        # Test trailing question mark removal
+        self.assertEqual(SharedUtils.normalize_url_for_comparison('https://example.com?'), 'https://example.com')
+        self.assertEqual(SharedUtils.normalize_url_for_comparison('https://example.com/path?'), 'https://example.com/path')
+        
+        # Test combined trailing slash and question mark
+        self.assertEqual(SharedUtils.normalize_url_for_comparison('https://example.com/?'), 'https://example.com')
+        self.assertEqual(SharedUtils.normalize_url_for_comparison('https://example.com/path/?'), 'https://example.com/path')
+        
+        # Test multiple trailing characters
+        self.assertEqual(SharedUtils.normalize_url_for_comparison('https://example.com//?'), 'https://example.com')
+        self.assertEqual(SharedUtils.normalize_url_for_comparison('https://example.com///?'), 'https://example.com')
+        
+        # Test URLs without trailing characters (should remain unchanged)
+        self.assertEqual(SharedUtils.normalize_url_for_comparison('https://example.com'), 'https://example.com')
+        self.assertEqual(SharedUtils.normalize_url_for_comparison('https://example.com/path'), 'https://example.com/path')
+        
+        # Test edge cases
+        self.assertEqual(SharedUtils.normalize_url_for_comparison(''), '')
+        self.assertEqual(SharedUtils.normalize_url_for_comparison(None), None)
+        
+        # Test URLs with query parameters (should not remove ? in the middle)
+        self.assertEqual(SharedUtils.normalize_url_for_comparison('https://example.com?param=value'), 'https://example.com?param=value')
+        self.assertEqual(SharedUtils.normalize_url_for_comparison('https://example.com?param=value?'), 'https://example.com?param=value')
+        self.assertEqual(SharedUtils.normalize_url_for_comparison('https://example.com/path?param=value/'), 'https://example.com/path?param=value')
 
 class TestSharedUtilsDomainProcessing(unittest.TestCase):
     """Test the domain processing utility functions."""

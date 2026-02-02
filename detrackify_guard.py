@@ -385,13 +385,15 @@ class GuardServer:
         original_normalized = SharedUtils.strip_query_parameters(
             info.get('url', ''), self.strip_prefixes
         )
+        url_normalized = SharedUtils.normalize_url_for_comparison(url)
+        original_normalized_for_comparison = SharedUtils.normalize_url_for_comparison(original_normalized)
         response_data = {
             'url': url,
             'hash': result_sha,
             'title': title,
             'domains_match': domains_match
         }
-        if original_normalized and original_normalized != url:
+        if original_normalized and original_normalized_for_comparison != url_normalized:
             response_data['original_url'] = original_normalized
             response_data['original_hash'] = SharedUtils.generate_hash(
                 original_normalized, self.salt

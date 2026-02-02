@@ -347,6 +347,102 @@ class TestGuardServer(unittest.TestCase):
                 self.assertNotIn('original_url', result)
                 self.assertNotIn('original_hash', result)
 
+    def test_resolve_omits_original_url_when_differ_only_by_trailing_slash(self):
+        """Resolve omits original_url when URLs differ only by trailing slash."""
+        # Original has trailing slash, resolved doesn't
+        sha, data, _ = self._create_test_payload(url='https://example.com/')
+        with patch.object(self.server.cache, 'get') as mock_get:
+            mock_get.return_value = {
+                'url': 'https://example.com',
+                'title': 'Same',
+                'warning': None
+            }
+            with self.server.app.test_client() as client:
+                response = client.post('/guard/resolve', json={'sha': sha, 'data': data})
+                self.assertEqual(response.status_code, 200)
+                result = json.loads(response.data)
+                self.assertNotIn('original_url', result)
+                self.assertNotIn('original_hash', result)
+
+        # Original doesn't have trailing slash, resolved does
+        sha, data, _ = self._create_test_payload(url='https://example.com')
+        with patch.object(self.server.cache, 'get') as mock_get:
+            mock_get.return_value = {
+                'url': 'https://example.com/',
+                'title': 'Same',
+                'warning': None
+            }
+            with self.server.app.test_client() as client:
+                response = client.post('/guard/resolve', json={'sha': sha, 'data': data})
+                self.assertEqual(response.status_code, 200)
+                result = json.loads(response.data)
+                self.assertNotIn('original_url', result)
+                self.assertNotIn('original_hash', result)
+
+    def test_resolve_omits_original_url_when_differ_only_by_trailing_question_mark(self):
+        """Resolve omits original_url when URLs differ only by trailing question mark."""
+        # Original has trailing question mark, resolved doesn't
+        sha, data, _ = self._create_test_payload(url='https://example.com?')
+        with patch.object(self.server.cache, 'get') as mock_get:
+            mock_get.return_value = {
+                'url': 'https://example.com',
+                'title': 'Same',
+                'warning': None
+            }
+            with self.server.app.test_client() as client:
+                response = client.post('/guard/resolve', json={'sha': sha, 'data': data})
+                self.assertEqual(response.status_code, 200)
+                result = json.loads(response.data)
+                self.assertNotIn('original_url', result)
+                self.assertNotIn('original_hash', result)
+
+        # Original doesn't have trailing question mark, resolved does
+        sha, data, _ = self._create_test_payload(url='https://example.com')
+        with patch.object(self.server.cache, 'get') as mock_get:
+            mock_get.return_value = {
+                'url': 'https://example.com?',
+                'title': 'Same',
+                'warning': None
+            }
+            with self.server.app.test_client() as client:
+                response = client.post('/guard/resolve', json={'sha': sha, 'data': data})
+                self.assertEqual(response.status_code, 200)
+                result = json.loads(response.data)
+                self.assertNotIn('original_url', result)
+                self.assertNotIn('original_hash', result)
+
+    def test_resolve_omits_original_url_when_differ_only_by_trailing_slash_and_question_mark(self):
+        """Resolve omits original_url when URLs differ only by trailing slash and question mark."""
+        # Original has trailing /?, resolved doesn't
+        sha, data, _ = self._create_test_payload(url='https://example.com/?')
+        with patch.object(self.server.cache, 'get') as mock_get:
+            mock_get.return_value = {
+                'url': 'https://example.com',
+                'title': 'Same',
+                'warning': None
+            }
+            with self.server.app.test_client() as client:
+                response = client.post('/guard/resolve', json={'sha': sha, 'data': data})
+                self.assertEqual(response.status_code, 200)
+                result = json.loads(response.data)
+                self.assertNotIn('original_url', result)
+                self.assertNotIn('original_hash', result)
+
+        # Original doesn't have trailing /?, resolved does
+        sha, data, _ = self._create_test_payload(url='https://example.com')
+        with patch.object(self.server.cache, 'get') as mock_get:
+            mock_get.return_value = {
+                'url': 'https://example.com/?',
+                'title': 'Same',
+                'warning': None
+            }
+            with self.server.app.test_client() as client:
+                response = client.post('/guard/resolve', json={'sha': sha, 'data': data})
+                self.assertEqual(response.status_code, 200)
+                result = json.loads(response.data)
+                self.assertNotIn('original_url', result)
+                self.assertNotIn('original_hash', result)
+
     def test_go_accepts_original_url_and_hash(self):
         """go accepts url=original_url and sha=original_hash and redirects to original."""
         original_url = 'https://original.example.com/path'
