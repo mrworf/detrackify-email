@@ -190,6 +190,9 @@ class Configuration:
         for key, value in settings.items():
             if key in self.config and isinstance(self.config[key], list) and isinstance(value, list):
                 self.config[key].extend(value)
+            elif key in self.config and isinstance(self.config[key], dict) and isinstance(value, dict):
+                # Deep merge nested dictionaries (e.g., 'strip', 'guard')
+                self.config[key].update(value)
             else:
                 self.config[key] = value
         
