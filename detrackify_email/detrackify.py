@@ -11,11 +11,13 @@ import json
 import hashlib
 import logging
 import sys
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional, Tuple
 from email import policy
 from email.parser import BytesParser
 from email.generator import BytesGenerator
+from email.message import EmailMessage
 from bs4 import BeautifulSoup
+import html
 
 from .helpers import EmailHelpers
 from .configuration import Configuration
@@ -43,6 +45,175 @@ class Detrackify:
         
         for img_tag in img_tags:
             logging.info(img_tag['src'])
+    
+    def extract_urls_from_text(self, plain_text: str) -> List[str]:
+        """Extract all http/https URLs from plain text."""
+        # Pattern matches http:// or https:// followed by non-whitespace and non-delimiter characters
+        # Stops at whitespace, <, >, ", ', ), or end of string
+        url_pattern = re.compile(r'https?://[^\s<>"\'()]+')
+        urls = url_pattern.findall(plain_text)
+        # Return unique URLs
+        return list(dict.fromkeys(urls))  # Preserves order while removing duplicates
+    
+    def should_guard_url(self, url: str, from_address: str, from_domain: str, mode: str, 
+                        sender_is_blacklisted: bool, is_phishy: bool, msg) -> Tuple[bool, Optional[str]]:
+        """Determine if a URL should be guarded and return block reason if any."""
+        if not url.startswith('http'):
+            return False, None
+        
+        guard_server = self.config.get(Configuration.CFG_GUARD_SERVER)
+        if guard_server:
+            guard_server_clean = guard_server.rstrip('/')
+            if url.startswith(f'{guard_server_clean}/guard/'):
+                # Already guarded, don't guard again
+                return False, None
+        
+        # Check guard whitelist
+        pattern = self.config.is_guard_link_whitelisted(url)
+        if pattern:
+            logging.debug(f'Whitelisted link {url} via {pattern}')
+            return False, None
+        
+        # Check sender whitelist
+        if from_address and self.config.is_guard_sender_whitelisted(from_address):
+            logging.debug(f'Sender {from_address} is whitelisted from guarding')
+            return False, None
+        
+        # Determine block reason and domain match
+        block_reason = None
+        match = False
+        
+        if sender_is_blacklisted:
+            block_reason = 'blacklisted'
+            # Force mismatch so the link is always guarded
+            match = False
+        elif self.config.is_blacklisted(url):
+            block_reason = 'blacklisted'
+            match = False
+        elif is_phishy:
+            block_reason = 'phishy'
+            # Force mismatch so the link is always guarded
+            match = False
+        else:
+            # Check domain matching
+            link_domain = SharedUtils.extract_domain_from_url(url)
+            if link_domain:
+                link_domain = link_domain.lower()
+                match = self.config.are_domains_aliases(link_domain, from_domain)
+            else:
+                match = False
+        
+        # Determine if should guard
+        # Always guard if: sender is blacklisted, mode is 'always', mode is 'mismatch' and domains don't match, or there's a block reason
+        should_guard = False
+        if sender_is_blacklisted or mode == 'always' or (mode == 'mismatch' and not match) or block_reason:
+            should_guard = True
+        
+        return should_guard, block_reason
+    
+    def convert_plain_to_html_with_guarded_links(self, plain_text: str, from_address: str, 
+                                                 to_address: str, msg) -> Optional[str]:
+        """Convert plain text to HTML with guarded links. Returns HTML if links were guarded, None otherwise."""
+        # Extract URLs
+        urls = self.extract_urls_from_text(plain_text)
+        if not urls:
+            return None
+        
+        # Get guard configuration
+        mode = self.config.get(Configuration.CFG_GUARD_LINK, 'off')
+        if mode == 'off':
+            return None
+        
+        if not self.config.get(Configuration.CFG_GUARD_ADD_HTML_FOR_PLAIN, False):
+            return None
+        
+        # Get sender information
+        from_domain = None
+        sender_is_blacklisted = False
+        is_phishy = False
+        sender_display_name = ''
+        
+        if from_address and '@' in from_address:
+            from_domain = from_address.split('@')[-1].lower()
+            sender_is_blacklisted = self.config.is_sender_blacklisted(from_address)
+            
+            # Extract display name from the From header
+            from_header = msg.get('From')
+            if from_header:
+                from email.utils import parseaddr
+                sender_display_name, _ = parseaddr(from_header)
+            
+            # Check for phishing if guard-phishy is enabled
+            if self.config.get(Configuration.CFG_GUARD_PHISHY, False) and sender_display_name:
+                is_phishy = SharedUtils.detect_phishing_mismatch(from_address, sender_display_name)
+                if is_phishy:
+                    logging.info(f"Phishing detected: sender '{sender_display_name}' <{from_address}> appears suspicious")
+                    mode = 'always'
+        
+        if not from_domain:
+            return None
+        
+        # Check which URLs need guarding
+        urls_to_guard = {}
+        guard_server = self.config.get(Configuration.CFG_GUARD_SERVER).rstrip('/') if self.config.get(Configuration.CFG_GUARD_SERVER) else None
+        salt = self.config.get(Configuration.CFG_GUARD_SALT)
+        
+        if not guard_server or not salt:
+            return None
+        
+        for url in urls:
+            should_guard, block_reason = self.should_guard_url(
+                url, from_address, from_domain, mode, sender_is_blacklisted, is_phishy, msg
+            )
+            if should_guard:
+                # Create guarded link
+                display_text = url  # Use URL as display text for plain text emails
+                to_address_clean = to_address.strip() if to_address and self.config.get(Configuration.CFG_GUARD_CAPTURE_TO) else None
+                guarded_url = SharedUtils.create_guard_link(
+                    guard_server,
+                    salt,
+                    display_text,
+                    from_address.strip() if from_address else '',
+                    url.strip(),
+                    to_address_clean,
+                    block_reason,
+                    sender_display_name
+                )
+                urls_to_guard[url] = guarded_url
+                self.guarded_links += 1
+        
+        # If no URLs need guarding, return None
+        if not urls_to_guard:
+            return None
+        
+        # Escape HTML special characters
+        escaped_text = html.escape(plain_text)
+        
+        # Replace URLs with guarded links (in reverse order to avoid replacing parts of already-replaced URLs)
+        for original_url, guarded_url in sorted(urls_to_guard.items(), key=lambda x: len(x[0]), reverse=True):
+            # Escape the original URL for HTML replacement
+            escaped_original = html.escape(original_url)
+            # Replace with HTML link
+            escaped_text = escaped_text.replace(
+                escaped_original,
+                f'<a href="{html.escape(guarded_url)}">{escaped_original}</a>'
+            )
+        
+        # Wrap in HTML structure with Courier font
+        html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body {{ font-family: 'Courier New', Courier, monospace; white-space: pre-wrap; }}
+</style>
+</head>
+<body>
+{escaped_text}
+</body>
+</html>"""
+        
+        return html_content
     
     def process_strip_params(self, img_tag) -> tuple:
         """Process an HTML img tag and strip tracking parameters from its src URL."""
@@ -186,64 +357,53 @@ class Detrackify:
                     if not href.startswith('http'):
                         logging.debug(f"Link {i+1} not HTTP, skipping: {href}")
                         continue
-                    if guard_server and href.startswith(f'{guard_server}/guard/'):
-                        logging.debug(f"Link {i+1} already guarded, skipping: {href}")
-                        continue
                     
-                    pattern = self.config.is_guard_link_whitelisted(href)
-                    if pattern:
-                        logging.debug('Whitelisted link %s via %s', href, pattern)
-                        logging.debug(f"Link {i+1} whitelisted via pattern {pattern}: {href}")
-                        continue
+                    # Use should_guard_url to determine if link should be guarded
+                    should_guard, block_reason = self.should_guard_url(
+                        href, from_address, from_domain, mode, sender_is_blacklisted, is_phishy, msg
+                    )
                     
-                    block_reason = None
-                    if sender_is_blacklisted:
-                        block_reason = 'blacklisted'
-                        logging.debug(f"Link {i+1} sender is blacklisted")
-                        match = False  # Force mismatch so the link is always guarded
-                    elif self.config.is_blacklisted(href):
-                        block_reason = 'blacklisted'
-                        logging.debug(f"Link {i+1} URL is blacklisted: {href}")
-                    elif is_phishy:
-                        block_reason = 'phishy'
-                        logging.debug(f"Link {i+1} sender appears to be phishing")
-                        match = False  # Force mismatch so the link is always guarded
-                    
-                    link_domain = SharedUtils.extract_domain_from_url(href).lower()
-                    match = self.config.are_domains_aliases(link_domain, from_domain)
-                    logging.debug(f"Link {i+1} domain match: {link_domain} vs {from_domain} = {match}")
-                    
-                    if sender_is_blacklisted or mode == 'always' or (mode == 'mismatch' and not match) or block_reason:
-                        logging.debug(f"Link {i+1} GUARDING: {href}")
-                        logging.debug(f"Link {i+1} guard reason: sender_blacklisted={sender_is_blacklisted}, mode={mode}, domain_match={match}, block_reason={block_reason}")
-                        display_html = link.decode_contents()
-                        logging.debug(f"Link {i+1} original display HTML: {display_html}")
-                        display_text = SharedUtils.clean_display_text(display_html)
-                        logging.debug(f"Link {i+1} cleaned display text: {display_text}")
-                        display_text_clean = display_text.strip() if display_text else ''
-                        from_address_clean = from_address.strip() if from_address else ''
-                        href_clean = href.strip() if href else ''
-                        to_address_clean = to_address.strip() if to_address and self.config.get(Configuration.CFG_GUARD_CAPTURE_TO) else None
-                        
-                        logging.debug(f"Link {i+1} creating guard link with: display='{display_text_clean}', from='{from_address_clean}', url='{href_clean}', to='{to_address_clean}', block_reason='{block_reason}', sender_display='{sender_display_name}'")
-                        salt = self.config.get(Configuration.CFG_GUARD_SALT)
-                        new_href = SharedUtils.create_guard_link(
-                            guard_server, 
-                            salt, 
-                            display_text_clean, 
-                            from_address_clean, 
-                            href_clean, 
-                            to_address_clean, 
-                            block_reason,
-                            sender_display_name
-                        )
-                        logging.debug(f"Link {i+1} guarded: {href} -> {new_href[:50]}...")
-                        logging.debug(f"Link {i+1} full guarded URL: {new_href}")
-                        link['href'] = new_href
-                        self.guarded_links += 1
-                    else:
+                    if not should_guard:
                         logging.debug(f"Link {i+1} KEEPING original: {href}")
-                        logging.debug(f"Link {i+1} keep reason: sender_blacklisted={sender_is_blacklisted}, mode={mode}, domain_match={match}, block_reason={block_reason}")
+                        continue
+                    
+                    # Get domain match info for logging
+                    link_domain = SharedUtils.extract_domain_from_url(href)
+                    if link_domain:
+                        link_domain = link_domain.lower()
+                        match = self.config.are_domains_aliases(link_domain, from_domain)
+                        logging.debug(f"Link {i+1} domain match: {link_domain} vs {from_domain} = {match}")
+                    else:
+                        match = False
+                    
+                    # Link should be guarded
+                    logging.debug(f"Link {i+1} GUARDING: {href}")
+                    logging.debug(f"Link {i+1} guard reason: sender_blacklisted={sender_is_blacklisted}, mode={mode}, domain_match={match}, block_reason={block_reason}")
+                    display_html = link.decode_contents()
+                    logging.debug(f"Link {i+1} original display HTML: {display_html}")
+                    display_text = SharedUtils.clean_display_text(display_html)
+                    logging.debug(f"Link {i+1} cleaned display text: {display_text}")
+                    display_text_clean = display_text.strip() if display_text else ''
+                    from_address_clean = from_address.strip() if from_address else ''
+                    href_clean = href.strip() if href else ''
+                    to_address_clean = to_address.strip() if to_address and self.config.get(Configuration.CFG_GUARD_CAPTURE_TO) else None
+                    
+                    logging.debug(f"Link {i+1} creating guard link with: display='{display_text_clean}', from='{from_address_clean}', url='{href_clean}', to='{to_address_clean}', block_reason='{block_reason}', sender_display='{sender_display_name}'")
+                    salt = self.config.get(Configuration.CFG_GUARD_SALT)
+                    new_href = SharedUtils.create_guard_link(
+                        guard_server, 
+                        salt, 
+                        display_text_clean, 
+                        from_address_clean, 
+                        href_clean, 
+                        to_address_clean, 
+                        block_reason,
+                        sender_display_name
+                    )
+                    logging.debug(f"Link {i+1} guarded: {href} -> {new_href[:50]}...")
+                    logging.debug(f"Link {i+1} full guarded URL: {new_href}")
+                    link['href'] = new_href
+                    self.guarded_links += 1
         
         elif sender_is_blacklisted:
             # Guard server is not in use, but sender is blacklisted: disable all links
@@ -410,6 +570,86 @@ class Detrackify:
                 # Replace the part content
                 part.set_payload(encoded_modified_html, charset='utf-8')
         
+        # Check if we need to add HTML part for plain text emails
+        html_generated = False
+        if not hashtml and not listonly:
+            # Check if feature is enabled and guard is enabled
+            add_html_for_plain = self.config.get(Configuration.CFG_GUARD_ADD_HTML_FOR_PLAIN, False)
+            mode = self.config.get(Configuration.CFG_GUARD_LINK, 'off')
+            
+            if add_html_for_plain and mode != 'off' and from_address:
+                # Find text/plain parts
+                plain_parts = []
+                for part in msg.walk():
+                    if part.get_content_type() == 'text/plain':
+                        plain_parts.append(part)
+                
+                if plain_parts:
+                    # Process the first text/plain part (typically there's only one)
+                    plain_part = plain_parts[0]
+                    content_transfer_encoding = plain_part.get('Content-Transfer-Encoding', '').lower()
+                    content_charset = plain_part.get_content_charset() or 'utf-8'
+                    
+                    # Extract plain text content
+                    try:
+                        if content_transfer_encoding == 'base64':
+                            plain_text = SharedUtils.decode_base64(plain_part.get_payload(), content_charset)
+                        elif content_transfer_encoding == 'quoted-printable':
+                            plain_text = quopri.decodestring(plain_part.get_payload()).decode(content_charset)
+                        else:
+                            plain_text = plain_part.get_payload(decode=True).decode(content_charset)
+                    except Exception as e:
+                        if hardfail:
+                            raise
+                        logging.warning(f"Failed to decode plain text part: {e}")
+                        plain_text = None
+                    
+                    if plain_text:
+                        # Convert to HTML with guarded links
+                        html_content = self.convert_plain_to_html_with_guarded_links(
+                            plain_text, from_address, to_address, msg
+                        )
+                        
+                        if html_content:
+                            # HTML was generated, need to add it as a part
+                            html_generated = True
+                            
+                            # Create HTML part
+                            html_part = EmailMessage()
+                            html_part.set_content(html_content, subtype='html', charset='utf-8')
+                            
+                            # Check if message is multipart
+                            if msg.is_multipart():
+                                # Check if it's multipart/alternative
+                                main_content_type = msg.get_content_type()
+                                if main_content_type == 'multipart/alternative':
+                                    # Add HTML part to existing multipart/alternative
+                                    msg.attach(html_part)
+                                else:
+                                    # Need to wrap in multipart/alternative
+                                    # Find where text/plain is and wrap it
+                                    # This is complex, so we'll create a new multipart/alternative container
+                                    # For now, let's add it directly - email clients should handle it
+                                    msg.attach(html_part)
+                            else:
+                                # Single part message - convert to multipart/alternative
+                                # Get original payload
+                                original_payload = msg.get_payload()
+                                
+                                # Create text/plain part
+                                text_part = EmailMessage()
+                                text_part.set_content(original_payload, subtype='plain', charset=content_charset)
+                                if content_transfer_encoding:
+                                    text_part['Content-Transfer-Encoding'] = content_transfer_encoding
+                                
+                                # Clear current payload and set as multipart
+                                msg.set_payload([])
+                                msg.set_type('multipart/alternative')
+                                
+                                # Attach parts
+                                msg.attach(text_part)
+                                msg.attach(html_part)
+        
         msg.add_header('X-Detrackify', 'Processed by Detrackify')
         # Only mark pixels as blocked if we actually changed or stripped URLs.
         if self.blocked_domains or self.stripped_domains:
@@ -428,6 +668,10 @@ class Detrackify:
         if mode != 'off':
             msg.add_header('X-Detrackify-Guarded-Links', str(self.guarded_links))
             msg.add_header('X-Detrackify-Guard-Mode', mode)
+        
+        # Add header if HTML was generated from plain text
+        if html_generated:
+            msg.add_header('X-Detrackify-Generated-HTML', 'true')
         
         # Save the modified email to a new file
         gen = BytesGenerator(output_fd, policy=policy.default)

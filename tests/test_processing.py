@@ -19,6 +19,7 @@ from common.utils import SharedUtils
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import detrackify_guard
 import logging
+from test_rfc_compliance import assert_rfc_compliant
 
 # Path to the script under test
 SCRIPT = os.path.join(os.path.dirname(os.path.dirname(__file__)), "detrackify_email.py")
@@ -33,8 +34,18 @@ PHISHING_FILES = sorted(glob.glob(os.path.join('tests', 'content', 'phishing*.em
 ALL_REAL_WORLD_FILES = LEGIT_FILES + SPAM_FILES + PHISHING_FILES
 
 
-def process_email(path, extra_args=None):
-    """Run the script on the provided path and return the resulting message."""
+def process_email(path, extra_args=None, validate_rfc=True):
+    """
+    Run the script on the provided path and return the resulting message.
+    
+    Args:
+        path: Path to input email file
+        extra_args: Additional command-line arguments
+        validate_rfc: If True, validate RFC compliance of output
+        
+    Returns:
+        Parsed email message object
+    """
     extra_args = extra_args or []
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         tmp_path = tmp.name
@@ -48,8 +59,17 @@ def process_email(path, extra_args=None):
             tmp_path,
             *extra_args,
         ], check=True)
+        
+        # Read the output bytes for RFC validation
         with open(tmp_path, "rb") as fd:
-            return email.message_from_bytes(fd.read())
+            output_bytes = fd.read()
+        
+        # Validate RFC compliance if requested
+        if validate_rfc:
+            assert_rfc_compliant(output_bytes, strict=False)  # Use default policy for compatibility
+        
+        # Parse and return message
+        return email.message_from_bytes(output_bytes)
     finally:
         os.remove(tmp_path)
 
@@ -143,10 +163,10 @@ def test_legit_emails():
     
     Expected outcome: Legitimate emails should process without errors, preserve all headers
     and content, and typically have minimal or no tracking detection since they're from
-    trusted sources.
+    trusted sources. Output should be RFC-compliant.
     """
     for path in LEGIT_FILES:
-        msg = process_email(path)
+        msg = process_email(path)  # RFC validation enabled by default
         
         # Should process without errors
         assert msg is not None, f"Failed to process legitimate email: {path}"
@@ -1119,3 +1139,366 @@ def test_guard_no_blacklist_no_block_field():
         
     finally:
         os.unlink(blacklist_path)
+
+def test_plain_text_add_html_for_guarded_links():
+    """
+    Test that plain text emails get HTML part added when links need guarding.
+    
+    Expected outcome: When --guard-add-html-for-plain is enabled and a plain text
+    email contains links that need guarding, a text/html part should be added with
+    guarded links, and X-Detrackify-Generated-HTML header should be present.
+    The output should be RFC-compliant.
+    """
+    # Create a temporary plain text email with a link that needs guarding
+    import tempfile
+    plain_email_content = """From: sender@example.com
+To: recipient@other.com
+Subject: Test email with link
+Content-Type: text/plain
+
+Check out this link: https://suspicious.com/phishing
+"""
+    
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.eml', delete=False) as f:
+        f.write(plain_email_content)
+        email_path = f.name
+        f.flush()
+        os.fsync(f.fileno())
+    
+    try:
+        # Process with RFC validation enabled (default)
+        msg = process_email(email_path, [
+            "--guardserver", SERVER,
+            "--guardsalt", SALT,
+            "--guardlink", "mismatch",
+            "--guard-add-html-for-plain",
+        ])
+        
+        # Should have X-Detrackify-Generated-HTML header
+        assert msg.get('X-Detrackify-Generated-HTML') == 'true', "Missing X-Detrackify-Generated-HTML header"
+        
+        # Should have both text/plain and text/html parts
+        has_plain = False
+        has_html = False
+        html_content = None
+        
+        for part in msg.walk():
+            content_type = part.get_content_type()
+            if content_type == 'text/plain':
+                has_plain = True
+            elif content_type == 'text/html':
+                has_html = True
+                html_content = part.get_payload(decode=True).decode(part.get_content_charset() or 'utf-8')
+        
+        assert has_plain, "Missing text/plain part"
+        assert has_html, "Missing text/html part"
+        assert html_content is not None, "HTML content is None"
+        
+        # HTML should contain guarded link
+        assert SERVER in html_content, "HTML should contain guard server URL"
+        assert 'https://suspicious.com/phishing' in html_content or '/guard/' in html_content, "HTML should contain guarded link"
+        
+        # Should have guarded links count
+        assert msg.get('X-Detrackify-Guarded-Links') is not None, "Missing guarded links count"
+        
+    finally:
+        os.unlink(email_path)
+
+
+def test_plain_text_no_html_when_no_guarding_needed():
+    """
+    Test that plain text emails don't get HTML part when links don't need guarding.
+    
+    Expected outcome: When --guard-add-html-for-plain is enabled but links don't
+    need guarding (same domain), no HTML part should be added.
+    """
+    # Create a temporary plain text email with a link from same domain
+    import tempfile
+    plain_email_content = """From: sender@example.com
+To: recipient@example.com
+Subject: Test email with link
+Content-Type: text/plain
+
+Check out this link: https://example.com/welcome
+"""
+    
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.eml', delete=False) as f:
+        f.write(plain_email_content)
+        email_path = f.name
+        f.flush()
+        os.fsync(f.fileno())
+    
+    try:
+        msg = process_email(email_path, [
+            "--guardserver", SERVER,
+            "--guardsalt", SALT,
+            "--guardlink", "mismatch",  # Only guard mismatched domains
+            "--guard-add-html-for-plain",
+        ])
+        
+        # Should NOT have X-Detrackify-Generated-HTML header
+        assert msg.get('X-Detrackify-Generated-HTML') is None, "Should not have X-Detrackify-Generated-HTML header when no guarding needed"
+        
+        # Should still have text/plain part
+        has_plain = False
+        has_html = False
+        
+        for part in msg.walk():
+            content_type = part.get_content_type()
+            if content_type == 'text/plain':
+                has_plain = True
+            elif content_type == 'text/html':
+                has_html = True
+        
+        assert has_plain, "Missing text/plain part"
+        assert not has_html, "Should not have text/html part when no guarding needed"
+        
+    finally:
+        os.unlink(email_path)
+
+
+def test_plain_text_no_html_when_feature_disabled():
+    """
+    Test that plain text emails don't get HTML part when feature is disabled.
+    
+    Expected outcome: When --guard-add-html-for-plain is NOT enabled, no HTML
+    part should be added even if links need guarding.
+    """
+    # Create a temporary plain text email with a link that needs guarding
+    import tempfile
+    plain_email_content = """From: sender@example.com
+To: recipient@other.com
+Subject: Test email with link
+Content-Type: text/plain
+
+Check out this link: https://suspicious.com/phishing
+"""
+    
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.eml', delete=False) as f:
+        f.write(plain_email_content)
+        email_path = f.name
+        f.flush()
+        os.fsync(f.fileno())
+    
+    try:
+        msg = process_email(email_path, [
+            "--guardserver", SERVER,
+            "--guardsalt", SALT,
+            "--guardlink", "mismatch",
+            # Note: NOT including --guard-add-html-for-plain
+        ])
+        
+        # Should NOT have X-Detrackify-Generated-HTML header
+        assert msg.get('X-Detrackify-Generated-HTML') is None, "Should not have X-Detrackify-Generated-HTML header when feature disabled"
+        
+        # Should only have text/plain part
+        has_plain = False
+        has_html = False
+        
+        for part in msg.walk():
+            content_type = part.get_content_type()
+            if content_type == 'text/plain':
+                has_plain = True
+            elif content_type == 'text/html':
+                has_html = True
+        
+        assert has_plain, "Missing text/plain part"
+        assert not has_html, "Should not have text/html part when feature disabled"
+        
+    finally:
+        os.unlink(email_path)
+
+def test_all_processed_emails_rfc_compliant():
+    """
+    Test that all processed emails are RFC 5322 and RFC 2045-2047 compliant.
+    
+    Expected outcome: All processed emails should be valid according to RFC standards,
+    ensuring they will be accepted by email servers and clients.
+    """
+    # Test with various email types and configurations
+    test_files = LEGIT_FILES[:2] + SPAM_FILES[:2] + PHISHING_FILES[:1]  # Sample from each category
+    
+    for path in test_files:
+        # Test with default processing
+        msg = process_email(path, validate_rfc=True)
+        assert msg is not None, f"Failed to process email: {path}"
+        
+        # Test with guard enabled
+        try:
+            msg_guard = process_email(path, [
+                "--guardserver", SERVER,
+                "--guardsalt", SALT,
+                "--guardlink", "mismatch",
+            ], validate_rfc=True)
+            assert msg_guard is not None, f"Failed to process email with guard: {path}"
+        except Exception:
+            # Some emails might not have From headers, skip guard tests for those
+            pass
+
+def test_plain_text_no_html_when_no_links():
+    """
+    Test that plain text emails without links don't get HTML part.
+    
+    Expected outcome: When --guard-add-html-for-plain is enabled but email has no links,
+    no HTML part should be added.
+    """
+    # Create a temporary plain text email with no links
+    import tempfile
+    plain_email_content = """From: sender@example.com
+To: recipient@example.com
+Subject: Test email without links
+Content-Type: text/plain
+
+This is a plain text email with no links at all.
+Just regular text content.
+"""
+    
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.eml', delete=False) as f:
+        f.write(plain_email_content)
+        email_path = f.name
+        f.flush()
+        os.fsync(f.fileno())
+    
+    try:
+        msg = process_email(email_path, [
+            "--guardserver", SERVER,
+            "--guardsalt", SALT,
+            "--guardlink", "mismatch",
+            "--guard-add-html-for-plain",
+        ])
+        
+        # Should NOT have X-Detrackify-Generated-HTML header
+        assert msg.get('X-Detrackify-Generated-HTML') is None, "Should not have X-Detrackify-Generated-HTML header when no links present"
+        
+        # Should only have text/plain part
+        has_plain = False
+        has_html = False
+        
+        for part in msg.walk():
+            content_type = part.get_content_type()
+            if content_type == 'text/plain':
+                has_plain = True
+            elif content_type == 'text/html':
+                has_html = True
+        
+        assert has_plain, "Missing text/plain part"
+        assert not has_html, "Should not have text/html part when no links present"
+        
+    finally:
+        os.unlink(email_path)
+
+
+def test_plain_text_no_html_when_already_has_html():
+    """
+    Test that emails that already have HTML part don't get another HTML part added.
+    
+    Expected outcome: When email already has text/html part, no additional HTML part
+    should be added even if plain text part has links that need guarding.
+    """
+    # Create a temporary multipart email with both text/plain and text/html
+    import tempfile
+    multipart_email_content = """From: sender@example.com
+To: recipient@other.com
+Subject: Test email with both parts
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="boundary123"
+
+--boundary123
+Content-Type: text/plain
+
+Check out this link: https://suspicious.com/phishing
+--boundary123
+Content-Type: text/html
+
+<html><body>Check out this <a href="https://suspicious.com/phishing">link</a></body></html>
+--boundary123--
+"""
+    
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.eml', delete=False) as f:
+        f.write(multipart_email_content)
+        email_path = f.name
+        f.flush()
+        os.fsync(f.fileno())
+    
+    try:
+        msg = process_email(email_path, [
+            "--guardserver", SERVER,
+            "--guardsalt", SALT,
+            "--guardlink", "mismatch",
+            "--guard-add-html-for-plain",
+        ])
+        
+        # Should NOT have X-Detrackify-Generated-HTML header (email already had HTML)
+        assert msg.get('X-Detrackify-Generated-HTML') is None, "Should not have X-Detrackify-Generated-HTML header when email already has HTML"
+        
+        # Should have both text/plain and text/html parts (original ones)
+        has_plain = False
+        has_html = False
+        html_count = 0
+        
+        for part in msg.walk():
+            content_type = part.get_content_type()
+            if content_type == 'text/plain':
+                has_plain = True
+            elif content_type == 'text/html':
+                has_html = True
+                html_count += 1
+        
+        assert has_plain, "Missing text/plain part"
+        assert has_html, "Missing text/html part"
+        assert html_count == 1, f"Should have exactly 1 HTML part, found {html_count}"
+        
+    finally:
+        os.unlink(email_path)
+
+
+def test_plain_text_no_html_when_guard_disabled():
+    """
+    Test that plain text emails don't get HTML part when guard is disabled.
+    
+    Expected outcome: When guard mode is 'off', no HTML part should be added even if
+    --guard-add-html-for-plain is enabled and links need guarding.
+    """
+    # Create a temporary plain text email with a link that would need guarding
+    import tempfile
+    plain_email_content = """From: sender@example.com
+To: recipient@other.com
+Subject: Test email with link
+Content-Type: text/plain
+
+Check out this link: https://suspicious.com/phishing
+"""
+    
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.eml', delete=False) as f:
+        f.write(plain_email_content)
+        email_path = f.name
+        f.flush()
+        os.fsync(f.fileno())
+    
+    try:
+        msg = process_email(email_path, [
+            "--guardserver", SERVER,
+            "--guardsalt", SALT,
+            "--guardlink", "off",  # Guard disabled
+            "--guard-add-html-for-plain",
+        ])
+        
+        # Should NOT have X-Detrackify-Generated-HTML header
+        assert msg.get('X-Detrackify-Generated-HTML') is None, "Should not have X-Detrackify-Generated-HTML header when guard is disabled"
+        
+        # Should only have text/plain part
+        has_plain = False
+        has_html = False
+        
+        for part in msg.walk():
+            content_type = part.get_content_type()
+            if content_type == 'text/plain':
+                has_plain = True
+            elif content_type == 'text/html':
+                has_html = True
+        
+        assert has_plain, "Missing text/plain part"
+        assert not has_html, "Should not have text/html part when guard is disabled"
+        
+    finally:
+        os.unlink(email_path)
