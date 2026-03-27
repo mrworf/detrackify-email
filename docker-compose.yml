@@ -1,4 +1,4 @@
-# Docker Compose configuration for Detrackify Guard Server
+# Docker Compose configuration for Detrackify
 # See DOCKER.md for complete documentation and configuration options
 version: '3.8'
 
@@ -64,6 +64,34 @@ services:
     # The guard server listens on 0.0.0.0 by default in Docker (see docker-entrypoint.sh)
     # This is required so nginx and other containers can connect to it.
     # Do NOT use 127.0.0.1 here, or only processes inside the same container will be able to connect.
+
+  # LMTP proxy for email processing
+  detrackify-lmtp:
+    build:
+      context: .
+      dockerfile: Dockerfile.lmtp
+    container_name: detrackify-lmtp
+    ports:
+      - "10024:10024"
+    environment:
+      # Downstream LMTP target (required if no config file mounted)
+      - LMTP_DOWNSTREAM=dovecot:24
+      # Listen address (default: 0.0.0.0:10024 in Docker)
+      # - LMTP_LISTEN=0.0.0.0:10024
+      # Guard server settings (if using link protection)
+      # - GUARD_SERVER=http://detrackify-guard:9090
+      # - GUARD_SALT=your_secure_salt
+      # - GUARD_LINK=mismatch
+    volumes:
+      # Mount configuration file (preferred). Entry point auto-detects /app/config.yml.
+      - ./examples/config_lmtp.yml:/app/config.yml:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(3); s.connect(('127.0.0.1', 10024)); s.close()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   # Example with nginx reverse proxy
   nginx:

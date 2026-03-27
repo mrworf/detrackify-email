@@ -1,0 +1,37 @@
+# Detrackify LMTP Proxy Configuration
+#
+# This configuration runs detrackify as an LMTP proxy between your MTA
+# (e.g., Postfix) and your delivery agent (e.g., Dovecot).
+#
+# Typical mail flow:
+#   Postfix --LMTP:10024--> detrackify-lmtp --LMTP--> Dovecot
+#
+# Postfix main.cf example:
+#   virtual_transport = lmtp:inet:127.0.0.1:10024
+
+# Shared settings (used by both email processing and guard server)
+common:
+  salt: "your-secret-salt-here"
+  domain_aliases_file: domain_aliases.yml
+  blacklist_file: blacklist.yml
+  strip_param_prefix:
+    - "utm_"
+    - "fbclid"
+    - "gclid"
+
+# Email processor and LMTP server settings
+email:
+  # LMTP proxy settings
+  lmtp:
+    # Listen address: "host:port" for TCP or "/path/to/socket" for Unix socket
+    listen: "127.0.0.1:10024"
+    # Downstream LMTP target: where processed mail is forwarded
+    downstream: "/var/run/dovecot/lmtp"
+
+  # Link protection via guard server
+  guard:
+    server: http://localhost:9090
+    link: mismatch
+    capture_to: false
+    phishy: false
+    whitelist_file: guard_whitelist.yml

@@ -20,8 +20,10 @@ ALLOWED_COMMON_KEYS = {
 }
 
 ALLOWED_EMAIL_TOP = {
-    'verbose', 'strip', 'copy', 'guard', 'cache_file', 'rewrite',
+    'verbose', 'strip', 'copy', 'guard', 'cache_file', 'rewrite', 'lmtp',
 }
+
+ALLOWED_EMAIL_LMTP = {'listen', 'downstream'}
 
 ALLOWED_EMAIL_GUARD = {'server', 'link', 'capture_to', 'whitelist_file', 'phishy'}
 
@@ -81,6 +83,13 @@ def load_config_sections(path: str) -> Tuple[Dict[str, Any], Dict[str, Any], Dic
             if key not in ALLOWED_EMAIL_GUARD:
                 logging.warning("Unknown key in email.guard: '%s' ignored", key)
                 email['guard'].pop(key, None)
+
+    # Email lmtp subkeys
+    if isinstance(email.get('lmtp'), dict):
+        for key in list(email['lmtp'].keys()):
+            if key not in ALLOWED_EMAIL_LMTP:
+                logging.warning("Unknown key in email.lmtp: '%s' ignored", key)
+                email['lmtp'].pop(key, None)
 
     # Guard: unknown keys
     for key in list(guard.keys()):

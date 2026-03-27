@@ -1,7 +1,8 @@
 # Detrackify
 
-[![Build Status](https://github.com/mrworf/detrackify-email/workflows/Build%20and%20Publish%20Docker%20Image/badge.svg)](https://github.com/mrworf/detrackify-email/actions)
-[![Docker Image](https://img.shields.io/docker/image-size/ghcr.io/mrworf/detrackify-guard/latest)](https://ghcr.io/mrworf/detrackify-guard)
+[![Build Status](https://github.com/mrworf/detrackify-email/workflows/Build%20and%20Publish%20Docker%20Images/badge.svg)](https://github.com/mrworf/detrackify-email/actions)
+[![Docker Guard](https://img.shields.io/docker/image-size/ghcr.io/mrworf/detrackify-guard/latest?label=guard)](https://ghcr.io/mrworf/detrackify-guard)
+[![Docker LMTP](https://img.shields.io/docker/image-size/ghcr.io/mrworf/detrackify-lmtp/latest?label=lmtp)](https://ghcr.io/mrworf/detrackify-lmtp)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 **Detrackify** is a comprehensive email security tool that protects users from tracking pixels and phishing attempts. It processes emails to remove tracking mechanisms while preserving email formatting, and provides link protection through an optional guard server.
@@ -14,6 +15,14 @@
 - **Phishing Detection**: Automatically guards links when sender display names don't match email domains
 - **URL Parameter Stripping**: Removes tracking parameters from image URLs
 - **Blocklist/Whitelist Support**: Fine-grained control over allowed and blocked content
+
+### LMTP Proxy (`detrackify_lmtp.py`)
+- **Transparent Integration**: Sits between your MTA and delivery agent via LMTP
+- **No MTA Modifications**: Works as a standard LMTP service -- no pipe transports or filters needed
+- **Flexible Listening**: Supports both TCP and Unix socket connections
+- **Per-Recipient Delivery**: Full LMTP compliance with per-recipient status responses
+- **Failsafe**: Delivers original message if processing fails
+- **Docker Ready**: Dedicated container image for easy deployment
 
 ### Guard Server (`detrackify_guard.py`)
 - **Link Verification**: Validates rewritten links using cryptographic signatures
@@ -151,11 +160,38 @@ python detrackify_url.py \
 
 ## Integration
 
-### Email Server Integration
-Integrate with your MTA (Postfix, Exim, etc.) to process emails automatically:
+### LMTP Proxy (Recommended)
+
+The LMTP proxy is the easiest way to integrate detrackify with your mail server. It sits between your MTA and delivery agent:
+
+```
+Postfix --LMTP:10024--> detrackify-lmtp --LMTP--> Dovecot
+```
 
 ```bash
-# Example Postfix integration
+# Start the LMTP proxy
+python detrackify_lmtp.py \
+  --config config.yml \
+  --listen 127.0.0.1:10024 \
+  --downstream /var/run/dovecot/lmtp
+
+# Or with Docker
+docker-compose up -d detrackify-lmtp
+```
+
+Configure Postfix to deliver via the LMTP proxy:
+```
+# /etc/postfix/main.cf
+virtual_transport = lmtp:inet:127.0.0.1:10024
+```
+
+See [EMAIL_PROCESSING.md](EMAIL_PROCESSING.md) for detailed LMTP configuration.
+
+### Pipe Filter Integration (Alternative)
+
+For direct MTA integration without LMTP:
+
+```bash
 python detrackify_email.py \
   --guardserver https://guard.yourdomain.com \
   --guardsalt your_shared_salt \

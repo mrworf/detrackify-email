@@ -33,6 +33,9 @@ class Configuration:
     CFG_GUARD_PHISHY = 'guard.phishy'
     CFG_GUARD_ADD_HTML_FOR_PLAIN = 'guard.add_html_for_plain'
 
+    CFG_LMTP_LISTEN = 'lmtp.listen'
+    CFG_LMTP_DOWNSTREAM = 'lmtp.downstream'
+
     CFG_DOMAIN_ALIASES_FILE = 'domain_aliases_file'
     CFG_WHITELIST_FILE = 'whitelist_file'
     CFG_BLACKLIST_FILE = 'blacklist_file'
@@ -76,6 +79,10 @@ class Configuration:
                 'phishy': False,
                 'add_html_for_plain': False
             },
+            'lmtp': {
+                'listen': '127.0.0.1:10024',
+                'downstream': '/var/run/dovecot/lmtp',
+            },
             'domain_aliases_file': 'domain_aliases.yml',
             'whitelist_file': None,
             'blacklist_file': None,
@@ -99,7 +106,7 @@ class Configuration:
             # Build unified settings from validated sections
             unified_settings: Dict[str, Any] = {}
             # Email-top level keys we accept
-            for key in ('verbose', 'strip', 'copy', 'guard', 'cache_file', 'rewrite'):
+            for key in ('verbose', 'strip', 'copy', 'guard', 'cache_file', 'rewrite', 'lmtp'):
                 if key in email_settings:
                     unified_settings[key] = email_settings[key]
 

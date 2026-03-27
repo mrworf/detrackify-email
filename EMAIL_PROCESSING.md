@@ -348,7 +348,77 @@ Enable with `--hardfail`:
 
 ## Integration Examples
 
-### Postfix Integration
+### LMTP Proxy (Recommended)
+
+The LMTP proxy (`detrackify_lmtp.py`) is the simplest way to integrate detrackify with any MTA. It runs as a standalone LMTP service that receives mail, processes it, and forwards it to your delivery agent.
+
+```
+MTA (Postfix) --LMTP:10024--> detrackify-lmtp --LMTP--> Dovecot
+```
+
+#### Starting the LMTP proxy
+
+```bash
+# With a config file
+python detrackify_lmtp.py --config config.yml
+
+# With CLI arguments
+python detrackify_lmtp.py \
+  --listen 127.0.0.1:10024 \
+  --downstream /var/run/dovecot/lmtp \
+  --guardserver https://guard.example.com \
+  --guardsalt your_salt \
+  --guardlink mismatch
+
+# With a Unix socket listener
+python detrackify_lmtp.py \
+  --listen /var/spool/detrackify/lmtp.sock \
+  --downstream /var/run/dovecot/lmtp
+```
+
+#### LMTP Command Line Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--listen` | Listen address: `host:port` or `/path/to/socket` | `127.0.0.1:10024` |
+| `--downstream` | Downstream LMTP: `host:port` or `/path/to/socket` | `/var/run/dovecot/lmtp` |
+| `--config` | Path to YAML configuration file | None |
+| `--verbose` | Enable verbose logging | False |
+| `--debug` | Enable early debug logging | False |
+| `--logfile` | Save log to file instead of stderr | None |
+
+All guard and blocklist options from the email processor are also supported (`--guardserver`, `--guardsalt`, `--guardlink`, etc.).
+
+#### YAML Configuration
+
+```yaml
+email:
+  lmtp:
+    listen: "127.0.0.1:10024"
+    downstream: "/var/run/dovecot/lmtp"
+  guard:
+    server: http://localhost:9090
+    link: mismatch
+```
+
+#### Postfix LMTP Integration
+
+In `/etc/postfix/main.cf`:
+```
+virtual_transport = lmtp:inet:127.0.0.1:10024
+```
+
+That is all that is needed. No pipe transports, no content filters -- Postfix delivers directly to the LMTP proxy, which processes the email and forwards it to Dovecot (or any other LMTP-capable delivery agent).
+
+#### Docker Deployment
+
+```bash
+docker-compose up -d detrackify-lmtp
+```
+
+See [DOCKER.md](DOCKER.md) for complete Docker deployment instructions.
+
+### Postfix Pipe Integration (Alternative)
 
 Add to `/etc/postfix/master.cf`:
 ```

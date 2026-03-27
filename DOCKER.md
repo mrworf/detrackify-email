@@ -478,6 +478,91 @@ options:
 
 The guard server will handle link protection and warning pages for suspicious links detected in emails.
 
+## LMTP Proxy Container
+
+The LMTP proxy container runs `detrackify_lmtp.py` as a standalone LMTP service for transparent email processing between your MTA and delivery agent.
+
+### Quick Start
+
+```bash
+# Start the LMTP proxy
+docker-compose up -d detrackify-lmtp
+
+# Or build and run directly
+docker build -f Dockerfile.lmtp -t detrackify-lmtp .
+docker run -d \
+  --name detrackify-lmtp \
+  -p 10024:10024 \
+  -v $(pwd)/examples/config_lmtp.yml:/app/config.yml:ro \
+  -e LMTP_DOWNSTREAM=dovecot:24 \
+  detrackify-lmtp
+```
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `LMTP_LISTEN` | Listen address (`host:port` or socket path) | `0.0.0.0:10024` |
+| `LMTP_DOWNSTREAM` | Downstream LMTP target (required if no config file) | None |
+| `GUARD_SERVER` | Guard server URL | None |
+| `GUARD_SALT` | Salt for guarded links | None |
+| `GUARD_LINK` | Guard link mode: `off`, `mismatch`, `always` | `off` |
+| `GUARD_CAPTURE_TO` | Capture recipient in guarded links (`true`/`false`) | `false` |
+| `GUARD_PHISHY` | Enable phishing detection (`true`/`false`) | `false` |
+| `GUARD_WHITELIST_FILE` | Path to guard whitelist YAML file | None |
+| `DOMAIN_ALIASES_FILE` | Path to domain aliases YAML file | None |
+| `BLACKLIST_FILE` | Path to blacklist YAML file | None |
+| `WHITELIST_FILE` | Path to whitelist YAML file | None |
+| `CACHE_FILE` | Path to cache YAML file | None |
+| `STRIP_PARAM_PREFIX` | Comma-separated list of parameter prefixes to strip | None |
+| `VERBOSE` | Enable verbose logging (`true`/`false`) | `false` |
+| `DEBUG` | Enable debug logging (`true`/`false`) | `false` |
+| `LOGFILE` | Path to log file | None |
+
+### Docker Compose
+
+The `docker-compose.yml` includes a `detrackify-lmtp` service:
+
+```yaml
+detrackify-lmtp:
+  build:
+    context: .
+    dockerfile: Dockerfile.lmtp
+  container_name: detrackify-lmtp
+  ports:
+    - "10024:10024"
+  volumes:
+    - ./examples/config_lmtp.yml:/app/config.yml:ro
+  environment:
+    - LMTP_DOWNSTREAM=dovecot:24
+  restart: unless-stopped
+```
+
+### Full Stack Deployment
+
+Run both the LMTP proxy and guard server together:
+
+```bash
+docker-compose up -d detrackify-lmtp detrackify-guard
+```
+
+Mail flow:
+```
+Postfix --LMTP:10024--> [detrackify-lmtp] --LMTP--> Dovecot
+                              |
+                              +--> [detrackify-guard :9090] (link warnings)
+```
+
+Configure the LMTP proxy to use the guard server by setting `GUARD_SERVER=http://detrackify-guard:9090` or via the config file.
+
+### Health Check
+
+The container includes a TCP socket health check on the LMTP port:
+
+```bash
+docker inspect detrackify-lmtp | grep Health -A 10
+```
+
 ## Support
 
 For issues and questions:

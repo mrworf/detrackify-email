@@ -7,3 +7,4 @@ pylint
 Flask
 gunicorn
 rjsmin
+aiosmtpd
