@@ -60,6 +60,7 @@ COPYING
 # Extras (examples and additional configurations)
 extras/*
 !extras/docker-entrypoint.sh
+!extras/docker-entrypoint-lmtp.sh
 
 # Tests
 tests/
